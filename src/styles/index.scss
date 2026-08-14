@@ -1,0 +1,9 @@
+// ==========================================
+// MAIN SCSS INDEX - Imports all stylesheets
+// ==========================================
+
+@use './variables' as *;
+@use './mixins' as *;
+@use './globals';
+@use './components';
+@use './additional';
