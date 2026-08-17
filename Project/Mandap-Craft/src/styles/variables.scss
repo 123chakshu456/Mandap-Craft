@@ -1,0 +1,118 @@
+// ==========================================
+// SCSS VARIABLES - Design System
+// ==========================================
+
+// Colors
+$color-primary-dark: #0f2f2f;     // teal-900
+$color-primary-base: #1a4d4d;     // teal-800
+$color-primary-light: #2d7a7a;    // teal-700
+$color-primary-lighter: #4da6a6;  // teal-600
+
+$color-accent-base: #d4af37;      // warm gold
+$color-accent-light: #e6c757;     // lighter gold
+$color-accent-lighter: #f5e6a1;   // very light gold
+
+// Neutral Colors
+$color-black: #0a0a0a;
+$color-dark: #1a1a1a;
+$color-dark-gray: #2a2a2a;
+$color-medium-gray: #404040;
+$color-gray: #666666;
+$color-light-gray: #b0b0b0;
+$color-lighter: #d9d9d9;
+$color-very-light: #f0f0f0;
+$color-white: #ffffff;
+$color-warm-cream: #faf7f2;
+$color-pale-gold: #f5f1e8;
+
+// Semantic Colors
+$color-success: #10b981;
+$color-warning: #f59e0b;
+$color-error: #ef4444;
+$color-info: #3b82f6;
+
+// Jewel Tones
+$color-sapphire: #0f3f7f;
+$color-emerald: #1b5e4d;
+$color-ruby: #7d1935;
+$color-amethyst: #4a1a6f;
+$color-topaz: #cc7722;
+
+// Typography
+$font-serif: 'Playfair Display', Georgia, serif;
+$font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-base: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 30px;
+$font-size-4xl: 36px;
+$font-size-5xl: 48px;
+$font-size-6xl: 60px;
+
+$line-height-tight: 1.1;
+$line-height-snug: 1.3;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.625;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+$font-weight-black: 900;
+
+// Spacing
+$spacing-0: 0;
+$spacing-0-5: 2px;
+$spacing-1: 4px;
+$spacing-1-5: 6px;
+$spacing-2: 8px;
+$spacing-2-5: 10px;
+$spacing-3: 12px;
+$spacing-3-5: 14px;
+$spacing-4: 16px;
+$spacing-4-5: 18px;
+$spacing-5: 20px;
+$spacing-5-5: 22px;
+$spacing-6: 24px;
+$spacing-7: 28px;
+$spacing-8: 32px;
+$spacing-9: 36px;
+$spacing-10: 40px;
+$spacing-12: 48px;
+$spacing-14: 56px;
+$spacing-16: 64px;
+$spacing-20: 80px;
+$spacing-24: 96px;
+
+// Border Radius
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-2xl: 24px;
+$radius-3xl: 32px;
+$radius-full: 9999px;
+
+// Shadows
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// Transitions
+$transition-fast: 150ms;
+$transition-base: 300ms;
+$transition-slow: 500ms;
