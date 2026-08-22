@@ -1,0 +1,375 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.login-page-wrapper {
+  min-height: 60vh;
+  @include flex-center;
+  padding: $spacing-12 $spacing-4;
+  background: radial-gradient(circle at 50% 50%, rgba($color-very-light, 0.6) 0%, rgba($color-white, 1) 100%);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba($color-accent-base, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+}
+
+.login-modal {
+  width: 100%;
+  max-width: 480px;
+  background-color: $color-white;
+  border-radius: $radius-2xl;
+  box-shadow: 0 20px 40px rgba($color-primary-dark, 0.08);
+  border: 1px solid rgba($color-primary-dark, 0.05);
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  transition: transform $transition-base ease, box-shadow $transition-base ease;
+
+  &:hover {
+    box-shadow: 0 30px 60px rgba($color-primary-dark, 0.12);
+  }
+
+  .modal-banner {
+    background-color: $color-primary-dark;
+    padding: $spacing-8 $spacing-6;
+    text-align: center;
+    color: $color-white;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, $color-accent-base, #eab308, $color-accent-base);
+    }
+
+    .brand-title {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.08em;
+      @include heading-serif;
+      color: $color-accent-base;
+      margin-bottom: $spacing-1;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand-subtitle {
+      display: block;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba($color-white, 0.7);
+    }
+  }
+
+  .modal-body {
+    padding: $spacing-8 $spacing-8;
+
+    h2 {
+      @include heading-serif;
+      font-size: $font-size-xl;
+      color: $color-primary-dark;
+      margin-bottom: $spacing-2;
+      font-weight: $font-weight-bold;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: $font-size-sm;
+      color: $color-light-gray;
+      line-height: 1.6;
+      text-align: center;
+      margin-bottom: $spacing-6;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-4;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-1-5;
+
+        label {
+          font-size: $font-size-xs;
+          font-weight: $font-weight-bold;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: $color-dark;
+          text-align: left;
+        }
+
+        .input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+
+          .icon {
+            position: absolute;
+            left: $spacing-3-5;
+            width: 16px;
+            height: 16px;
+            color: $color-light-gray;
+            transition: color $transition-fast ease;
+          }
+
+          input {
+            width: 100%;
+            padding: $spacing-3 $spacing-4 $spacing-3 $spacing-10;
+            border-radius: $radius-lg;
+            border: 1px solid $color-lighter;
+            background-color: $color-very-light;
+            font-size: $font-size-sm;
+            color: $color-dark;
+            transition: all $transition-base ease;
+
+            &:focus {
+              outline: none;
+              border-color: $color-primary-base;
+              background-color: $color-white;
+              box-shadow: 0 0 0 3px rgba($color-primary-base, 0.08);
+
+              +.icon {
+                color: $color-primary-dark;
+              }
+            }
+          }
+        }
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: $spacing-2-5;
+        margin-top: $spacing-1;
+
+        input[type="checkbox"] {
+          margin-top: 3px;
+          cursor: pointer;
+          accent-color: $color-primary-dark;
+        }
+
+        label {
+          font-size: $font-size-xs;
+          color: $color-light-gray;
+          line-height: 1.5;
+          cursor: pointer;
+          text-align: left;
+
+          a {
+            color: $color-primary-dark;
+            text-decoration: underline;
+            font-weight: $font-weight-medium;
+
+            &:hover {
+              color: $color-primary-base;
+            }
+          }
+        }
+      }
+
+      .submit-btn {
+        margin-top: $spacing-2;
+        padding: $spacing-3;
+        border-radius: $radius-lg;
+        background-color: $color-primary-dark;
+        color: $color-white;
+        border: none;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-bold;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all $transition-base ease;
+        box-shadow: 0 4px 10px rgba($color-primary-dark, 0.15);
+
+        &:hover {
+          background-color: $color-primary-base;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 15px rgba($color-primary-dark, 0.25);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+
+    .switch-mode {
+      margin-top: $spacing-6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: $spacing-2;
+      font-size: $font-size-xs;
+      color: $color-light-gray;
+      border-top: 1px dashed $color-lighter;
+      padding-top: $spacing-4;
+
+      button {
+        background: none;
+        border: none;
+        color: $color-primary-dark;
+        font-weight: $font-weight-bold;
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: $font-size-xs;
+        padding: 0;
+
+        &:hover {
+          color: $color-primary-base;
+        }
+      }
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: $spacing-5 0;
+      color: $color-light-gray;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.1em;
+
+      &::before,
+      &::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid $color-lighter;
+      }
+
+      &:not(:empty)::before {
+        margin-right: $spacing-4;
+      }
+
+      &:not(:empty)::after {
+        margin-left: $spacing-4;
+      }
+    }
+
+    .google-btn {
+      width: 100%;
+      @include flex-center;
+      gap: $spacing-3;
+      padding: $spacing-3;
+      border-radius: $radius-lg;
+      background-color: $color-white;
+      color: $color-dark;
+      border: 1px solid $color-lighter;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+      transition: all $transition-base ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+
+      &:hover {
+        background-color: $color-very-light;
+        border-color: $color-light-gray;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .google-icon {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  // Profile Card Specific Styles
+  .profile-card {
+    padding: $spacing-8 $spacing-8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: $spacing-6;
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: $radius-full;
+      background: linear-gradient(135deg, $color-primary-dark, $color-primary-base);
+      color: $color-accent-base;
+      font-size: $font-size-3xl;
+      font-weight: $font-weight-bold;
+      @include flex-center;
+      box-shadow: 0 8px 20px rgba($color-primary-dark, 0.2);
+      border: 3px solid $color-white;
+    }
+
+    .profile-info {
+      .name {
+        font-size: $font-size-xl;
+        font-weight: $font-weight-bold;
+        color: $color-primary-dark;
+        @include heading-serif;
+        margin-bottom: $spacing-1;
+      }
+
+      .email {
+        font-size: $font-size-sm;
+        color: $color-light-gray;
+      }
+    }
+
+    .profile-actions {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-3;
+      width: 100%;
+
+      .btn-action {
+        width: 100%;
+        padding: $spacing-3;
+        border-radius: $radius-lg;
+        background-color: $color-primary-dark;
+        color: $color-white;
+        border: none;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-bold;
+        cursor: pointer;
+        transition: all $transition-base ease;
+
+        &:hover {
+          background-color: $color-primary-base;
+          transform: translateY(-1px);
+        }
+      }
+
+      .btn-logout {
+        width: 100%;
+        padding: $spacing-3;
+        border-radius: $radius-lg;
+        background-color: transparent;
+        color: #991b1b;
+        border: 1px solid rgba(#991b1b, 0.2);
+        font-size: $font-size-sm;
+        font-weight: $font-weight-bold;
+        cursor: pointer;
+        transition: all $transition-base ease;
+
+        &:hover {
+          background-color: rgba(#991b1b, 0.05);
+          border-color: #991b1b;
+        }
+      }
+    }
+  }
+}
