@@ -9,35 +9,19 @@ import {
   Sparkles,
   Phone,
   MessageSquare,
-  ChevronDown,
   Menu,
   ArrowRight,
-  ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 
-import {
-  CATEGORIES,
-  CATALOG_PRODUCTS,
-  type CategoryData,
-  type ProductItem,
-} from '../constants';
-import { useCart } from '../hooks/useCart';
-import { useToast } from '../hooks/useToast';
-import { authApi, searchApi, type SearchResults } from '../services/api';
-
-// Custom Debounce Hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-  return debouncedValue;
-}
+import { CATEGORIES } from '../constants';
+import { useCart, CartDrawer } from '../features/orders';
+import { useToast, useDebounce } from '../shared/hooks';
+import { useProducts, ProductDetailModal, ShortlistDrawer } from '../features/products';
+import { CategoryMegaMenu } from '../features/categories';
+import { authApi } from '../features/auth';
+import { searchApi, type SearchResults } from '../features/search';
+import type { Product } from '../shared/types/models.types';
 
 export default function MainLayout() {
   const navigate = useNavigate();
@@ -48,9 +32,12 @@ export default function MainLayout() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStyleFilter, setSelectedStyleFilter] = useState('All');
 
+  // Products from API (replaces CATALOG_PRODUCTS static import)
+  const { products, isLoading: isLoadingProducts, refetch: refetchProducts } = useProducts();
+
   // Global Search states
   const [searchResults, setSearchResults] = useState<SearchResults>({ orders: [], quotes: [], posts: [] });
-  const [localProductResults, setLocalProductResults] = useState<ProductItem[]>([]);
+  const [localProductResults, setLocalProductResults] = useState<Product[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -62,6 +49,7 @@ export default function MainLayout() {
 
   // Mega-Menu & Mobile Nav States
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [hoveredSubcategory, setHoveredSubcategory] = useState<string | null>(null);
   const [isMegaMenuPinned, setIsMegaMenuPinned] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>('wedding');
@@ -156,17 +144,18 @@ export default function MainLayout() {
     }
 
     const query = val.toLowerCase().trim();
-    const matches = CATALOG_PRODUCTS.filter((item) => {
+    const matches = products.filter((item) => {
+      const feats = Array.isArray(item.features) ? item.features : [];
       return (
         item.name.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query) ||
-        item.categoryId.toLowerCase().includes(query) ||
-        item.subcategoryId.toLowerCase().includes(query) ||
-        item.features.some((f) => f.toLowerCase().includes(query))
+        (item.description && item.description.toLowerCase().includes(query)) ||
+        (item.categoryId && item.categoryId.toLowerCase().includes(query)) ||
+        (item.subcategoryId && item.subcategoryId.toLowerCase().includes(query)) ||
+        feats.some((f: any) => typeof f === 'string' && f.toLowerCase().includes(query))
       );
     });
 
-    setLocalProductResults(matches.slice(0, 5)); // Limit to 5 suggestions
+    setLocalProductResults(matches.slice(0, 5) as any); // Limit to 5 suggestions
   };
 
   // Submit search form (Redirect to home page catalog)
@@ -190,7 +179,7 @@ export default function MainLayout() {
     }, 100);
   };
 
-  const handleSelectProduct = (product: ProductItem) => {
+  const handleSelectProduct = (product: any) => {
     setSelectedProductDetail(product);
     setShowSuggestions(false);
     setSearchQuery('');
@@ -324,6 +313,14 @@ export default function MainLayout() {
       menuLeaveTimeoutRef.current = null;
     }
     setHoveredCategory(catId);
+    const catData = CATEGORIES.find((c) => c.id === catId);
+    if (catData && catData.subsections.length > 0) {
+      setHoveredSubcategory((prev) => {
+        // If current hoveredSubcategory belongs to this category, keep it; else reset to first subsection
+        const exists = catData.subsections.some((s) => s.id === prev);
+        return exists ? prev : catData.subsections[0].id;
+      });
+    }
   };
 
   const handleCategoryMouseLeave = () => {
@@ -377,10 +374,6 @@ export default function MainLayout() {
     setIsMobileMenuOpen(false);
     setSelectedProductDetail(item);
   };
-
-  const activeCategoryData: CategoryData | undefined = CATEGORIES.find(
-    (c) => c.id === (hoveredCategory || 'wedding')
-  );
 
   return (
     <div className="app">
@@ -504,162 +497,42 @@ export default function MainLayout() {
               </Link>
             )}
 
+            {/* ADMIN PANEL BUTTON — only for ADMIN role */}
+            {currentUser && (currentUser as any).role === 'ADMIN' && (
+              <Link
+                to="/admin"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  padding: '6px 12px', borderRadius: '7px',
+                  background: 'linear-gradient(135deg, #312e81, #4c1d95)',
+                  color: '#a5b4fc', textDecoration: 'none',
+                  fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em',
+                  border: '1px solid #4338ca', transition: 'opacity 0.15s',
+                  flexShrink: 0,
+                }}
+                title="Admin Dashboard"
+              >
+                ⚙ Admin
+              </Link>
+            )}
+
           </div>
         </div>
 
         {/* ==========================================
             MEGA-MENU CATEGORY NAVIGATION BAR
            ========================================== */}
-        <nav className="category-navbar">
-          <div className="category-navbar-container">
-            <ul className="category-nav-list" onMouseLeave={handleCategoryMouseLeave}>
-
-              {/* All Categories Link */}
-              <li className="category-nav-item">
-                <button
-                  type="button"
-                  onClick={() => handleCategoryClick('all')}
-                  className={`category-nav-link ${selectedCategory === 'all' ? 'active' : ''}`}
-                >
-                  <span className="cat-icon">✨</span>
-                  <span className="cat-label">All Collections</span>
-                </button>
-              </li>
-
-              {/* 6 Primary Category Tabs */}
-              {CATEGORIES.map((category) => {
-                const isHovered = hoveredCategory === category.id;
-                const isSelected = selectedCategory === category.id;
-
-                return (
-                  <li
-                    key={category.id}
-                    className="category-nav-item"
-                    onMouseEnter={() => handleCategoryMouseEnter(category.id)}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleCategoryClick(category.id)}
-                      className={`category-nav-link ${isSelected ? 'active' : ''} ${isHovered ? 'hovered' : ''}`}
-                    >
-                      <span className="cat-icon">{category.icon}</span>
-                      <span className="cat-label">{category.title}</span>
-                      <ChevronDown className={`cat-chevron ${isHovered ? 'rotate' : ''}`} />
-                      {category.badge && (
-                        <span className="nav-pill-badge">{category.badge}</span>
-                      )}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          {/* ==========================================
-              MEGA-MENU FLYOUT PANEL (Pepperfry Style)
-             ========================================== */}
-          {hoveredCategory && activeCategoryData && (
-            <div
-              className="megamenu-panel"
-              onMouseEnter={() => handleCategoryMouseEnter(hoveredCategory)}
-              onMouseLeave={handleCategoryMouseLeave}
-            >
-              <div className="megamenu-container">
-
-                {/* Left: Subsections Multi-Column List */}
-                <div className="megamenu-columns">
-
-                  <div className="megamenu-header-row">
-                    <div className="megamenu-title-group">
-                      <span className="megamenu-tag">{activeCategoryData.icon} {activeCategoryData.title}</span>
-                      <h3>{activeCategoryData.tagline}</h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleCategoryClick(activeCategoryData.id)}
-                      className="megamenu-view-all"
-                    >
-                      View All {activeCategoryData.shortTitle} ({activeCategoryData.subsections.length} Subcategories)
-                      <ArrowRight className="icon" />
-                    </button>
-                  </div>
-
-                  <div className="megamenu-subsections-grid">
-                    {activeCategoryData.subsections.map((sub) => {
-                      return (
-                        <div key={sub.id} className="megamenu-column-group">
-                          <button
-                            type="button"
-                            onClick={() => handleSubcategoryClick(activeCategoryData.id, sub.id)}
-                            className="megamenu-heading-btn"
-                          >
-                            <span className="heading-title">{sub.title}</span>
-                            <ChevronRight className="icon" />
-                          </button>
-                          <p className="column-desc">{sub.description}</p>
-                          <ul className="megamenu-item-list">
-                            {sub.popularItems.map((item, i) => (
-                              <li key={i}>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSubcategoryClick(activeCategoryData.id, sub.id)}
-                                  className="megamenu-item-link"
-                                >
-                                  {item}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                </div>
-
-                {/* Right: Spotlight Promotional Card */}
-                <div className="megamenu-spotlight">
-                  <div className="spotlight-card">
-                    <div className="spotlight-image">
-                      <img
-                        src={activeCategoryData.promo.image}
-                        alt={activeCategoryData.promo.title}
-                      />
-                      <div className="spotlight-badge">
-                        {activeCategoryData.promo.badge}
-                      </div>
-                      {activeCategoryData.promo.discount && (
-                        <div className="spotlight-discount">
-                          {activeCategoryData.promo.discount}
-                        </div>
-                      )}
-                    </div>
-                    <div className="spotlight-body">
-                      <h4>{activeCategoryData.promo.title}</h4>
-                      <p>{activeCategoryData.promo.subtitle}</p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (activeCategoryData.promo.targetSubcategory) {
-                            handleSubcategoryClick(activeCategoryData.id, activeCategoryData.promo.targetSubcategory);
-                          } else {
-                            handleCategoryClick(activeCategoryData.id);
-                          }
-                        }}
-                        className="spotlight-btn"
-                      >
-                        {activeCategoryData.promo.ctaText}
-                        <ArrowRight className="icon" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          )}
-
-        </nav>
+        <CategoryMegaMenu
+          categories={CATEGORIES}
+          selectedCategory={selectedCategory}
+          hoveredCategory={hoveredCategory}
+          hoveredSubcategory={hoveredSubcategory}
+          onCategoryMouseEnter={handleCategoryMouseEnter}
+          onCategoryMouseLeave={handleCategoryMouseLeave}
+          onSubcategoryHover={(subId) => setHoveredSubcategory(subId)}
+          onCategoryClick={handleCategoryClick}
+          onSubcategoryClick={handleSubcategoryClick}
+        />
       </header>
 
       {/* MOBILE NAVIGATION DRAWER */}
@@ -797,6 +670,9 @@ export default function MainLayout() {
             handleToggleShortlist,
             setSelectedProductDetail: handleSelectProductDetail,
             showToast,
+            products,
+            isLoadingProducts,
+            refetchProducts,
           }}
         />
       </main>
@@ -867,10 +743,12 @@ export default function MainLayout() {
             <div className="footer-section">
               <h4>Wedding &amp; Furniture</h4>
               <ul>
+                <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'ceilings')}>Ceilings &amp; Canopies</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'mandaps')}>Mandaps</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'tents')}>Tents &amp; Shamianas</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'canopies')}>Canopies</button></li>
-                <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'chairs')}>Chairs</button></li>
+                <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'designer-chairs')}>Designer Chairs</button></li>
+                <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'plastic-chairs')}>Plastic Chairs</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'tables')}>Tables</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'sofas')}>Sofas &amp; Seating</button></li>
               </ul>
@@ -905,8 +783,27 @@ export default function MainLayout() {
           </div>
 
           {/* Bottom Copyright Block */}
-          <div className="footer-bottom">
+          <div className="footer-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
             <p>© 2026 Shiv Shakti Events Mart Pvt Ltd. All Rights Reserved. Crafted for royal celebrations.</p>
+            <Link
+              to="/admin"
+              style={{
+                color: '#d4af37',
+                textDecoration: 'none',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(212, 175, 55, 0.1)',
+                padding: '5px 14px',
+                borderRadius: '8px',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ⚙ Admin Cockpit →
+            </Link>
           </div>
 
         </div>
@@ -917,200 +814,33 @@ export default function MainLayout() {
          ========================================== */}
 
       {/* 1. SHORTLIST / FAVORITES DRAWER */}
-      <div className={`shortlist-modal ${isShortlistOpen ? 'open' : ''}`}>
-        <div className="modal-header">
-          <h2>My Saved Favorites ({shortlist.length})</h2>
-          <button onClick={() => setIsShortlistOpen(false)} className="close-btn">
-            <X className="icon" />
-          </button>
-        </div>
-
-        <div className="modal-content">
-          <div className="shortlist-items">
-            {shortlist.length > 0 ? (
-              CATALOG_PRODUCTS
-                .filter(item => shortlist.includes(item.id))
-                .map(item => (
-                  <div key={item.id} className="item">
-                    <div className="item-image">
-                      <img src={item.image} alt={item.name} />
-                    </div>
-                    <div className="item-info">
-                      <div className="item-name">{item.name}</div>
-                      <div className="item-price">₹{item.price.toLocaleString()}</div>
-                    </div>
-                    <button
-                      onClick={() => handleToggleShortlist(item.id, item.name)}
-                      className="remove-btn"
-                    >
-                      <X className="icon" />
-                    </button>
-                  </div>
-                ))
-            ) : (
-              <div className="empty">
-                <Heart className="icon" />
-                <p>You haven't shortlisted any luxury concepts yet.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      {isShortlistOpen && <div className="modal-overlay" onClick={() => setIsShortlistOpen(false)}></div>}
+      <ShortlistDrawer
+        isOpen={isShortlistOpen}
+        onClose={() => setIsShortlistOpen(false)}
+        shortlist={shortlist}
+        products={products}
+        onToggleShortlist={handleToggleShortlist}
+      />
 
       {/* 2. BOOKINGS & CART DRAWER */}
-      <div className={`cart-modal ${isCartOpen ? 'open' : ''}`}>
-        <div className="modal-header">
-          <h2>Selected Booking Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h2>
-          <button onClick={() => setIsCartOpen(false)} className="close-btn">
-            <X className="icon" />
-          </button>
-        </div>
-
-        <div className="modal-content">
-          <div className="shortlist-items">
-            {cart.length > 0 ? (
-              cart.map((item, idx) => (
-                <div key={idx} className="item">
-                  <div className="item-image">
-                    <img src={item.image} alt={item.name} />
-                  </div>
-                  <div className="item-info">
-                    <div className="item-name">{item.name}</div>
-                    <div className="item-price">₹{item.price.toLocaleString()}</div>
-                    <div className="item-quantity-control" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleDecrementCart(item.id)}
-                        style={{ padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#f0f0f0', cursor: 'pointer', fontSize: '12px' }}
-                      >
-                        -
-                      </button>
-                      <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{item.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCart(item, item.type)}
-                        style={{ padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#f0f0f0', cursor: 'pointer', fontSize: '12px' }}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveFromCart(item.id)}
-                    className="remove-btn"
-                  >
-                    <X className="icon" />
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div className="empty">
-                <ShoppingBag className="icon" />
-                <p>Your cart is empty.</p>
-              </div>
-            )}
-          </div>
-
-          {cart.length > 0 && (
-            <div className="total-section">
-              <span className="total-label">Total Booking Estimate</span>
-              <div className="total-value">
-                ₹{cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}
-              </div>
-              <button
-                onClick={() => {
-                  setIsCartOpen(false);
-                  navigate('/checkout');
-                }}
-                className="checkout-btn"
-              >
-                Checkout and Secure Slots
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-      {isCartOpen && <div className="modal-overlay" onClick={() => setIsCartOpen(false)}></div>}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        onDecrement={handleDecrementCart}
+        onIncrement={(item, type) => handleAddToCart(item, type)}
+        onRemove={handleRemoveFromCart}
+        onCheckout={() => navigate('/checkout')}
+      />
 
       {/* 3. PRODUCT QUICK VIEW MODAL */}
-      {selectedProductDetail && (
-        <div className="product-modal">
-          <div className="modal-overlay" onClick={() => setSelectedProductDetail(null)}></div>
-          <div className="modal-inner" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setSelectedProductDetail(null)} className="close-btn">
-              <X className="icon" />
-            </button>
-            <div className="product-grid">
-              <div className="product-image">
-                <img src={selectedProductDetail.image} alt={selectedProductDetail.name} />
-              </div>
-              <div className="product-details">
-                <div>
-                  <h1>{selectedProductDetail.name}</h1>
-                  <div className="rating">
-                    <span className="stars" style={{ color: '#f59e0b' }}>★</span>
-                    <span className="count"> {selectedProductDetail.rating} ({selectedProductDetail.reviews} Reviews)</span>
-                  </div>
-                </div>
-                <p className="description">{selectedProductDetail.description}</p>
-                <div className="features">
-                  <h3>Key Specifications</h3>
-                  <ul>
-                    {selectedProductDetail.features.map((feat: string, idx: number) => (
-                      <li key={idx}>{feat}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="footer">
-                  <div className="price">
-                    <span className="label">Package starts</span>
-                    <span className="value">₹{selectedProductDetail.price.toLocaleString()}</span>
-                  </div>
-                  {(() => {
-                    const cartItem = cart.find(i => i.id === selectedProductDetail.id);
-                    if (cartItem) {
-                      return (
-                        <div className="card-qty-control" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleDecrementCart(selectedProductDetail.id)}
-                            className="qty-btn"
-                            style={{ width: '36px', height: '36px', border: '1px solid #1a4d4d', borderRadius: '6px', background: 'transparent', color: '#1a4d4d', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
-                          >
-                            -
-                          </button>
-                          <span className="qty-value" style={{ fontWeight: 'bold', minWidth: '24px', textAlign: 'center', color: '#0f2f2f', fontSize: '16px' }}>
-                            {cartItem.quantity}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleAddToCart(selectedProductDetail, platformMode)}
-                            className="qty-btn"
-                            style={{ width: '36px', height: '36px', border: '1px solid #1a4d4d', borderRadius: '6px', background: 'transparent', color: '#1a4d4d', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
-                          >
-                            +
-                          </button>
-                        </div>
-                      );
-                    }
-                    return (
-                      <button
-                        onClick={() => {
-                          handleAddToCart(selectedProductDetail, platformMode);
-                        }}
-                        className="add-btn"
-                      >
-                        Book / Add to Order
-                      </button>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProductDetailModal
+        product={selectedProductDetail}
+        onClose={() => setSelectedProductDetail(null)}
+        cartQuantity={cart.find((i) => i.id === selectedProductDetail?.id)?.quantity || 0}
+        onAddToCart={(item) => handleAddToCart(item, platformMode)}
+        onDecrementCart={handleDecrementCart}
+      />
 
     </div>
   );

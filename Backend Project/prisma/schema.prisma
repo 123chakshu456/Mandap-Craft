@@ -88,3 +88,187 @@ model Quote {
 
   @@map("quotes")
 }
+
+model Category {
+  id           String     @id @default(uuid())
+  name         String
+  slug         String     @unique
+  shortTitle   String?
+  tagline      String?
+  description  String?
+  image        String?
+  icon         String?
+  badge        String?
+  promo        Json?
+  popularItems Json?      @default("[]")
+  parentId     String?
+  parent       Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children     Category[] @relation("CategoryHierarchy")
+  level        Int        @default(1)
+  sortOrder    Int        @default(0)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([slug])
+  @@index([level])
+  @@map("categories")
+}
+
+model Product {
+  id               String               @id @default(uuid())
+  sku              String?              @unique
+  name             String
+  slug             String?              @unique
+  categoryId       String?
+  subcategoryId    String?
+  subSubcategoryId String?
+  style            String               @default("Traditional")
+  price            Float
+  compareAtPrice   Float?
+  rating           Float                @default(4.5)
+  reviews          Int                  @default(0)
+  image            String
+  description      String
+  features         Json                 @default("[]")
+  isFeatured       Boolean              @default(false)
+  tag              String?
+  inStock          Boolean              @default(true)
+  status           String               @default("PUBLISHED")
+  sortPriority     Int                  @default(0)
+  seoTitle         String?
+  seoDescription   String?
+  seoKeywords      String?
+  publishedAt      DateTime?
+  unpublishedAt    DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  images           ProductImage[]
+  filterValues     ProductFilterValue[]
+  badges           ProductBadge[]
+
+  @@index([sku])
+  @@index([slug])
+  @@index([status])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([subSubcategoryId])
+  @@index([isFeatured])
+  @@index([createdAt])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String?
+  altText   String?
+  sortOrder Int      @default(0)
+  type      String   @default("gallery")
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model Filter {
+  id                   String        @id @default(uuid())
+  name                 String
+  label                String
+  key                  String        @unique
+  type                 String        @default("select")
+  sortOrder            Int           @default(0)
+  isActive             Boolean       @default(true)
+  applicableCategories Json          @default("[]")
+  values               FilterValue[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@map("filters")
+}
+
+model FilterValue {
+  id            String               @id @default(uuid())
+  filterId      String
+  filter        Filter               @relation(fields: [filterId], references: [id], onDelete: Cascade)
+  value         String
+  label         String
+  sortOrder     Int                  @default(0)
+  productValues ProductFilterValue[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@unique([filterId, value])
+  @@index([filterId])
+  @@map("filter_values")
+}
+
+model ProductFilterValue {
+  id            String      @id @default(uuid())
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  filterValueId String
+  filterValue   FilterValue @relation(fields: [filterValueId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([productId, filterValueId])
+  @@index([productId])
+  @@index([filterValueId])
+  @@map("product_filter_values")
+}
+
+model Badge {
+  id            String         @id @default(uuid())
+  name          String
+  slug          String         @unique
+  label         String
+  color         String?
+  bgColor       String?
+  icon          String?
+  isActive      Boolean        @default(true)
+  sortOrder     Int            @default(0)
+  productBadges ProductBadge[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("badges")
+}
+
+model ProductBadge {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([productId, badgeId])
+  @@index([productId])
+  @@index([badgeId])
+  @@map("product_badges")
+}
+
+model Page {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  status        String    @default("DRAFT")
+  content       String
+  heroImage     String?
+  seoTitle      String?
+  seoDescription String?
+  publishedAt   DateTime?
+  unpublishedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@map("pages")
+}

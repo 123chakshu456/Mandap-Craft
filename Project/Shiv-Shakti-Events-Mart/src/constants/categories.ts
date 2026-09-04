@@ -49,6 +49,13 @@ export const CATEGORIES: CategoryData[] = [
     },
     subsections: [
       {
+        id: 'ceilings',
+        title: 'Ceilings & Cloth Canopies',
+        description: 'Traditional Scalloped Velvet Ruffles, Concentric Silk Rings & Mandap Roof Ceiling Work',
+        image: '/ceilings/traditional_ceiling_decor.jpg',
+        popularItems: ['Scalloped Velvet Ceiling Canopy', 'Triple-Layer Red & Yellow Ruffle', 'Concentric Silk Mandala Ceiling', 'Pleated Mandap Roof Decor'],
+      },
+      {
         id: 'mandaps',
         title: 'Mandaps',
         description: 'Traditional Marigold, Crystal Dome & Royal Carved Wooden Mandaps',
@@ -111,10 +118,24 @@ export const CATEGORIES: CategoryData[] = [
     subsections: [
       {
         id: 'chairs',
-        title: 'Chairs',
-        description: 'Chiavari Chairs, Maharaja Velvet Thrones, Crossback & Dining Chairs',
-        image: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=600&q=80',
-        popularItems: ['Gold Chiavari Chairs', 'Maharaja Velvet High-Back', 'Rustic Cross-Back Chairs', 'Cushioned Banquet Chairs'],
+        title: 'All Chairs',
+        description: 'Bespoke Bentwood Designer Chairs & Commercial Molded Plastic Armchairs',
+        image: '/chairs/ornate_black_red_chair.jpg',
+        popularItems: ['Ornate Black/Red Armchair (₹3,000)', 'Pearl Black/Red Chair (₹2,950)', 'Orlando Yellow Chair (₹1,700)', 'Seagull Red Chair (₹780)'],
+      },
+      {
+        id: 'designer-chairs',
+        title: 'Designer Chairs',
+        description: 'Bespoke Ornate Bentwood Armchairs, Pearl Black & Red Lounge Seating',
+        image: '/chairs/ornate_black_red_chair.jpg',
+        popularItems: ['Ornate Black/Red Armchair (₹3,000)', 'Pearl Black/Red Chair (₹2,950)', 'Ornate Jordan Pattern Chair (₹2,450)'],
+      },
+      {
+        id: 'plastic-chairs',
+        title: 'Plastic Chairs',
+        description: 'Heavy-Duty Molded Plastic Armchairs & Stackable Ceremonial Seating',
+        image: '/chairs/orlando_plastic_chair.jpg',
+        popularItems: ['Orlando Yellow Armchair (₹1,700)', 'Windsor Brown Armchair (₹1,400)', 'Seagull Red Chair (₹780)'],
       },
       {
         id: 'tables',
@@ -241,9 +262,9 @@ export const CATEGORIES: CategoryData[] = [
       {
         id: 'fabrics',
         title: 'Fabrics',
-        description: 'Heavy Velvet Drapes, Shimmer Georgette, Organza Rolls & Silk Ceilings',
+        description: 'Heavy Velvet Drapes, Shimmer Georgette, Organza Rolls & Silk Curtains',
         image: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=600&q=80',
-        popularItems: ['Royal Crimson Heavy Velvet', 'Ivory Flowing Georgette Fabric', 'Pastel Pink Shimmer Organza', 'Pleated Silk Ceiling Drapes'],
+        popularItems: ['Royal Crimson Heavy Velvet', 'Ivory Flowing Georgette Fabric', 'Pastel Pink Shimmer Organza', 'Pleated Silk Drapery Rolls'],
       },
       {
         id: 'centerpieces',

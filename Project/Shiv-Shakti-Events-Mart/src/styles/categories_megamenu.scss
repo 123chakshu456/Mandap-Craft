@@ -36,17 +36,19 @@
   }
 
   .logo {
+    flex-shrink: 0;
+    .logo-text {
+      white-space: nowrap;
+      letter-spacing: 0.05em;
+    }
     .logo-subtext {
-      display: none;
+      display: block;
       font-size: 9px;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.12em;
       color: $color-accent-base;
       font-weight: $font-weight-bold;
+      white-space: nowrap;
       margin-top: 1px;
-
-      @include sm {
-        display: block;
-      }
     }
   }
 
@@ -243,6 +245,236 @@
         grid-template-columns: 1fr;
         gap: $spacing-6;
       }
+    }
+
+    // Cascading 3-Column Layout
+    .megamenu-cascading-container {
+      @include container;
+      display: grid;
+      grid-template-columns: 270px 1fr 300px;
+      gap: $spacing-6;
+      padding: $spacing-6 $spacing-4;
+      min-height: 380px;
+
+      @media (max-width: 1100px) {
+        grid-template-columns: 240px 1fr;
+        .megamenu-spotlight {
+          display: none;
+        }
+      }
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    // 1. Sidebar Column (Subcategory Headings)
+    .megamenu-sidebar {
+      border-right: 1px solid #e2e8f0;
+      padding-right: $spacing-4;
+
+      .sidebar-header {
+        margin-bottom: $spacing-3;
+        padding-bottom: $spacing-2;
+        border-bottom: 2px solid $color-pale-gold;
+
+        .sidebar-cat-tag {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          color: $color-primary-base;
+          text-transform: uppercase;
+          display: block;
+        }
+
+        .sidebar-subtitle {
+          font-size: 11px;
+          color: $color-gray;
+          font-weight: 500;
+        }
+      }
+
+      .sidebar-nav-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .sidebar-nav-item {
+        border-radius: $radius-md;
+        transition: all 0.15s ease;
+
+        .sidebar-nav-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 12px;
+          border: none;
+          background: transparent;
+          border-radius: $radius-md;
+          font-size: 13px;
+          font-weight: 600;
+          color: #334155;
+          cursor: pointer;
+          text-align: left;
+          transition: all 0.15s ease;
+
+          .sub-arrow {
+            width: 14px;
+            height: 14px;
+            color: #94a3b8;
+            transition: transform 0.15s ease;
+          }
+        }
+
+        &:hover,
+        &.active {
+          background: linear-gradient(135deg, rgba(#1a4d4d, 0.08), rgba(#d4af37, 0.14));
+
+          .sidebar-nav-btn {
+            color: $color-primary-dark;
+            font-weight: 700;
+
+            .sub-arrow {
+              color: $color-accent-base;
+              transform: translateX(4px);
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Middle Content Panel (Hovered Subcategory Details)
+    .megamenu-content-panel {
+      padding: 0 $spacing-4;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-5;
+      animation: megamenuFade 0.2s ease-out;
+
+      .content-panel-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: $spacing-4;
+        border-bottom: 1px dashed #e2e8f0;
+        padding-bottom: $spacing-4;
+
+        h3 {
+          font-size: 1.3rem;
+          @include heading-serif;
+          color: $color-primary-dark;
+          margin-bottom: 4px;
+        }
+
+        .content-panel-desc {
+          font-size: 13px;
+          color: #64748b;
+          line-height: 1.5;
+        }
+
+        .content-view-all-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          background: $color-primary-dark;
+          color: $color-white;
+          border: none;
+          border-radius: $radius-md;
+          font-size: 12px;
+          font-weight: 700;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+
+          .icon {
+            width: 14px;
+            height: 14px;
+          }
+
+          &:hover {
+            background: $color-primary-base;
+            transform: translateX(2px);
+          }
+        }
+      }
+
+      .items-section {
+        .section-label {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #94a3b8;
+          display: block;
+          margin-bottom: $spacing-3;
+        }
+
+        .items-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 10px;
+        }
+
+        .popular-item-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 14px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: $radius-md;
+          cursor: pointer;
+          text-align: left;
+          transition: all 0.2s ease;
+
+          .item-dot {
+            color: $color-accent-base;
+            font-size: 10px;
+            margin-right: 8px;
+          }
+
+          .item-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+          }
+
+          .item-arrow {
+            width: 13px;
+            height: 13px;
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+          }
+
+          &:hover {
+            background: #ffffff;
+            border-color: $color-primary-base;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+            .item-title {
+              color: $color-primary-dark;
+            }
+
+            .item-arrow {
+              color: $color-accent-base;
+              transform: translateX(3px);
+            }
+          }
+        }
+      }
+    }
+
+    @keyframes megamenuFade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     // Left Columns

@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Image and Media asset directories
+public/ceilings/
+public/chairs/
+public/Mats/
+src/assets/ceilings/
+src/assets/chairs/
+images/
+img/
+uploads/

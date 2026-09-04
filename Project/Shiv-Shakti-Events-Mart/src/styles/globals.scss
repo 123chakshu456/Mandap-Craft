@@ -14,8 +14,8 @@
 
 html {
   scroll-behavior: smooth;
-  zoom: 1.6;
-  -moz-transform-origin: top left;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -25,6 +25,14 @@ body {
   color: $color-dark;
   background-color: $color-white;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+// Responsive Image & Media Reset
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
 }
 
 // Typography
@@ -426,49 +434,23 @@ select {
 
 // Animations
 @keyframes pulse-slow {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-20px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 
 @keyframes bounce-gentle {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-pulse-slow {
@@ -539,67 +521,53 @@ select {
 }
 
 // Z-index utilities
-.z-10 {
-  z-index: 10;
-}
-
-.z-20 {
-  z-index: 20;
-}
-
-.z-30 {
-  z-index: 30;
-}
-
-.z-40 {
-  z-index: 40;
-}
-
-.z-50 {
-  z-index: 50;
-}
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+.z-40 { z-index: 40; }
+.z-50 { z-index: 50; }
 
 // Width & Height
-.w-full {
-  width: 100%;
-}
-
-.h-full {
-  height: 100%;
-}
-
-.min-h-screen {
-  min-height: 100vh;
-}
-
-.aspect-square {
-  aspect-ratio: 1 / 1;
-}
-
-.aspect-video {
-  aspect-ratio: 16 / 9;
-}
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+.aspect-square { aspect-ratio: 1 / 1; }
+.aspect-video { aspect-ratio: 16 / 9; }
 
 // Line clamp
-.line-clamp-1 {
-  @include line-clamp(1);
-}
-
-.line-clamp-2 {
-  @include line-clamp(2);
-}
-
-.line-clamp-3 {
-  @include line-clamp(3);
-}
+.line-clamp-1 { @include line-clamp(1); }
+.line-clamp-2 { @include line-clamp(2); }
+.line-clamp-3 { @include line-clamp(3); }
 
 // Truncate
-.truncate {
-  @include truncate;
-}
+.truncate { @include truncate; }
 
 // Selection
 ::selection {
   background-color: $color-accent-lighter;
   color: $color-dark;
+}
+
+// ==========================================
+// ADMIN COCKPIT RESPONSIVE MEDIA QUERIES
+// ==========================================
+@media (min-width: 769px) {
+  .admin-mobile-toggle {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    position: fixed !important;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    transition: left 0.25s ease-in-out;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+
+    &.mobile-open {
+      left: 0 !important;
+    }
+  }
 }

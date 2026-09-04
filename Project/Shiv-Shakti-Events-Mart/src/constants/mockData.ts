@@ -24,6 +24,544 @@ export const CATALOG_PRODUCTS: ProductItem[] = [
   // WEDDING
   // ==========================================
   {
+    id: 'traditional-scalloped-ceiling',
+    name: 'Traditional Scalloped Multi-Tiered Ceiling Canopy',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 95000,
+    rating: 4.9,
+    reviews: 168,
+    image: '/ceilings/traditional_ceiling_decor.jpg',
+    description: 'Authentic traditional Indian wedding ceiling masterpiece. Precision-crafted with concentric scalloped rings of rich crimson red velvet ruffles, bright yellow pleated silk, and royal blue accent ruffles on a pristine white fabric canvas.',
+    features: [
+      'Authentic concentric scalloped ruffled borders',
+      'Triple-tier crimson red, yellow & blue fabric work',
+      'Premium stain-resistant silk & heavy velvet',
+      'Custom tailored for all wedding mandap frame sizes'
+    ],
+    isFeatured: true,
+    tag: 'Original Masterpiece'
+  },
+  {
+    id: 'ceiling-000',
+    name: 'Shiv Shakti Royal Pleated Radial Silk Ceiling Canopy',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 88000,
+    rating: 4.9,
+    reviews: 92,
+    image: '/ceilings/ceiling-000.jpg',
+    description: 'Opulent radial pleated canopy ceiling crafted with alternating cream, gold and ornate patterned border fabric swags converging into a central dramatic medallion.',
+    features: [
+      'Radial pleating structure with central focal medallion',
+      'High-grade gold jacquard and silk drape fabrics',
+      'Flame-retardant commercial event fabric',
+      'Engineered for large banquet halls and mandap setups'
+    ],
+    isFeatured: true,
+    tag: 'Bestseller'
+  },
+  {
+    id: 'ceiling-001',
+    name: 'Shiv Shakti Grand Illuminated Arch Tunnel Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Modern',
+    price: 145000,
+    rating: 5.0,
+    reviews: 114,
+    image: '/ceilings/ceiling-001.jpg',
+    description: 'Spectacular arched tunnel pathway ceiling featuring multi-layered pleated white inner lining with magenta velvet perimeter arches and warm fairy light perimeter crowns.',
+    features: [
+      'Concentric multi-arch pathway framework',
+      'Integrated warm edge LED perimeter illumination',
+      'Lush magenta velvet accent outer ribbing',
+      'Perfect for grand bridal walkaways and reception entries'
+    ],
+    isFeatured: true,
+    tag: 'Grand Entry'
+  },
+  {
+    id: 'ceiling-002',
+    name: 'Shiv Shakti Multi-Tone Festive Canopy Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 78000,
+    rating: 4.8,
+    reviews: 85,
+    image: '/ceilings/ceiling-002.jpg',
+    description: 'Vibrant multi-colored pleated silk ceiling structure with radiating spokes of crimson, ivory, lavender, and yellow satin with decorative brocade pillar wraps.',
+    features: [
+      'Multi-tone radiating sunburst drape geometry',
+      'Matching ornate brocade pillar wraps included',
+      'Lightweight tear-resistant poly-silk materials',
+      'Ideal for wedding food courts and shamiana areas'
+    ]
+  },
+  {
+    id: 'ceiling-003',
+    name: 'Shiv Shakti Symmetrical Geometric Pleated Ceiling Canopy',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Bespoke',
+    price: 92000,
+    rating: 4.8,
+    reviews: 67,
+    image: '/ceilings/ceiling-003.jpg',
+    description: 'Artisanal geometric ceiling installation featuring diamond-intersecting fabric pleats in contrasting jewel tones and subtle hanging tassel accents.',
+    features: [
+      'Geometric diamond criss-cross drape design',
+      'Rich contrast jewel tone fabric combinations',
+      'Double-stitched tension points for sag-free hanging',
+      'Custom sizing available for modular truss grids'
+    ]
+  },
+  {
+    id: 'ceiling-004',
+    name: 'Shiv Shakti Golden Glow Sunburst Silk Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 110000,
+    rating: 4.9,
+    reviews: 103,
+    image: '/ceilings/ceiling-004.jpg',
+    description: 'Regal gold and warm saffron radiating sunburst ceiling canopy with a central crystal chandelier mount point and cascading outer valances.',
+    features: [
+      'Radiating 360-degree gold sunburst flare drape',
+      'Reinforced central hook for heavy crystal chandeliers',
+      'Gold zari embroidered valance borders',
+      'Creates a warm, luxurious glow under ambient lighting'
+    ]
+  },
+  {
+    id: 'ceiling-005',
+    name: 'Shiv Shakti Concentric Ring Mandala Fabric Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 89000,
+    rating: 4.9,
+    reviews: 78,
+    image: '/ceilings/ceiling-005.jpg',
+    description: 'Traditional Indian mandala-inspired concentric circle ceiling design crafted from layered ruffles of yellow, red, and emerald green silk.',
+    features: [
+      'Concentric circular mandala ruffle layers',
+      'Classic auspicious Indian wedding palette',
+      'Easy clamp-on truss mounting mechanism',
+      'Wrinkle-free high grade ceremonial fabric'
+    ]
+  },
+  {
+    id: 'ceiling-006',
+    name: 'Shiv Shakti Ivory & Rose Gold Draped Ballroom Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Modern',
+    price: 125000,
+    rating: 5.0,
+    reviews: 96,
+    image: '/ceilings/ceiling-006.jpg',
+    description: 'Sophisticated modern wedding ballroom ceiling drape in soft ivory organza and rose gold accents, with flowing swags that diffuse uplighting beautifully.',
+    features: [
+      'High-sheen sheer organza and shimmer georgette',
+      'Gentle catenary swag curves for modern aesthetics',
+      'Optically optimized for moving head color washes',
+      'Complete hardware mounting accessories included'
+    ]
+  },
+  {
+    id: 'ceiling-007',
+    name: 'Shiv Shakti Heritage Mughal Lattice Cloth Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 105000,
+    rating: 4.8,
+    reviews: 64,
+    image: '/ceilings/ceiling-007.jpg',
+    description: 'Intricate Mughal jali architectural cloth ceiling with laser-inspired fabric cutouts, brocade borders, and rich velvet centerpiece medallions.',
+    features: [
+      'Mughal architectural geometric patterns',
+      'Heavy velvet with gold lace border finish',
+      'High acoustic sound-dampening index',
+      'Ideal for royal palace and heritage themed weddings'
+    ]
+  },
+  {
+    id: 'ceiling-008',
+    name: 'Shiv Shakti Grand Pavilion Starburst Tent Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 135000,
+    rating: 4.9,
+    reviews: 88,
+    image: '/ceilings/ceiling-008.jpg',
+    description: 'Expansive high-peak starburst tent ceiling with multi-tier gathered pleats stretching across massive clear-span marquee structures.',
+    features: [
+      'High-span gathered starburst ceiling configuration',
+      'Heavy-duty weatherproof backed poly-cotton weave',
+      'Modular segment zip-attachments for flexible sizing',
+      'Designed for German hangars and mega shamianas'
+    ]
+  },
+  {
+    id: 'ceiling-009',
+    name: 'Shiv Shakti Velvet Scalloped Triple Tier Canopy',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 98000,
+    rating: 4.9,
+    reviews: 110,
+    image: '/ceilings/ceiling-009.jpg',
+    description: 'Triple-tiered scalloped valance ceiling canopy in crimson and sunshine yellow, adorned with golden pearl fringes and hanging pom-pom droplets.',
+    features: [
+      'Triple-layered scalloped waterfall valance',
+      'Gold pearl and bead fringe detailing',
+      'Premium thick micro-velvet fabric body',
+      'Customizable color sequence combinations'
+    ]
+  },
+  {
+    id: 'ceiling-010',
+    name: 'Shiv Shakti Royal Purple & Gold Medallion Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 115000,
+    rating: 4.8,
+    reviews: 72,
+    image: '/ceilings/ceiling-010.jpg',
+    description: 'Deep royal purple and metallic gold ceiling decor featuring rich circular mandala swags and ornate gold foil print border trims.',
+    features: [
+      'Regal deep purple and metallic gold contrast',
+      'Heavy zari metallic border trims',
+      'Center pendant suspension support',
+      'Creates an ultra-luxurious evening wedding atmosphere'
+    ]
+  },
+  {
+    id: 'ceiling-011',
+    name: 'Shiv Shakti Cascading Wave Pleated Shamiana Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Modern',
+    price: 82000,
+    rating: 4.7,
+    reviews: 59,
+    image: '/ceilings/ceiling-011.jpg',
+    description: 'Continuous wave-pleat suspended ceiling design in soft pastels creating an airy, undulating canopy effect across the event hall.',
+    features: [
+      'Linear undulating wave pleat structure',
+      'Soft pastel color transition scheme',
+      'Lightweight translucent draping georgette',
+      'Quick installation with slide-wire hanging systems'
+    ]
+  },
+  {
+    id: 'ceiling-012',
+    name: 'Shiv Shakti Saffron & Maroon Ceremonial Mandap Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 94000,
+    rating: 4.9,
+    reviews: 125,
+    image: '/ceilings/ceiling-012.jpg',
+    description: 'Sacred ceremonial Vedic mandap ceiling designed with vibrant saffron, maroon velvet trim, and center havan smoke vent compatibility.',
+    features: [
+      'Vedic ritual-friendly fire-retardant fabric',
+      'Rich saffron and maroon traditional contrast',
+      'Engineered airflow and smoke-escape opening',
+      'Heavy-duty corner eyelets for secure mandap tie-downs'
+    ]
+  },
+  {
+    id: 'ceiling-013',
+    name: 'Shiv Shakti Contemporary White & Crystal Drop Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Modern',
+    price: 140000,
+    rating: 5.0,
+    reviews: 108,
+    image: '/ceilings/ceiling-013.jpg',
+    description: 'All-white sheer chiffon canopy ceiling with thousands of hanging acrylic crystal drop strings and fairy light starry sky integration.',
+    features: [
+      'Pristine bridal white sheer chiffon drapes',
+      'Faceted acrylic crystal string drop array',
+      'Built-in fairy light cabling harnesses',
+      'Breathtaking fairytale aesthetic for modern receptions'
+    ]
+  },
+  {
+    id: 'ceiling-014',
+    name: 'Shiv Shakti Emerald & Gold Royal Banquet Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 120000,
+    rating: 4.9,
+    reviews: 81,
+    image: '/ceilings/ceiling-014.jpg',
+    description: 'Lush emerald green velvet ceiling canopy framed with gleaming gold lamé pleating and circular banquet centerdrops.',
+    features: [
+      'Rich emerald green and gold lamé combination',
+      'Lustrous light-reflecting fabric properties',
+      'Stain-resistant and dust-repellent finish',
+      'Custom modular panels for varying venue dimensions'
+    ]
+  },
+  {
+    id: 'ceiling-015',
+    name: 'Shiv Shakti Bohemian Floral & Macrame Canopy Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Boho',
+    price: 87000,
+    rating: 4.8,
+    reviews: 63,
+    image: '/ceilings/ceiling-015.jpg',
+    description: 'Relaxed bohemian ceiling drapery crafted from textured unbleached linen, suspended woven macrame rings, and faux dried botanical accents.',
+    features: [
+      'Organic unbleached natural linen and cotton gauze',
+      'Handcrafted macrame suspended centerpieces',
+      'Lightweight breezy drape configuration',
+      'Perfect for outdoor lawn, beach and daytime boho weddings'
+    ]
+  },
+  {
+    id: 'ceiling-016',
+    name: 'Shiv Shakti Rajasthani Bandhej Print Ceiling Decor',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 76000,
+    rating: 4.8,
+    reviews: 91,
+    image: '/ceilings/ceiling-016.jpg',
+    description: 'Authentic Rajasthani tie-dye Bandhej print cloth ceiling canopy framed with mirror-work borders and traditional gotta-patti lace.',
+    features: [
+      'Authentic Bandhej ethnic print patterns',
+      'Reflective mirror-work (shisha) border lace',
+      'Vibrant festive color blocking',
+      'Essential for Sangeet, Mehendi, and Haldi functions'
+    ]
+  },
+  {
+    id: 'ceiling-017',
+    name: 'Shiv Shakti Crimson Velvet Lotus Mandap Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 108000,
+    rating: 4.9,
+    reviews: 118,
+    image: '/ceilings/ceiling-017.jpg',
+    description: 'Grand lotus-petal shaped ceiling canopy featuring 8 sculpted crimson velvet petal swags converging around a gold centerpiece dome.',
+    features: [
+      '3D sculpted lotus petal swag architecture',
+      'Heavy 450 GSM velvet with golden zari trim',
+      'Central dome mount with hanging bell hooks',
+      'Provides a royal regal sanctum for the sacred mandap'
+    ]
+  },
+  {
+    id: 'ceiling-018',
+    name: 'Shiv Shakti Peach & Coral Pleated Ombre Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Modern',
+    price: 86000,
+    rating: 4.7,
+    reviews: 47,
+    image: '/ceilings/ceiling-018.jpg',
+    description: 'Soft sunset ombre ceiling drapery graduating smoothly from delicate blush peach to rich coral and warm ivory silk chiffon.',
+    features: [
+      'Seamless gradient ombre color transitions',
+      'Flowing feather-light silk chiffon fabrics',
+      'Soft ambient light diffusion quality',
+      'Popular choice for modern pastel floral wedding themes'
+    ]
+  },
+  {
+    id: 'ceiling-019',
+    name: 'Shiv Shakti Royal Blue & Silver Brocade Ceiling Canopy',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 118000,
+    rating: 4.9,
+    reviews: 75,
+    image: '/ceilings/ceiling-019.jpg',
+    description: 'Regal midnight blue silk canopy accented with silver zari floral brocade panels, pleated valances, and hanging crystal bead strands.',
+    features: [
+      'Midnight royal blue with metallic silver brocade',
+      'Precision pleated radial valance structure',
+      'Stain-resistant and wrinkle-resistant fabric weave',
+      'Ideal for night-time luxury reception stages'
+    ]
+  },
+  {
+    id: 'ceiling-020',
+    name: 'Shiv Shakti Haldi Special Yellow Silk Tent Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 72000,
+    rating: 4.9,
+    reviews: 134,
+    image: '/ceilings/ceiling-020.jpg',
+    description: 'Luminous festive bright yellow and lime green pleated silk ceiling with marigold flower string suspension loops and gotta lace.',
+    features: [
+      'Auspicious Haldi turmeric-yellow palette',
+      'Integrated loops for fresh flower garlands',
+      'Washable stain-resistant poly-satin fabric',
+      'Fast assemble & dismantle modular setup'
+    ]
+  },
+  {
+    id: 'ceiling-021',
+    name: 'Shiv Shakti Champagne Gold Shimmer Chandelier Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Bespoke',
+    price: 155000,
+    rating: 5.0,
+    reviews: 92,
+    image: '/ceilings/ceiling-021.jpg',
+    description: 'Ultra-luxurious champagne gold shimmer lurex fabric ceiling with deep gathered swags framing a central grand chandelier installation.',
+    features: [
+      'Metallic lurex shimmer fabric with high luster',
+      'Deep dramatic gathered swag draping',
+      'Reinforced truss mounts for heavy chandelier rigs',
+      'Designed for high-end celebrity wedding decors'
+    ]
+  },
+  {
+    id: 'ceiling-022',
+    name: 'Shiv Shakti Traditional Gota Patti Lattice Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 91000,
+    rating: 4.8,
+    reviews: 68,
+    image: '/ceilings/ceiling-022.jpg',
+    description: 'Artisanal red and green fabric ceiling featuring handcrafted golden gota-patti diamond jaal work and hanging mirror tassels.',
+    features: [
+      'Hand-applied Rajasthani gota-patti diamond jaal',
+      'Mirror and pom-pom tassel periphery',
+      'Heavy durable backing for repeat rentals',
+      'Adds authentic folk heritage charm to mandaps'
+    ]
+  },
+  {
+    id: 'ceiling-023',
+    name: 'Shiv Shakti Pastel Lavender & Mint Silk Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Modern',
+    price: 84000,
+    rating: 4.8,
+    reviews: 53,
+    image: '/ceilings/ceiling-023.jpg',
+    description: 'Contemporary cool-toned pastel ceiling drape combining soft lilac lavender, mint green, and pearl white silky drapes.',
+    features: [
+      'Refined contemporary pastel color harmony',
+      'Feather-soft poly-crepe drapery fabric',
+      'Anti-static and dust-resistant properties',
+      'Perfect for day weddings and botanical garden mandaps'
+    ]
+  },
+  {
+    id: 'ceiling-024',
+    name: 'Shiv Shakti Starry Night Velvet & LED Fiber Optic Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Bespoke',
+    price: 175000,
+    rating: 5.0,
+    reviews: 84,
+    image: '/ceilings/ceiling-024.jpg',
+    description: 'High-end acoustic midnight black/navy velvet ceiling integrated with hundreds of twinkling fiber optic and micro-LED starlight points.',
+    features: [
+      'Heavy black-out acoustic velvet canvas',
+      'Multi-mode twinkling micro-LED starry sky',
+      'Remote controlled twinkle speed and brightness',
+      'Creates an immersive astronomical night under the roof'
+    ]
+  },
+  {
+    id: 'ceiling-025',
+    name: 'Shiv Shakti Diamond Pleated Royal Shamiana Ceiling',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Royal',
+    price: 102000,
+    rating: 4.9,
+    reviews: 77,
+    image: '/ceilings/ceiling-025.jpg',
+    description: 'Mastercrafted diamond-pleated shamiana ceiling canopy with alternating panels of maroon velvet and golden tissue fabric.',
+    features: [
+      'Diamond-quilted and box-pleated roof layout',
+      'Shimmering gold tissue and rich maroon velvet',
+      'Reinforced corner grommets for high wind stability',
+      'Classic royal heritage look for large banquet tents'
+    ]
+  },
+  {
+    id: 'ceiling-026',
+    name: 'Shiv Shakti Grand Heritage Floral Border Ceiling Canopy',
+    categoryId: 'wedding',
+    subcategoryId: 'ceilings',
+    category: 'mandap',
+    style: 'Traditional',
+    price: 96000,
+    rating: 4.9,
+    reviews: 105,
+    image: '/ceilings/ceiling-026.jpg',
+    description: 'Traditional ceremonial cloth canopy with intricate botanical floral printed borders, scalloped drop edges, and silk center flower rosette.',
+    features: [
+      'Intricate botanical floral border patterns',
+      'Center floral rosette hanging hook',
+      'Scalloped drop valance with gold cord piping',
+      'Time-tested durability for outdoor and indoor event staging'
+    ]
+  },
+  {
     id: 'marigold-mandap',
     name: 'Royal Marigold Canopy Mandap',
     categoryId: 'wedding',
@@ -169,32 +707,103 @@ export const CATALOG_PRODUCTS: ProductItem[] = [
     isFeatured: true,
     tag: 'Luxury'
   },
+  // --- DESIGNER CHAIRS ---
   {
-    id: 'chiavari-chairs-set',
-    name: 'Gold Phoenix Chiavari Chairs (Pack of 50)',
+    id: 'ornate-black-red-chair',
+    name: 'Ornate Black & Red Bentwood Armchair',
     categoryId: 'furniture',
-    subcategoryId: 'chairs',
+    subcategoryId: 'designer-chairs',
+    category: 'chairs',
     style: 'Royal',
-    price: 65000,
+    price: 3000,
     rating: 4.9,
-    reviews: 110,
-    image: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=800&q=80',
-    description: 'High-strength polycarbonate resin Chiavari chairs with gold chrome electroplating and high-density foam cushions with velcro straps.',
-    features: ['Electroplated gold sheen', 'Supports up to 250kg each', 'Stackable design', 'Waterproof velvet cushions']
+    reviews: 124,
+    image: '/chairs/ornate_black_red_chair.jpg',
+    description: 'Luxury dark bentwood frame armchair featuring curved ergonomic armrests and rich red upholstered padded seat & backrest cushion.',
+    features: ['Dark mahogany bentwood frame', 'Plush red upholstered seat & back cushion', 'Ergonomic curved armrests', 'Stain-resistant premium fabric'],
+    isFeatured: true,
+    tag: 'Designer Chair'
   },
   {
-    id: 'maharaja-throne-chairs',
-    name: 'Maharaja Royal High-Back Throne Pair',
+    id: 'pearl-black-red-chair',
+    name: 'Pearl Black & Red Curved Loop-Back Chair',
     categoryId: 'furniture',
-    subcategoryId: 'chairs',
-    category: 'seating',
+    subcategoryId: 'designer-chairs',
+    category: 'chairs',
+    style: 'Bespoke',
+    price: 2950,
+    rating: 4.8,
+    reviews: 98,
+    image: '/chairs/pearl_black_red_chair.jpg',
+    description: 'Elegant open curved loop-back bentwood side chair with a rich red padded seat cushion, ideal for upscale banquets and VIP dining.',
+    features: ['Iconic curved loop backrest', 'Vibrant red padded seat cushion', 'High-durability bentwood frame', 'Compact banquet seating'],
+    isFeatured: true,
+    tag: 'Designer Chair'
+  },
+  {
+    id: 'ornate-jordan-pattern-chair',
+    name: 'Ornate Jordan Spiral Pattern Designer Chair',
+    categoryId: 'furniture',
+    subcategoryId: 'designer-chairs',
+    category: 'chairs',
     style: 'Traditional',
-    price: 34999,
-    rating: 5.0,
-    reviews: 47,
-    image: 'https://images.unsplash.com/photo-1581428982868-e410dd047a90?auto=format&fit=crop&w=800&q=80',
-    description: 'Handcrafted solid teakwood couple thrones featuring intricate peacock and floral crest carvings with deep red velvet upholstery.',
-    features: ['Pure solid teakwood carving', 'Gold leaf painted crests', 'Orthopedic lumbar support', 'Stain-resistant velvet']
+    price: 2450,
+    rating: 4.9,
+    reviews: 86,
+    image: '/chairs/ornate_jordan_pattern_chair.jpg',
+    description: 'Sophisticated bentwood chair featuring signature brown and cream concentric spiral pattern fabric upholstery on round seat and backrest.',
+    features: ['Concentric spiral pattern jacquard fabric', 'Dark brown polished bentwood frame', 'Soft high-density foam cushioning', 'Artisanal heritage styling'],
+    isFeatured: true,
+    tag: 'Designer Chair'
+  },
+  // --- PLASTIC CHAIRS ---
+  {
+    id: 'orlando-yellow-plastic-chair',
+    name: 'Orlando Ochre Yellow Molded Plastic Armchair',
+    categoryId: 'furniture',
+    subcategoryId: 'plastic-chairs',
+    category: 'chairs',
+    style: 'Industrial',
+    price: 1700,
+    rating: 4.8,
+    reviews: 142,
+    image: '/chairs/orlando_plastic_chair.jpg',
+    description: 'Premium mustard ochre yellow heavy-duty molded plastic armchair with slatted backrest and sturdy wide armrests for indoor & outdoor event seating.',
+    features: ['Heavy-duty 100% virgin polypropylene', 'Ergonomic slatted back ventilation', 'UV-resistant and waterproof', 'Stackable design'],
+    isFeatured: true,
+    tag: 'Plastic Chair'
+  },
+  {
+    id: 'windsor-brown-plastic-chair',
+    name: 'Windsor Dark Brown Molded Plastic Armchair',
+    categoryId: 'furniture',
+    subcategoryId: 'plastic-chairs',
+    category: 'chairs',
+    style: 'Modern',
+    price: 1400,
+    rating: 4.7,
+    reviews: 115,
+    image: '/chairs/windsor_brown_plastic_chair.jpg',
+    description: 'Commercial grade chocolate brown molded plastic armchair featuring horizontal slatted backrest and durable supportive frame.',
+    features: ['Commercial grade molded construction', 'Comfortable supportive armrests', 'Easy clean-up and maintenance', 'High weight capacity up to 180kg'],
+    isFeatured: true,
+    tag: 'Plastic Chair'
+  },
+  {
+    id: 'seagull-red-plastic-chair',
+    name: 'Seagull Vibrant Red Molded Plastic Event Chair',
+    categoryId: 'furniture',
+    subcategoryId: 'plastic-chairs',
+    category: 'chairs',
+    style: 'Modern',
+    price: 780,
+    rating: 4.9,
+    reviews: 210,
+    image: '/chairs/seagull_red_plastic_chair.jpg',
+    description: 'Popular vibrant red stackable plastic chair with ventilated backrest slots, perfect for wedding catering and large ceremonial gatherings.',
+    features: ['High-density vibrant red polymer', 'Ventilated backrest slot design', 'Lightweight and ultra-stackable', 'Cost-effective event rental choice'],
+    isFeatured: true,
+    tag: 'Plastic Chair'
   },
   {
     id: 'marble-table',

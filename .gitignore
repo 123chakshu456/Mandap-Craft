@@ -40,3 +40,13 @@ logs/
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Image and Media asset directories
+**/public/ceilings/
+**/public/chairs/
+**/public/Mats/
+**/src/assets/ceilings/
+**/src/assets/chairs/
+**/images/
+**/img/
+**/uploads/

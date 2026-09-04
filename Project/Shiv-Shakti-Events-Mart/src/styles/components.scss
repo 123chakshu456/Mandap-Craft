@@ -104,19 +104,24 @@
   .header-container {
     @include container;
     @include flex-between;
-    height: 80px;
+    height: 72px;
+    gap: $spacing-4;
+    flex-wrap: nowrap;
   }
 
   .logo {
     @include flex-col;
     cursor: pointer;
     user-select: none;
+    flex-shrink: 0;
 
     .logo-text {
       @include heading-serif;
-      font-size: $font-size-2xl;
-      letter-spacing: 0.15em;
+      font-size: clamp(0.95rem, 1.8vw, 1.35rem);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
       color: $color-dark;
+      font-weight: 800;
 
       .logo-dot {
         color: $color-accent-base;

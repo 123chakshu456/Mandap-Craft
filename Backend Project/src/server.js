@@ -3,8 +3,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import apiRoutes from './routes/index.js';
-import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
+import apiRoutes from './app/routes.js';
+import { errorHandler, notFoundHandler } from './shared/middlewares/errorHandler.js';
 
 // Load environment variables
 dotenv.config();
@@ -22,16 +22,17 @@ app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 // Base Route
 app.get('/', (req, res) => {
   res.json({
-    message: 'Welcome to the Backend API',
+    service: 'Shiv Shakti Events Mart REST API',
     docs: '/api/health',
-    version: '1.0.0',
+    version: '2.0.0',
+    architecture: 'Feature-Based Domain Architecture',
   });
 });
 
-// API Routes
+// Mount Feature-Based API Routes
 app.use('/api', apiRoutes);
 
-// Error Handling Middlewares
+// Centralized Error Handling Middlewares
 app.use(notFoundHandler);
 app.use(errorHandler);
 
