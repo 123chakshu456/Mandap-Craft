@@ -60,8 +60,10 @@ export async function httpClient<T = any>(
     credentials: 'include', // Include HTTP-only cookies
   };
 
-  // Prepend /api if not already present
-  const url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+  // Prepend /api if not already present, with optional base URL for production cloud hosting
+  const apiBase = import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL).replace(/\/+$/, '') : '';
+  const path = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+  const url = apiBase ? `${apiBase}${path}` : path;
 
   const response = await fetch(url, config);
   const json = await response.json().catch(() => ({}));
