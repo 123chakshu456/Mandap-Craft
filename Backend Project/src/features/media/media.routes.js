@@ -2,6 +2,8 @@ import express from 'express';
 import multer from 'multer';
 import {
   uploadMedia,
+  getMediaAssets,
+  deleteMediaAsset,
   addImageToProduct,
   updateProductImage,
   deleteProductImage,
@@ -26,8 +28,12 @@ const upload = multer({
   },
 });
 
-// All media mutations require Admin access
+// All media endpoints require Admin access
+router.get('/', authenticate, authorize('ADMIN'), getMediaAssets);
 router.post('/upload', authenticate, authorize('ADMIN'), upload.single('image'), uploadMedia);
+router.delete('/:id', authenticate, authorize('ADMIN'), deleteMediaAsset);
+
+// Product-specific gallery management
 router.post('/products/:id/images', authenticate, authorize('ADMIN'), addImageToProduct);
 router.put('/products/:id/images/:imageId', authenticate, authorize('ADMIN'), updateProductImage);
 router.delete('/products/:id/images/:imageId', authenticate, authorize('ADMIN'), deleteProductImage);

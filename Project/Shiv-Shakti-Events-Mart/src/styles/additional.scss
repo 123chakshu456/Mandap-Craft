@@ -728,6 +728,47 @@
             color: $color-accent-base;
             font-weight: $font-weight-bold;
           }
+
+          .item-quantity-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 2px 4px;
+
+            .qty-btn {
+              width: 24px;
+              height: 24px;
+              border-radius: 6px;
+              border: 1px solid #cbd5e1;
+              background: #ffffff;
+              color: $color-primary-dark;
+              font-size: 13px;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 0.15s ease;
+
+              &:hover {
+                background: $color-primary-dark;
+                color: #ffffff;
+                border-color: $color-primary-dark;
+              }
+            }
+
+            .qty-val {
+              font-size: 12px;
+              font-weight: 700;
+              min-width: 18px;
+              text-align: center;
+              color: $color-primary-dark;
+            }
+          }
         }
 
         .remove-btn {
@@ -1059,6 +1100,50 @@
               transform: translateY(-2px);
               box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
               background: linear-gradient(135deg, #047857, #059669);
+            }
+          }
+
+          .modal-qty-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 4px 8px;
+
+            .qty-btn {
+              width: 34px;
+              height: 34px;
+              border: 1px solid #334155;
+              border-radius: 8px;
+              background: #1e293b;
+              color: #ffffff;
+              cursor: pointer;
+              font-weight: 800;
+              font-size: 18px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.18s ease;
+
+              &:hover {
+                background: #334155;
+                border-color: #475569;
+                transform: scale(1.05);
+              }
+
+              &:active {
+                transform: scale(0.95);
+              }
+            }
+
+            .qty-value {
+              font-weight: 800;
+              min-width: 24px;
+              text-align: center;
+              color: #ffffff;
+              font-size: 16px;
             }
           }
         }

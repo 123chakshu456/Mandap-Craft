@@ -198,3 +198,31 @@ export interface AdminStats {
   totalCategories: number;
   totalRevenue: number;
 }
+
+export interface MediaAsset {
+  id: string;
+  name: string;
+  url: string;
+  publicId?: string | null;
+  format?: string | null;
+  bytes?: number | null;
+  width?: number | null;
+  height?: number | null;
+  folder?: string;
+  altText?: string | null;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  userId?: string | null;
+  userEmail?: string;
+  action: string;
+  entity: string;
+  entityId?: string | null;
+  details?: any;
+  ipAddress?: string | null;
+  createdAt: string;
+}

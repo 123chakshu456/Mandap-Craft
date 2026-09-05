@@ -44,19 +44,21 @@ export default function CartDrawer({
                   <div className="item-info">
                     <div className="item-name">{item.name}</div>
                     <div className="item-price">₹{item.price.toLocaleString()}</div>
-                    <div className="item-quantity-control" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                    <div className="item-quantity-control">
                       <button
                         type="button"
                         onClick={() => onDecrement(item.id)}
-                        style={{ padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#f0f0f0', cursor: 'pointer', fontSize: '12px' }}
+                        className="qty-btn minus"
+                        aria-label="Decrease quantity"
                       >
                         -
                       </button>
-                      <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{item.quantity}</span>
+                      <span className="qty-val">{item.quantity}</span>
                       <button
                         type="button"
                         onClick={() => onIncrement(item, item.type)}
-                        style={{ padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#f0f0f0', cursor: 'pointer', fontSize: '12px' }}
+                        className="qty-btn plus"
+                        aria-label="Increase quantity"
                       >
                         +
                       </button>

@@ -54,7 +54,7 @@ export const getAdminProductById = async (req, res, next) => {
  */
 export const createProduct = async (req, res, next) => {
   try {
-    const product = await productService.createProduct(req.body);
+    const product = await productService.createProduct(req.body, req);
     successResponse(res, { product }, 'Product created successfully.', 201);
   } catch (error) {
     next(error);
@@ -66,7 +66,7 @@ export const createProduct = async (req, res, next) => {
  */
 export const updateProduct = async (req, res, next) => {
   try {
-    const product = await productService.updateProduct(req.params.id, req.body);
+    const product = await productService.updateProduct(req.params.id, req.body, req);
     successResponse(res, { product }, 'Product updated successfully.');
   } catch (error) {
     next(error);
@@ -78,7 +78,7 @@ export const updateProduct = async (req, res, next) => {
  */
 export const publishProduct = async (req, res, next) => {
   try {
-    const product = await productService.publishProduct(req.params.id);
+    const product = await productService.publishProduct(req.params.id, req);
     successResponse(res, { product }, 'Product published successfully.');
   } catch (error) {
     next(error);
@@ -90,7 +90,7 @@ export const publishProduct = async (req, res, next) => {
  */
 export const unpublishProduct = async (req, res, next) => {
   try {
-    const product = await productService.unpublishProduct(req.params.id);
+    const product = await productService.unpublishProduct(req.params.id, req);
     successResponse(res, { product }, 'Product unpublished successfully.');
   } catch (error) {
     next(error);
@@ -102,8 +102,47 @@ export const unpublishProduct = async (req, res, next) => {
  */
 export const deleteProduct = async (req, res, next) => {
   try {
-    await productService.deleteProduct(req.params.id);
+    await productService.deleteProduct(req.params.id, req);
     successResponse(res, null, 'Product deleted successfully.');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Admin: Bulk Update Status
+ */
+export const bulkStatusUpdate = async (req, res, next) => {
+  try {
+    const { ids, status } = req.body;
+    const result = await productService.bulkStatusUpdate(ids, status, req);
+    successResponse(res, result, `Successfully updated ${result.count} product(s) to ${status}.`);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Admin: Bulk Update Category
+ */
+export const bulkCategoryUpdate = async (req, res, next) => {
+  try {
+    const { ids, categoryId, subcategoryId, subSubcategoryId } = req.body;
+    const result = await productService.bulkCategoryUpdate(ids, { categoryId, subcategoryId, subSubcategoryId }, req);
+    successResponse(res, result, `Successfully assigned ${result.count} product(s) to category.`);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Admin: Bulk Delete
+ */
+export const bulkDelete = async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    const result = await productService.bulkDelete(ids, req);
+    successResponse(res, result, `Successfully deleted ${result.count} product(s).`);
   } catch (error) {
     next(error);
   }

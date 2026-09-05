@@ -1,12 +1,108 @@
 import prisma from '../../shared/config/prisma.js';
-import { uploadStreamToCloudinary } from '../../shared/config/cloudinary.js';
+import { uploadStreamToCloudinary, deleteFromCloudinary } from '../../shared/config/cloudinary.js';
+import { auditService } from '../../shared/services/audit.service.js';
 
 export const mediaService = {
   /**
-   * Upload single image buffer to Cloudinary
+   * Upload single image buffer to Cloudinary & persist in MediaAsset
    */
-  async uploadImage(buffer, folder = 'shiv-shakti-events') {
-    return uploadStreamToCloudinary(buffer, folder);
+  async uploadImage(buffer, folder = 'shiv-shakti-events', originalName = '', altText = '', req = null) {
+    const uploadResult = await uploadStreamToCloudinary(buffer, folder);
+
+    // Persist in media_assets table
+    const asset = await prisma.mediaAsset.create({
+      data: {
+        name: originalName || 'Event Infrastructure Asset',
+        url: uploadResult.url,
+        publicId: uploadResult.publicId || null,
+        format: uploadResult.format || 'jpg',
+        bytes: uploadResult.bytes || null,
+        width: uploadResult.width || null,
+        height: uploadResult.height || null,
+        folder: folder || 'shiv-shakti-events',
+        altText: altText || originalName || 'Event Asset',
+      },
+    });
+
+    auditService.record({
+      req,
+      action: 'UPLOAD_MEDIA_ASSET',
+      entity: 'MediaAsset',
+      entityId: asset.id,
+      details: { name: asset.name, url: asset.url, folder: asset.folder },
+    });
+
+    return {
+      ...uploadResult,
+      id: asset.id,
+      asset,
+    };
+  },
+
+  /**
+   * Fetch paginated media assets from database
+   */
+  async getMediaAssets({ page = 1, limit = 24, search = '', folder = '' }) {
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 24));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { altText: { contains: search, mode: 'insensitive' } },
+        { publicId: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    if (folder && folder !== 'all') {
+      where.folder = folder;
+    }
+
+    const [total, assets] = await Promise.all([
+      prisma.mediaAsset.count({ where }),
+      prisma.mediaAsset.findMany({
+        where,
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      assets,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+    };
+  },
+
+  /**
+   * Delete media asset from DB and Cloudinary
+   */
+  async deleteMediaAsset(id, req = null) {
+    const asset = await prisma.mediaAsset.findUnique({ where: { id } });
+    if (!asset) {
+      const err = new Error('Media asset not found.');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (asset.publicId) {
+      await deleteFromCloudinary(asset.publicId);
+    }
+
+    const deleted = await prisma.mediaAsset.delete({ where: { id } });
+
+    auditService.record({
+      req,
+      action: 'DELETE_MEDIA_ASSET',
+      entity: 'MediaAsset',
+      entityId: id,
+      details: { name: asset.name, url: asset.url },
+    });
+
+    return deleted;
   },
 
   /**
@@ -21,12 +117,10 @@ export const mediaService = {
     }
 
     if (isPrimary) {
-      // Unset any previous primary image
       await prisma.productImage.updateMany({
         where: { productId },
         data: { isPrimary: false },
       });
-      // Also update product's main image column for backward compatibility
       await prisma.product.update({
         where: { id: productId },
         data: { image: url },
@@ -94,7 +188,6 @@ export const mediaService = {
 
     await prisma.productImage.delete({ where: { id: imageId } });
 
-    // If deleted image was primary, pick the first remaining image as primary
     if (image.isPrimary) {
       const firstRemaining = await prisma.productImage.findFirst({
         where: { productId },

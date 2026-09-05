@@ -1,5 +1,5 @@
 import httpClient from '../../../shared/api/httpClient';
-import type { AdminStats, Order, Quote } from '../../../shared/types/models.types';
+import type { AdminStats, Order, Quote, AuditLog } from '../../../shared/types/models.types';
 
 export const adminApi = {
   async getStats(): Promise<{ stats: AdminStats; recentOrders: Order[]; recentQuotes: Quote[] }> {
@@ -21,5 +21,19 @@ export const adminApi = {
       recentOrders: [],
       recentQuotes: [],
     };
+  },
+
+  async getAuditLogs(params: { limit?: number; entity?: string; action?: string } = {}): Promise<AuditLog[]> {
+    const searchParams = new URLSearchParams();
+    if (params.limit) searchParams.set('limit', String(params.limit));
+    if (params.entity) searchParams.set('entity', params.entity);
+    if (params.action) searchParams.set('action', params.action);
+
+    const queryString = searchParams.toString();
+    const res = await httpClient<{ logs: AuditLog[] }>(
+      `/admin/audit-logs${queryString ? `?${queryString}` : ''}`,
+      { method: 'GET' }
+    );
+    return res?.logs || [];
   },
 };

@@ -29,6 +29,8 @@ export const uploadStreamToCloudinary = (buffer, folder = 'shiv-shakti-events') 
           publicId: result.public_id,
           width: result.width,
           height: result.height,
+          format: result.format,
+          bytes: result.bytes,
         });
       }
     );
@@ -38,4 +40,19 @@ export const uploadStreamToCloudinary = (buffer, folder = 'shiv-shakti-events') 
   });
 };
 
+/**
+ * Delete an asset from Cloudinary by publicId
+ * @param {string} publicId
+ */
+export const deleteFromCloudinary = async (publicId) => {
+  if (!publicId) return null;
+  try {
+    return await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.warn(`[Cloudinary Destroy Warning] Failed to delete ${publicId}:`, err.message);
+    return null;
+  }
+};
+
 export default cloudinary;
+

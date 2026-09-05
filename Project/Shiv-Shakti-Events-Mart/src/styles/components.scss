@@ -1071,42 +1071,164 @@
       }
 
       .card-footer {
-        border-top: 1px solid $color-lighter;
+        border-top: 1px solid #f1f5f9;
         padding-top: $spacing-4;
         margin-top: auto;
-        @include flex-between;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: $spacing-3;
 
         .price-section {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+
+          .price-label,
           h4 {
-            font-size: $font-size-xs;
-            color: $color-light-gray;
+            font-size: 10px;
+            color: #94a3b8;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
+            font-weight: 700;
             display: block;
+            margin: 0;
+            line-height: 1.2;
           }
 
           .price {
-            font-size: $font-size-lg;
-            font-weight: $font-weight-bold;
+            font-size: 1.25rem;
+            font-family: $font-serif;
+            font-weight: 800;
             color: $color-primary-dark;
+            line-height: 1.2;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+
+            .currency {
+              font-family: $font-sans;
+              font-size: 1.05rem;
+              margin-right: 2px;
+              font-weight: 700;
+              color: $color-primary-base;
+            }
           }
         }
 
+        // Action / Book / Add Button
+        .action-btn,
+        .book-btn,
         .add-btn {
-          background-color: $color-primary-dark;
-          color: $color-white;
-          padding: $spacing-2 $spacing-4;
-          border-radius: $radius-lg;
-          border: none;
-          font-size: $font-size-xs;
-          font-weight: $font-weight-semibold;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 9px 18px;
+          border-radius: 10px;
+          border: 1px solid rgba($color-accent-base, 0.45);
+          background: linear-gradient(135deg, #0f2f2f 0%, #1a4d4d 100%);
+          color: #ffffff;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.03em;
           cursor: pointer;
-          transition: all $transition-base ease;
+          box-shadow: 0 3px 10px rgba(15, 47, 47, 0.2), 0 1px 2px rgba(0, 0, 0, 0.06);
+          position: relative;
+          overflow: hidden;
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          white-space: nowrap;
+          text-decoration: none;
+          flex-shrink: 0;
+
+          span {
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: inherit;
+          }
+
+          .icon {
+            width: 15px;
+            height: 15px;
+            color: $color-accent-base;
+            stroke-width: 2.3;
+            transition: transform 0.2s ease, color 0.2s ease;
+          }
 
           &:hover {
-            background-color: $color-primary-base;
+            background: linear-gradient(135deg, #1a4d4d 0%, #2d7a7a 100%);
+            border-color: $color-accent-base;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(15, 47, 47, 0.28), 0 0 0 1px rgba(212, 175, 55, 0.4);
+
+            .icon {
+              color: #ffffff;
+              transform: translateX(4px);
+            }
+          }
+
+          &:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(15, 47, 47, 0.2);
+          }
+        }
+
+        // Quantity Selector in Card
+        .card-qty-control {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #f8fafc;
+          border: 1px solid #cbd5e1;
+          border-radius: 10px;
+          padding: 3px 6px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+
+          &:hover {
+            border-color: #1a4d4d;
+            box-shadow: 0 2px 8px rgba(15, 47, 47, 0.12);
+          }
+
+          .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            border: 1px solid rgba(26, 77, 77, 0.22);
+            background: #ffffff;
+            color: #0f2f2f;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.18s ease;
+            padding: 0;
+            user-select: none;
+
+            &:hover {
+              background: #0f2f2f;
+              color: #ffffff;
+              border-color: #0f2f2f;
+              transform: scale(1.06);
+            }
+
+            &:active {
+              transform: scale(0.92);
+            }
+          }
+
+          .qty-value {
+            font-weight: 800;
+            min-width: 20px;
+            text-align: center;
+            color: #0f2f2f;
+            font-size: 14px;
+            font-feature-settings: "tnum";
+            user-select: none;
           }
         }
       }

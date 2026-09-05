@@ -1,5 +1,5 @@
 import express from 'express';
-import { getStats } from './admin.controller.js';
+import { getStats, getAuditLogs } from './admin.controller.js';
 import { authenticate, authorize } from '../../shared/middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -8,5 +8,6 @@ const router = express.Router();
 router.use(authenticate, authorize('ADMIN'));
 
 router.get('/stats', getStats);
+router.get('/audit-logs', getAuditLogs);
 
 export default router;

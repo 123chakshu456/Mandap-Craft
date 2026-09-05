@@ -272,3 +272,41 @@ model Page {
   @@index([status])
   @@map("pages")
 }
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  publicId  String?  @unique
+  format    String?
+  bytes     Int?
+  width     Int?
+  height    Int?
+  folder    String   @default("shiv-shakti-events")
+  altText   String?
+  tags      Json?    @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([folder])
+  @@index([createdAt])
+  @@map("media_assets")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  userEmail String?
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+

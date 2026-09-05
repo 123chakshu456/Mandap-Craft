@@ -1,5 +1,6 @@
 import { productRepository } from './product.repository.js';
 import { slugify } from '../../shared/utils/slugify.js';
+import { auditService } from '../../shared/services/audit.service.js';
 
 export const productService = {
   /**
@@ -76,7 +77,7 @@ export const productService = {
     else if (sortBy === 'newest') orderBy = [{ createdAt: 'desc' }];
 
     const pageNum = Math.max(1, parseInt(page) || 1);
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 24));
+    const limitNum = Math.min(3000, Math.max(1, parseInt(limit) || 24));
     const skip = (pageNum - 1) * limitNum;
 
     const { products, total } = await productRepository.findMany({
@@ -133,7 +134,7 @@ export const productService = {
     }
 
     const pageNum = Math.max(1, parseInt(page) || 1);
-    const limitNum = Math.min(500, Math.max(1, parseInt(limit) || 50));
+    const limitNum = Math.min(3000, Math.max(1, parseInt(limit) || 50));
     const skip = (pageNum - 1) * limitNum;
 
     const { products, total } = await productRepository.findMany({
@@ -180,7 +181,7 @@ export const productService = {
   /**
    * Create Product (Admin Only)
    */
-  async createProduct(payload) {
+  async createProduct(payload, req = null) {
     const {
       sku, name, slug, categoryId, subcategoryId, subSubcategoryId,
       style, price, compareAtPrice, rating, reviews,
@@ -291,13 +292,22 @@ export const productService = {
       await productRepository.setProductBadges(product.id, badgeIds);
     }
 
-    return productRepository.findById(product.id);
+    const createdProduct = await productRepository.findById(product.id);
+    auditService.record({
+      req,
+      action: 'CREATE_PRODUCT',
+      entity: 'Product',
+      entityId: product.id,
+      details: { name: product.name, sku: product.sku },
+    });
+
+    return createdProduct;
   },
 
   /**
    * Update Product (Admin Only)
    */
-  async updateProduct(id, payload) {
+  async updateProduct(id, payload, req = null) {
     const existing = await productRepository.findById(id);
     if (!existing) {
       const err = new Error('Product not found.');
@@ -380,13 +390,22 @@ export const productService = {
       await productRepository.setProductBadges(id, badgeIds);
     }
 
-    return productRepository.findById(id);
+    const updated = await productRepository.findById(id);
+    auditService.record({
+      req,
+      action: 'UPDATE_PRODUCT',
+      entity: 'Product',
+      entityId: id,
+      details: { name: updated.name, sku: updated.sku, status: updated.status },
+    });
+
+    return updated;
   },
 
   /**
    * Transition Product to PUBLISHED
    */
-  async publishProduct(id) {
+  async publishProduct(id, req = null) {
     const existing = await productRepository.findById(id);
     if (!existing) {
       const err = new Error('Product not found.');
@@ -394,16 +413,26 @@ export const productService = {
       throw err;
     }
 
-    return productRepository.update(id, {
+    const updated = await productRepository.update(id, {
       status: 'PUBLISHED',
       publishedAt: new Date(),
     });
+
+    auditService.record({
+      req,
+      action: 'PUBLISH_PRODUCT',
+      entity: 'Product',
+      entityId: id,
+      details: { name: existing.name },
+    });
+
+    return updated;
   },
 
   /**
    * Transition Product to UNPUBLISHED
    */
-  async unpublishProduct(id) {
+  async unpublishProduct(id, req = null) {
     const existing = await productRepository.findById(id);
     if (!existing) {
       const err = new Error('Product not found.');
@@ -411,22 +440,113 @@ export const productService = {
       throw err;
     }
 
-    return productRepository.update(id, {
+    const updated = await productRepository.update(id, {
       status: 'UNPUBLISHED',
       unpublishedAt: new Date(),
     });
+
+    auditService.record({
+      req,
+      action: 'UNPUBLISH_PRODUCT',
+      entity: 'Product',
+      entityId: id,
+      details: { name: existing.name },
+    });
+
+    return updated;
   },
 
   /**
    * Delete Product
    */
-  async deleteProduct(id) {
+  async deleteProduct(id, req = null) {
     const existing = await productRepository.findById(id);
     if (!existing) {
       const err = new Error('Product not found.');
       err.statusCode = 404;
       throw err;
     }
-    return productRepository.delete(id);
+    const deleted = await productRepository.delete(id);
+
+    auditService.record({
+      req,
+      action: 'DELETE_PRODUCT',
+      entity: 'Product',
+      entityId: id,
+      details: { name: existing.name, sku: existing.sku },
+    });
+
+    return deleted;
+  },
+
+  /**
+   * Bulk update status for multiple products
+   */
+  async bulkStatusUpdate(ids, status, req = null) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      const err = new Error('Product IDs array is required.');
+      err.statusCode = 400;
+      throw err;
+    }
+    if (!['DRAFT', 'PUBLISHED', 'UNPUBLISHED'].includes(status)) {
+      const err = new Error('Valid status (DRAFT, PUBLISHED, UNPUBLISHED) is required.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const result = await productRepository.bulkUpdateStatus(ids, status);
+
+    auditService.record({
+      req,
+      action: 'BULK_UPDATE_STATUS',
+      entity: 'Product',
+      details: { count: result.count, status, ids },
+    });
+
+    return { count: result.count, status };
+  },
+
+  /**
+   * Bulk update category for multiple products
+   */
+  async bulkCategoryUpdate(ids, { categoryId, subcategoryId, subSubcategoryId } = {}, req = null) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      const err = new Error('Product IDs array is required.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const result = await productRepository.bulkUpdateCategory(ids, { categoryId, subcategoryId, subSubcategoryId });
+
+    auditService.record({
+      req,
+      action: 'BULK_UPDATE_CATEGORY',
+      entity: 'Product',
+      details: { count: result.count, categoryId, subcategoryId, subSubcategoryId, ids },
+    });
+
+    return { count: result.count, categoryId, subcategoryId, subSubcategoryId };
+  },
+
+  /**
+   * Bulk delete multiple products
+   */
+  async bulkDelete(ids, req = null) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      const err = new Error('Product IDs array is required.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const result = await productRepository.bulkDelete(ids);
+
+    auditService.record({
+      req,
+      action: 'BULK_DELETE',
+      entity: 'Product',
+      details: { count: result.count, ids },
+    });
+
+    return { count: result.count };
   },
 };

@@ -150,6 +150,39 @@ export const productApi = {
     });
     return res || { success: false, message: 'Delete failed' };
   },
+
+  /**
+   * Admin: Bulk Status Update
+   */
+  async bulkStatus(ids: string[], status: 'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED'): Promise<{ count: number; status: string }> {
+    const res = await httpClient<{ count: number; status: string }>('/products/admin/bulk-status', {
+      method: 'POST',
+      body: JSON.stringify({ ids, status }),
+    });
+    return res!;
+  },
+
+  /**
+   * Admin: Bulk Category Update
+   */
+  async bulkCategory(ids: string[], payload: { categoryId?: string; subcategoryId?: string; subSubcategoryId?: string }): Promise<{ count: number }> {
+    const res = await httpClient<{ count: number }>('/products/admin/bulk-category', {
+      method: 'POST',
+      body: JSON.stringify({ ids, ...payload }),
+    });
+    return res!;
+  },
+
+  /**
+   * Admin: Bulk Delete
+   */
+  async bulkDelete(ids: string[]): Promise<{ count: number }> {
+    const res = await httpClient<{ count: number }>('/products/admin/bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    });
+    return res!;
+  },
 };
 
 export default productApi;

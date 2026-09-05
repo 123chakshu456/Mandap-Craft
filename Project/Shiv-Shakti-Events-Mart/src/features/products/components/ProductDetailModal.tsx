@@ -69,61 +69,23 @@ export default function ProductDetailModal({
                 <span className="value">₹{product.price.toLocaleString()}</span>
               </div>
               {cartQuantity > 0 ? (
-                <div
-                  className="card-qty-control"
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                >
+                <div className="modal-qty-control">
                   <button
                     type="button"
                     onClick={() => onDecrementCart(product.id)}
-                    className="qty-btn"
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      border: '1px solid #334155',
-                      borderRadius: '8px',
-                      background: '#1e293b',
-                      color: '#ffffff',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '18px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                    className="qty-btn minus"
+                    aria-label="Decrease quantity"
                   >
                     -
                   </button>
-                  <span
-                    className="qty-value"
-                    style={{
-                      fontWeight: 'bold',
-                      minWidth: '24px',
-                      textAlign: 'center',
-                      color: '#ffffff',
-                      fontSize: '16px',
-                    }}
-                  >
+                  <span className="qty-value">
                     {cartQuantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => onAddToCart(product)}
-                    className="qty-btn"
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      border: '1px solid #334155',
-                      borderRadius: '8px',
-                      background: '#1e293b',
-                      color: '#ffffff',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '18px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                    className="qty-btn plus"
+                    aria-label="Increase quantity"
                   >
                     +
                   </button>

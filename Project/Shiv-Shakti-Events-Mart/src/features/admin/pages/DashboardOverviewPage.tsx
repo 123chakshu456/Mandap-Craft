@@ -10,26 +10,44 @@ import {
   Plus,
   ArrowRight,
   TrendingUp,
+  ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { adminApi } from '../services/adminApi';
-import type { AdminStats, Order, Quote } from '../../../shared/types/models.types';
+import type { AdminStats, Order, Quote, AuditLog } from '../../../shared/types/models.types';
 
 export const DashboardOverviewPage: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [recentQuotes, setRecentQuotes] = useState<Quote[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+  const loadAuditLogs = async () => {
+    setAuditLoading(true);
+    try {
+      const logs = await adminApi.getAuditLogs({ limit: 8 });
+      setAuditLogs(logs || []);
+    } catch (err) {
+      console.error('Failed to load audit logs:', err);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
 
   useEffect(() => {
-    adminApi.getStats()
-      .then((data) => {
-        setStats(data.stats);
-        setRecentOrders(data.recentOrders || []);
-        setRecentQuotes(data.recentQuotes || []);
-      })
-      .catch((err) => console.error('Failed to load admin stats:', err))
-      .finally(() => setLoading(false));
+    Promise.all([
+      adminApi.getStats()
+        .then((data) => {
+          setStats(data.stats);
+          setRecentOrders(data.recentOrders || []);
+          setRecentQuotes(data.recentQuotes || []);
+        })
+        .catch((err) => console.error('Failed to load admin stats:', err)),
+      loadAuditLogs(),
+    ]).finally(() => setLoading(false));
   }, []);
 
   const formatCurrency = (val: number) => {
@@ -69,6 +87,48 @@ export const DashboardOverviewPage: React.FC = () => {
         }}
       >
         {status}
+      </span>
+    );
+  };
+
+  const getAuditActionBadge = (action: string) => {
+    let bg = 'rgba(100, 116, 139, 0.15)';
+    let color = '#94a3b8';
+
+    if (action.includes('PUBLISH') || action === 'CREATE_PRODUCT') {
+      bg = 'rgba(16, 185, 129, 0.15)';
+      color = '#34d399';
+    } else if (action.includes('BULK_UPDATE') || action === 'UPDATE_PRODUCT') {
+      bg = 'rgba(99, 102, 241, 0.15)';
+      color = '#a5b4fc';
+    } else if (action.includes('UPLOAD')) {
+      bg = 'rgba(6, 182, 212, 0.15)';
+      color = '#67e8f9';
+    } else if (action.includes('UNPUBLISH')) {
+      bg = 'rgba(245, 158, 11, 0.15)';
+      color = '#fbbf24';
+    } else if (action.includes('DELETE')) {
+      bg = 'rgba(239, 68, 68, 0.15)';
+      color = '#f87171';
+    }
+
+    return (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px',
+          padding: '2px 8px',
+          borderRadius: '99px',
+          fontSize: '0.7rem',
+          fontWeight: 700,
+          background: bg,
+          color: color,
+          fontFamily: 'monospace',
+          letterSpacing: '0.03em',
+        }}
+      >
+        {action}
       </span>
     );
   };
@@ -357,6 +417,137 @@ export const DashboardOverviewPage: React.FC = () => {
               </table>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ── ENTERPRISE AUDIT LOG & MUTATION STREAM CARD ── */}
+      <div
+        style={{
+          marginTop: '24px',
+          background: '#0d1526',
+          border: '1px solid #1e293b',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.2)',
+        }}
+      >
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid #1e293b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#0a1020',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #0ea5e9, #6366f1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+              }}
+            >
+              <ShieldCheck size={18} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '0.96rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+                Enterprise Audit Ledger & Mutation Stream
+              </h3>
+              <p style={{ fontSize: '0.74rem', color: '#64748b', margin: '2px 0 0' }}>
+                Cryptographic Postgres audit trail tracking administrative catalog mutations, media uploads, and bulk operations.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={loadAuditLogs}
+            disabled={auditLoading}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              background: '#1e293b',
+              border: '1px solid #334155',
+              borderRadius: '6px',
+              color: '#94a3b8',
+              fontSize: '0.76rem',
+              fontWeight: 600,
+              cursor: auditLoading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <RefreshCw size={13} className={auditLoading ? 'animate-spin' : ''} />
+            <span>{auditLoading ? 'Refreshing...' : 'Refresh Feed'}</span>
+          </button>
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          {auditLogs.length === 0 ? (
+            <div style={{ padding: '36px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+              No audit records recorded yet. Mutations performed in the CMS will appear here automatically.
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+              <thead>
+                <tr style={{ background: '#090e1a', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #1e293b' }}>
+                  <th style={{ padding: '10px 18px', width: '170px' }}>Timestamp</th>
+                  <th style={{ padding: '10px 18px', width: '180px' }}>Actor</th>
+                  <th style={{ padding: '10px 18px', width: '180px' }}>Action</th>
+                  <th style={{ padding: '10px 18px', width: '120px' }}>Entity</th>
+                  <th style={{ padding: '10px 18px' }}>Mutation Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditLogs.map((log) => {
+                  let formattedDetails = '';
+                  if (typeof log.details === 'object' && log.details !== null) {
+                    if (log.details.count) {
+                      formattedDetails = `${log.details.count} item(s) modified (${log.details.status || log.details.categoryId || 'Batch Action'})`;
+                    } else if (log.details.name) {
+                      formattedDetails = `"${log.details.name}" ${log.details.sku ? `[${log.details.sku}]` : ''}`;
+                    } else {
+                      formattedDetails = JSON.stringify(log.details);
+                    }
+                  } else if (log.details) {
+                    formattedDetails = String(log.details);
+                  }
+
+                  const dateObj = new Date(log.createdAt);
+                  const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+                  return (
+                    <tr key={log.id} style={{ borderBottom: '1px solid #1a2335' }}>
+                      <td style={{ padding: '12px 18px', color: '#94a3b8', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                        <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{timeStr}</span> ({dateStr})
+                      </td>
+                      <td style={{ padding: '12px 18px', color: '#e2e8f0', fontFamily: 'monospace', fontSize: '0.78rem' }}>
+                        {log.userEmail || 'System / Admin'}
+                      </td>
+                      <td style={{ padding: '12px 18px' }}>
+                        {getAuditActionBadge(log.action)}
+                      </td>
+                      <td style={{ padding: '12px 18px', color: '#cbd5e1', fontWeight: 600 }}>
+                        {log.entity}
+                      </td>
+                      <td style={{ padding: '12px 18px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                        {formattedDetails || 'Standard record update'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

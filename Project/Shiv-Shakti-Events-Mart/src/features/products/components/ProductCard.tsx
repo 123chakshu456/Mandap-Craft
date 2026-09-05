@@ -98,54 +98,30 @@ export default function ProductCard({
         <div className="card-footer">
           <div className="price-section">
             <span className="price-label">Starts at</span>
-            <span className="price">₹{item.price?.toLocaleString()}</span>
+            <span className="price">
+              <span className="currency">₹</span>
+              {item.price?.toLocaleString()}
+            </span>
           </div>
 
           {cartQuantity > 0 ? (
-            <div className="card-qty-control" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="card-qty-control">
               <button
                 type="button"
                 onClick={() => onDecrementCart(item.id)}
-                className="qty-btn"
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  border: '1px solid #1a4d4d',
-                  borderRadius: '6px',
-                  background: 'transparent',
-                  color: '#1a4d4d',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}
+                className="qty-btn minus"
+                aria-label="Decrease quantity"
               >
                 -
               </button>
-              <span
-                className="qty-value"
-                style={{
-                  fontWeight: 'bold',
-                  minWidth: '16px',
-                  textAlign: 'center',
-                  color: '#0f2f2f',
-                  fontSize: '14px',
-                }}
-              >
+              <span className="qty-value">
                 {cartQuantity}
               </span>
               <button
                 type="button"
                 onClick={() => onAddToCart(item, 'events')}
-                className="qty-btn"
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  border: '1px solid #1a4d4d',
-                  borderRadius: '6px',
-                  background: 'transparent',
-                  color: '#1a4d4d',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}
+                className="qty-btn plus"
+                aria-label="Increase quantity"
               >
                 +
               </button>
@@ -153,7 +129,7 @@ export default function ProductCard({
           ) : (
             <button
               onClick={() => onAddToCart(item, 'events')}
-              className="action-btn"
+              className="action-btn book-btn"
               aria-label={`Book ${item.name}`}
             >
               <span>Book</span>

@@ -8,9 +8,30 @@ export const uploadMedia = async (req, res, next) => {
     }
 
     const folder = req.body.folder || 'shiv-shakti-events';
-    const result = await mediaService.uploadImage(req.file.buffer, folder);
+    const originalName = req.file.originalname || '';
+    const altText = req.body.altText || originalName;
 
-    successResponse(res, result, 'Image uploaded successfully.');
+    const result = await mediaService.uploadImage(req.file.buffer, folder, originalName, altText, req);
+
+    successResponse(res, result, 'Image uploaded and saved to library successfully.');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMediaAssets = async (req, res, next) => {
+  try {
+    const data = await mediaService.getMediaAssets(req.query);
+    successResponse(res, data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteMediaAsset = async (req, res, next) => {
+  try {
+    await mediaService.deleteMediaAsset(req.params.id, req);
+    successResponse(res, null, 'Media asset deleted successfully.');
   } catch (error) {
     next(error);
   }

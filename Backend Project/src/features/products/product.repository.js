@@ -136,4 +136,34 @@ export const productRepository = {
       }
     });
   },
+
+  async bulkUpdateStatus(ids, status) {
+    const publishedAt = status === 'PUBLISHED' ? new Date() : undefined;
+    const unpublishedAt = status === 'UNPUBLISHED' ? new Date() : undefined;
+    return prisma.product.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        status,
+        ...(publishedAt && { publishedAt }),
+        ...(unpublishedAt && { unpublishedAt }),
+      },
+    });
+  },
+
+  async bulkUpdateCategory(ids, { categoryId, subcategoryId, subSubcategoryId }) {
+    return prisma.product.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        categoryId: categoryId || null,
+        subcategoryId: subcategoryId || null,
+        subSubcategoryId: subSubcategoryId || null,
+      },
+    });
+  },
+
+  async bulkDelete(ids) {
+    return prisma.product.deleteMany({
+      where: { id: { in: ids } },
+    });
+  },
 };
