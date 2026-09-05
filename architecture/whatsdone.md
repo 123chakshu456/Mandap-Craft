@@ -40,7 +40,7 @@ In accordance with [`architecture/prompt.md`](file:///c:/Users/123ch/OneDrive/De
 - Seeded Promotional Badges (**Royal Collection**, **Bestseller**, **New Arrival**, **Handcrafted**, **Heavy Duty Frame**).
 - Seeded 5 Full Dynamic CMS Pages (`about-us`, `custom-manufacturing`, `services`, `terms`, `privacy`).
 - Successfully backfilled all **991 existing catalog products** with unique SKU codes (`SKU-WED-0001`, etc.), unique URL slugs, published status, primary images, 1,982 filter facet connections, and 21 promotional badge links.
-- Verified active admin user: `cgoyal_be18@thapar.edu` (Role: `ADMIN`).
+- Verified active admin user: `shivshaktieventsmart@gmail.com` (Role: `ADMIN`).
 
 ---
 
