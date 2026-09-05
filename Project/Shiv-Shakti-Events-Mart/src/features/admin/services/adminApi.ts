@@ -30,10 +30,10 @@ export const adminApi = {
     if (params.action) searchParams.set('action', params.action);
 
     const queryString = searchParams.toString();
-    const res = await httpClient<{ logs: AuditLog[] }>(
+    const res = await httpClient<any>(
       `/admin/audit-logs${queryString ? `?${queryString}` : ''}`,
       { method: 'GET' }
     );
-    return res?.logs || [];
+    return Array.isArray(res) ? res : (res?.logs || []);
   },
 };

@@ -13,8 +13,8 @@ export const getStats = async (req, res, next) => {
 
 export const getAuditLogs = async (req, res, next) => {
   try {
-    const data = await auditService.getRecentLogs(req.query);
-    successResponse(res, data);
+    const logs = await auditService.getRecentLogs(req.query);
+    successResponse(res, { logs });
   } catch (error) {
     next(error);
   }
