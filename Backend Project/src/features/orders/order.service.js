@@ -2,7 +2,17 @@ import { orderRepository } from './order.repository.js';
 
 export const orderService = {
   async createOrder(payload, user = null) {
-    const { customerName, customerEmail, items, totalAmount, discountAmount, grandTotal, paymentMethod } = payload;
+    const {
+      customerName,
+      customerEmail,
+      customerPhone,
+      transactionRef,
+      items,
+      totalAmount,
+      discountAmount,
+      grandTotal,
+      paymentMethod,
+    } = payload;
 
     if (!customerName || !customerEmail || !items || !Array.isArray(items) || items.length === 0) {
       const err = new Error('Invalid order payload: customer details and at least one item are required.');
@@ -13,15 +23,24 @@ export const orderService = {
     const randomSuffix = Math.floor(100000 + Math.random() * 900000);
     const orderNumber = `MC-${randomSuffix}`;
 
+    // Gracefully include phone number and transaction reference in order metadata
+    const finalCustomerName = customerPhone
+      ? `${customerName} (📞 +91 ${customerPhone})`
+      : customerName;
+
+    const finalPaymentMethod = transactionRef
+      ? `${paymentMethod || 'card'} (Ref: ${transactionRef})`
+      : (paymentMethod || 'card');
+
     return orderRepository.create(
       {
         orderNumber,
-        customerName,
+        customerName: finalCustomerName,
         customerEmail,
         totalAmount: parseFloat(totalAmount),
         discountAmount: discountAmount ? parseFloat(discountAmount) : 0,
         grandTotal: parseFloat(grandTotal),
-        paymentMethod: paymentMethod || 'card',
+        paymentMethod: finalPaymentMethod,
         status: 'CONFIRMED',
         userId: user?.id || null,
       },

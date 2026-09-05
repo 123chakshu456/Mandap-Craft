@@ -1,8 +1,22 @@
 import { useState, useMemo } from 'react';
 import type { FormEvent } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { CreditCard, ShieldCheck, Ticket, QrCode, Landmark, CheckCircle, ArrowRight } from 'lucide-react';
+import {
+  CreditCard,
+  ShieldCheck,
+  Ticket,
+  QrCode,
+  Landmark,
+  CheckCircle,
+  ArrowRight,
+  User,
+  Mail,
+} from 'lucide-react';
 import { orderApi } from '../services/orderApi';
+import UpiPaymentSection from '../components/UpiPaymentSection';
+import CardPaymentSection from '../components/CardPaymentSection';
+import BankOtpModal from '../components/BankOtpModal';
+import { PAYMENT_CONFIG } from '../../../config/paymentConfig';
 import './CheckoutPage.scss';
 
 export default function CheckoutPage() {
@@ -15,25 +29,43 @@ export default function CheckoutPage() {
 
   const navigate = useNavigate();
 
-  // Payment tab selection
+  // Stable temporary order reference for UPI QR encoding
+  const tempOrderRef = useMemo(() => {
+    return `MC-${Math.floor(100000 + Math.random() * 900000)}`;
+  }, []);
+
+  // Customer Contact details
+  const [customerName, setCustomerName] = useState(currentUser?.name || '');
+  const [customerEmail, setCustomerEmail] = useState(currentUser?.email || '');
+  const [customerPhone, setCustomerPhone] = useState('');
+
+  // Payment method tab selection
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'netbanking'>('card');
 
-  // Card Inputs
+  // Card details
+  const [cardName, setCardName] = useState(currentUser?.name || '');
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
-  const [cardName, setCardName] = useState('');
 
-  // UPI Inputs
+  // UPI details
+  const [upiMode, setUpiMode] = useState<'qr' | 'id'>('qr');
   const [upiId, setUpiId] = useState('');
+  const [utrNumber, setUtrNumber] = useState('');
 
   // Net banking Selection
   const [selectedBank, setSelectedBank] = useState('');
 
-  // Payment Processing states
+  // Processing & Success states
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [orderId, setOrderId] = useState('');
+  const [confirmedOrderId, setConfirmedOrderId] = useState('');
+  const [confirmedPaymentDetails, setConfirmedPaymentDetails] = useState<{
+    method: string;
+    phone: string;
+    ref?: string;
+  }>({ method: '', phone: '' });
 
   // Coupon promo code
   const [promoCode, setPromoCode] = useState('');
@@ -55,63 +87,109 @@ export default function CheckoutPage() {
   const handleApplyPromo = () => {
     if (promoCode.toUpperCase() === 'ROYALMAJESTY') {
       setDiscountAmount(15000);
-      showToast('🎉 Promo code applied! ₹15,000 cash back discount deducted.');
+      showToast('🎉 Promo code applied! ₹15,000 royal cash discount deducted.');
     } else {
       showToast('❌ Invalid promo code. Try ROYALMAJESTY.');
     }
   };
 
-  const handlePaymentSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (cart.length === 0) {
-      showToast('Your cart is empty.');
-      return;
-    }
-
-    if (paymentMethod === 'card') {
-      if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
-        showToast('Please fill out all card details.');
-        return;
-      }
-    } else if (paymentMethod === 'upi') {
-      if (!upiId) {
-        showToast('Please enter your UPI ID.');
-        return;
-      }
-    } else if (paymentMethod === 'netbanking') {
-      if (!selectedBank) {
-        showToast('Please select your bank.');
-        return;
-      }
-    }
-
+  /**
+   * Finalizes the order and persists it to the backend
+   */
+  const finalizeOrder = async (confirmedMethod: 'card' | 'upi' | 'netbanking') => {
     setIsProcessing(true);
     try {
-      const customerName = currentUser?.name || cardName || (paymentMethod === 'upi' ? upiId.split('@')[0] : 'Privilege Guest');
-      const customerEmail = currentUser?.email || (paymentMethod === 'upi' && upiId.includes('@') ? upiId : 'guest@shivshaktievents.com');
+      const finalName = customerName || cardName || currentUser?.name || 'Valued Guest';
+      const finalEmail = customerEmail || currentUser?.email || 'guest@shivshaktievents.com';
+      const finalPhone = customerPhone || '9876543210';
+
+      const transactionRef = confirmedMethod === 'upi'
+        ? (utrNumber ? `UTR-${utrNumber}` : `UPI-${tempOrderRef}`)
+        : (confirmedMethod === 'card'
+          ? `AUTH-3DS-${cardNumber.slice(-4) || 'CARD'}`
+          : `NETBK-${selectedBank.toUpperCase()}`);
 
       const order = await orderApi.createOrder({
-        customerName,
-        customerEmail,
+        customerName: finalName,
+        customerEmail: finalEmail,
+        customerPhone: finalPhone,
+        transactionRef,
         items: cart,
         totalAmount: cartTotal,
         discountAmount: discountValue,
         grandTotal,
-        paymentMethod,
+        paymentMethod: confirmedMethod,
+      });
+
+      const finalOrderNumber = order?.orderNumber || tempOrderRef;
+      setConfirmedOrderId(finalOrderNumber);
+      setConfirmedPaymentDetails({
+        method: confirmedMethod.toUpperCase(),
+        phone: finalPhone,
+        ref: transactionRef,
       });
 
       setIsSuccess(true);
-      setOrderId(order?.orderNumber || `MC-${Math.floor(100000 + Math.random() * 900000)}`);
-      setCart([]); // Clear cart
-      showToast('✨ Payment processed successfully! Order placed and recorded.');
+      setShowOtpModal(false);
+      setCart([]); // Empty user cart
+      showToast('✨ Payment authenticated! Booking slots confirmed & sealed.');
     } catch (err: any) {
-      showToast(`❌ Error placing order: ${err.message || 'Payment processing error'}`);
+      showToast(`❌ Error recording order: ${err.message || 'Payment processing error'}`);
     } finally {
       setIsProcessing(false);
     }
   };
 
+  /**
+   * Form submission router
+   */
+  const handlePaymentSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (cart.length === 0) {
+      showToast('Your booking cart is empty.');
+      return;
+    }
+
+    if (!customerPhone || customerPhone.length < 10) {
+      showToast('Please provide a valid 10-digit mobile number for order verification.');
+      return;
+    }
+
+    if (paymentMethod === 'card') {
+      if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
+        showToast('Please fill out all credit/debit card fields.');
+        return;
+      }
+      if (cardNumber.replace(/\s+/g, '').length < 15) {
+        showToast('Please enter a valid 16-digit card number.');
+        return;
+      }
+      // Open RBI 3D-Secure Bank OTP verification modal
+      setShowOtpModal(true);
+      return;
+    }
+
+    if (paymentMethod === 'upi') {
+      if (upiMode === 'id' && (!upiId || !upiId.includes('@'))) {
+        showToast('Please enter a valid Virtual Payment Address (e.g. name@bank).');
+        return;
+      }
+      await finalizeOrder('upi');
+      return;
+    }
+
+    if (paymentMethod === 'netbanking') {
+      if (!selectedBank) {
+        showToast('Please select your preferred bank.');
+        return;
+      }
+      await finalizeOrder('netbanking');
+      return;
+    }
+  };
+
+  // ── SUCCESSFUL ORDER CONFIRMATION SCREEN ──
   if (isSuccess) {
     return (
       <div className="checkout-page-wrapper">
@@ -125,24 +203,32 @@ export default function CheckoutPage() {
           <div className="order-summary-box">
             <div className="summary-row">
               <span className="label">Order Reference</span>
-              <span className="value bold">{orderId}</span>
+              <span className="value bold order-ref-text">{confirmedOrderId}</span>
             </div>
             <div className="summary-row">
               <span className="label">Status</span>
-              <span className="value status-badge">CONFIRMED & SEALED</span>
+              <span className="value status-badge">CONFIRMED &amp; SEALED</span>
             </div>
             <div className="summary-row">
-              <span className="label">Payment Mode</span>
-              <span className="value uppercase">{paymentMethod} Gateway</span>
+              <span className="label">Payment Method</span>
+              <span className="value uppercase">{confirmedPaymentDetails.method} Gateway</span>
+            </div>
+            <div className="summary-row">
+              <span className="label">Transaction Reference</span>
+              <span className="value font-mono">{confirmedPaymentDetails.ref}</span>
+            </div>
+            <div className="summary-row">
+              <span className="label">Contact Mobile</span>
+              <span className="value">+91 {confirmedPaymentDetails.phone}</span>
             </div>
           </div>
 
           <p className="notice">
-            An official digital receipt, structural safety blueprint, and designer allocation sheet have been sent to your registered email.
+            A verified digital blueprint receipt, structural safety certificate, and designer assignment details have been sent to your registered contact channel.
           </p>
 
           <button onClick={() => navigate('/')} className="btn-home">
-            Return to Studio Dashboard
+            Return to Grand Showcase
             <ArrowRight className="icon-arrow" />
           </button>
         </div>
@@ -159,11 +245,11 @@ export default function CheckoutPage() {
 
           <div className="checkout-card">
             <div className="card-header">
-              <h2>Select Privilege Payment Channel</h2>
-              <p>Secure SSL bank-encrypted transactions</p>
+              <h2>Privilege Payment Channel</h2>
+              <p>Certified SSL 256-Bit Bank-Grade Encrypted Gateway</p>
             </div>
 
-            {/* TAB BUTTONS */}
+            {/* TAB SELECTORS */}
             <div className="payment-tabs">
               <button
                 type="button"
@@ -171,7 +257,7 @@ export default function CheckoutPage() {
                 className={`tab-btn ${paymentMethod === 'card' ? 'active' : ''}`}
               >
                 <CreditCard className="tab-icon" />
-                <span>Credit/Debit Card</span>
+                <span>Credit / Debit Card</span>
               </button>
               <button
                 type="button"
@@ -194,105 +280,114 @@ export default function CheckoutPage() {
             {/* FORM BODY */}
             <form onSubmit={handlePaymentSubmit} className="payment-form">
 
-              {/* 1. CREDIT/DEBIT CARD */}
-              {paymentMethod === 'card' && (
-                <div className="form-fields">
-                  <div className="form-group">
-                    <label htmlFor="cardholder-name">Cardholder Name</label>
-                    <input
-                      id="cardholder-name"
-                      type="text"
-                      placeholder="e.g. Arjun Patel"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="card-number">Card Number</label>
-                    <input
-                      id="card-number"
-                      type="text"
-                      maxLength={19}
-                      placeholder="XXXX XXXX XXXX XXXX"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim())}
-                    />
-                  </div>
+              {/* Guest / User Contact Details Strip (if not logged in) */}
+              {!currentUser && (
+                <div className="guest-info-strip">
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="card-expiry">Expiry Date</label>
+                      <label htmlFor="customer-name">
+                        <User className="icon-xs" /> Full Name
+                      </label>
                       <input
-                        id="card-expiry"
+                        id="customer-name"
                         type="text"
-                        maxLength={5}
-                        placeholder="MM/YY"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
+                        placeholder="e.g. Arjun Patel"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        required
                       />
                     </div>
                     <div className="form-group">
-                      <label htmlFor="card-cvv">CVV</label>
+                      <label htmlFor="customer-email">
+                        <Mail className="icon-xs" /> Email Address
+                      </label>
                       <input
-                        id="card-cvv"
-                        type="password"
-                        maxLength={3}
-                        placeholder="XXX"
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value)}
+                        id="customer-email"
+                        type="email"
+                        placeholder="arjun@example.com"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        required
                       />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* 2. UPI OPTION */}
-              {paymentMethod === 'upi' && (
-                <div className="form-fields upi-fields">
-                  <div className="qr-box">
-                    <div className="qr-visual">
-                      {/* Simulated QR block */}
-                      <span className="qr-text">SHIV·SHAKTI PAY QR</span>
-                    </div>
-                    <p className="qr-caption">Scan this secure QR code using GPay, PhonePe, or Paytm to complete transfer</p>
-                  </div>
-
-                  <div className="divider-or"><span>OR ENTER UPI ID</span></div>
-
-                  <div className="form-group">
-                    <label htmlFor="upi-id">Virtual Payment Address (VPA)</label>
-                    <input
-                      id="upi-id"
-                      type="text"
-                      placeholder="arjun@okaxis"
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                    />
-                  </div>
-                </div>
+              {/* 1. CREDIT / DEBIT CARD CHANNEL */}
+              {paymentMethod === 'card' && (
+                <CardPaymentSection
+                  cardName={cardName}
+                  onCardNameChange={setCardName}
+                  cardNumber={cardNumber}
+                  onCardNumberChange={setCardNumber}
+                  cardExpiry={cardExpiry}
+                  onCardExpiryChange={setCardExpiry}
+                  cardCvv={cardCvv}
+                  onCardCvvChange={setCardCvv}
+                  customerPhone={customerPhone}
+                  onCustomerPhoneChange={setCustomerPhone}
+                />
               )}
 
-              {/* 3. NET BANKING OPTION */}
+              {/* 2. DYNAMIC UPI CHANNEL */}
+              {paymentMethod === 'upi' && (
+                <UpiPaymentSection
+                  grandTotal={grandTotal}
+                  orderRef={tempOrderRef}
+                  customerPhone={customerPhone}
+                  onCustomerPhoneChange={setCustomerPhone}
+                  upiId={upiId}
+                  onUpiIdChange={setUpiId}
+                  utrNumber={utrNumber}
+                  onUtrNumberChange={setUtrNumber}
+                  upiMode={upiMode}
+                  onUpiModeChange={setUpiMode}
+                />
+              )}
+
+              {/* 3. NET BANKING CHANNEL */}
               {paymentMethod === 'netbanking' && (
-                <div className="form-fields">
+                <div className="form-fields netbanking-fields">
+                  <div className="form-group phone-group">
+                    <label htmlFor="netbanking-phone">
+                      Mobile Number (For Bank Authorization)
+                      <span className="required-star">*</span>
+                    </label>
+                    <div className="phone-input-wrapper">
+                      <span className="country-code">+91</span>
+                      <input
+                        id="netbanking-phone"
+                        type="tel"
+                        maxLength={10}
+                        placeholder="98765 43210"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="form-group">
-                    <label htmlFor="bank-select">Select Premium Bank</label>
+                    <label htmlFor="bank-select">Select Certified Bank</label>
                     <select
                       id="bank-select"
                       value={selectedBank}
                       onChange={(e) => setSelectedBank(e.target.value)}
+                      required
                     >
-                      <option value="">-- Choose Bank --</option>
-                      <option value="sbi">State Bank of India (Privilege)</option>
-                      <option value="hdfc">HDFC Bank (Imperial)</option>
-                      <option value="icici">ICICI Bank (Wealth)</option>
-                      <option value="axis">Axis Bank (Burgundy)</option>
-                      <option value="kotak">Kotak Mahindra Bank (Privy)</option>
+                      <option value="">-- Choose Your Bank --</option>
+                      {PAYMENT_CONFIG.supportedBanks.map((b) => (
+                        <option key={b.code} value={b.code}>
+                          {b.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
               )}
 
-              {/* SUBMIT BUTTON */}
+              {/* PAY / SUBMIT BUTTON */}
               <button
                 type="submit"
                 disabled={isProcessing || cart.length === 0}
@@ -301,16 +396,18 @@ export default function CheckoutPage() {
                 {isProcessing ? (
                   <span className="spinner-wrapper">
                     <span className="spinner"></span>
-                    Encrypting Payment...
+                    Authenticating Payment...
                   </span>
                 ) : (
-                  `Pay ₹${grandTotal.toLocaleString()}`
+                  paymentMethod === 'card'
+                    ? `Proceed to Bank 3D-Secure (₹${grandTotal.toLocaleString()})`
+                    : `Confirm & Pay ₹${grandTotal.toLocaleString()}`
                 )}
               </button>
 
               <div className="ssl-badge">
                 <ShieldCheck className="ssl-icon" />
-                <span>SSL Encrypted | Certified PCI-DSS Compliant Gateway</span>
+                <span>SSL Encrypted | Certified PCI-DSS 256-Bit Bank Gateway</span>
               </div>
 
             </form>
@@ -319,7 +416,7 @@ export default function CheckoutPage() {
 
         </div>
 
-        {/* RIGHT COLUMN: CART SUMMARY */}
+        {/* RIGHT COLUMN: BOOKING ORDER SUMMARY */}
         <div className="checkout-sidebar">
 
           <div className="summary-card">
@@ -334,14 +431,18 @@ export default function CheckoutPage() {
                     </div>
                     <div className="item-info">
                       <h4 className="item-name">{item.name}</h4>
-                      <span className="item-type">{item.type === 'events' ? '🏰 Event Decor Setup' : '🛋️ Luxury Furniture'}</span>
-                      <span className="item-price">₹{item.price.toLocaleString()} × {item.quantity}</span>
+                      <span className="item-type">
+                        {item.type === 'events' ? '🏰 Event Infrastructure' : '🛋️ Luxury Furniture'}
+                      </span>
+                      <span className="item-price">
+                        ₹{item.price.toLocaleString()} × {item.quantity}
+                      </span>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="empty-summary">
-                  <p>Your cart is empty.</p>
+                  <p>Your booking cart is empty.</p>
                 </div>
               )}
             </div>
@@ -361,7 +462,7 @@ export default function CheckoutPage() {
               <span className="promo-hint">Try: <strong>ROYALMAJESTY</strong></span>
             </div>
 
-            {/* Calculations */}
+            {/* Price Calculations */}
             <div className="price-calc">
               <div className="calc-row">
                 <span>Subtotal</span>
@@ -369,7 +470,7 @@ export default function CheckoutPage() {
               </div>
               {discountValue > 0 && (
                 <div className="calc-row discount">
-                  <span>Privilege Discount</span>
+                  <span>Privilege Royal Discount</span>
                   <span>- ₹{discountValue.toLocaleString()}</span>
                 </div>
               )}
@@ -384,6 +485,17 @@ export default function CheckoutPage() {
         </div>
 
       </div>
+
+      {/* 3D-SECURE BANK OTP MODAL FOR CARD PAYMENTS */}
+      <BankOtpModal
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        onSuccess={() => finalizeOrder('card')}
+        grandTotal={grandTotal}
+        customerPhone={customerPhone}
+        cardLast4={cardNumber.replace(/\s+/g, '').slice(-4)}
+      />
+
     </div>
   );
 }
