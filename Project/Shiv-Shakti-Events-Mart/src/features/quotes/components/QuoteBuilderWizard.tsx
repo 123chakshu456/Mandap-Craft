@@ -12,6 +12,8 @@ export default function QuoteBuilderWizard({ showToast }: QuoteBuilderWizardProp
   const [wizardDrapes, setWizardDrapes] = useState('heavy');
   const [wizardEmail, setWizardEmail] = useState('');
   const [wizardCompleted, setWizardCompleted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Dynamic Quote Price calculation
   const estimatedQuotePrice = useMemo(() => {
@@ -33,10 +35,13 @@ export default function QuoteBuilderWizard({ showToast }: QuoteBuilderWizardProp
 
   const handleWizardSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!wizardEmail) {
+    if (!wizardEmail || !wizardEmail.includes('@')) {
       showToast('Please enter a valid email address to receive your quote proposal.');
       return;
     }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
       await quoteApi.createQuote({
@@ -47,16 +52,19 @@ export default function QuoteBuilderWizard({ showToast }: QuoteBuilderWizardProp
         estimated: estimatedQuotePrice,
       });
       setWizardCompleted(true);
-      showToast(`🎯 Bespoke proposal generated & dispatched to ${wizardEmail}!`);
-    } catch {
-      // Fallback
-      setWizardCompleted(true);
-      showToast(`🎯 Bespoke proposal generated & dispatched to ${wizardEmail}!`);
+      showToast(`🎯 Bespoke proposal registered for ${wizardEmail}!`);
+    } catch (err: any) {
+      const msg = err.message || 'Unable to record quote at this moment. Please check connection.';
+      setSubmitError(msg);
+      showToast(`❌ ${msg}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const resetWizard = () => {
     setWizardCompleted(false);
+    setSubmitError(null);
     setWizardStep(1);
   };
 
@@ -189,11 +197,16 @@ export default function QuoteBuilderWizard({ showToast }: QuoteBuilderWizardProp
                     Next Step
                   </button>
                 ) : (
-                  <button type="submit" className="btn-get-quote">
-                    Generate Estimate Proposal
+                  <button type="submit" className="btn-get-quote" disabled={isSubmitting}>
+                    {isSubmitting ? 'Calculating & Registering...' : 'Generate Estimate Proposal'}
                   </button>
                 )}
               </div>
+              {submitError && (
+                <div style={{ marginTop: '12px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', fontSize: '0.82rem', textAlign: 'center' }}>
+                  {submitError}
+                </div>
+              )}
             </form>
           ) : (
             <div className="quote-success">

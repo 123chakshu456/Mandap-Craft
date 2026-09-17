@@ -1,6 +1,7 @@
 import { Heart, Star, CheckCircle2, ArrowRight } from 'lucide-react';
 import { getCategoryById } from '../../../constants';
 import type { Product } from '../../../shared/types/models.types';
+import { handleImageError } from '../../../shared/utils/imageFallback';
 
 export interface ProductCardProps {
   item: Product | any;
@@ -48,6 +49,7 @@ export default function ProductCard({
           alt={item.name}
           loading="lazy"
           decoding="async"
+          onError={handleImageError}
         />
         <div className="image-hover-action">
           <span>Quick Specifications</span>

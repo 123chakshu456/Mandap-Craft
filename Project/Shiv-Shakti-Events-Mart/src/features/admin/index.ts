@@ -9,4 +9,7 @@ export { default as PageCmsPage } from './pages/PageCmsPage';
 export { default as MediaLibraryPage } from './pages/MediaLibraryPage';
 export { default as OrderManagerPage } from './pages/OrderManagerPage';
 export { default as QuoteManagerPage } from './pages/QuoteManagerPage';
+export { default as BackupRestorePage } from './pages/BackupRestorePage';
+export { default as CarouselSlideManagerPage } from './pages/CarouselSlideManagerPage';
 export * from './services/adminApi';
+export * from './services/dataApi';

@@ -17,6 +17,8 @@ import {
   MediaLibraryPage,
   OrderManagerPage,
   QuoteManagerPage,
+  BackupRestorePage,
+  CarouselSlideManagerPage,
 } from '../features/admin';
 import { DynamicPageView } from '../features/pages-cms';
 
@@ -40,9 +42,11 @@ export default function AppRoutes() {
         <Route path="filters" element={<FilterManagerPage />} />
         <Route path="badges" element={<BadgeManagerPage />} />
         <Route path="pages" element={<PageCmsPage />} />
+        <Route path="carousel" element={<CarouselSlideManagerPage />} />
         <Route path="media" element={<MediaLibraryPage />} />
         <Route path="orders" element={<OrderManagerPage />} />
         <Route path="quotes" element={<QuoteManagerPage />} />
+        <Route path="backup" element={<BackupRestorePage />} />
       </Route>
 
       {/* ── PUBLIC STOREFRONT & DYNAMIC CMS ── */}

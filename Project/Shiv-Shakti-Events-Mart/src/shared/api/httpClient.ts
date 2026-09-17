@@ -69,6 +69,13 @@ export async function httpClient<T = any>(
   const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if (response.status === 401) {
+      removeAuthToken();
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+        window.location.href = '/login';
+      }
+    }
+
     const errorMsg = json?.message || json?.error || `Request failed with status ${response.status}`;
     const err = new Error(errorMsg) as any;
     err.status = response.status;

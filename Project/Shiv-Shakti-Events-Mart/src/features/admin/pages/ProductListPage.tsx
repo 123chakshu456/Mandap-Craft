@@ -413,6 +413,28 @@ export const ProductListPage: React.FC = () => {
           </button>
 
           <button
+            onClick={() => navigate('/admin/backup')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '9px 16px',
+              borderRadius: '8px',
+              background: 'rgba(99, 102, 241, 0.15)',
+              color: '#a5b4fc',
+              border: '1px solid rgba(99, 102, 241, 0.35)',
+              cursor: 'pointer',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              transition: 'all 0.15s',
+            }}
+            title="Upload Excel spreadsheet to add new SKUs"
+          >
+            <FolderInput size={15} />
+            <span>Import Excel</span>
+          </button>
+
+          <button
             onClick={() => navigate('/admin/products/new')}
             style={{
               display: 'inline-flex',

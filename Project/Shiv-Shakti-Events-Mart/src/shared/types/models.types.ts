@@ -226,3 +226,26 @@ export interface AuditLog {
   ipAddress?: string | null;
   createdAt: string;
 }
+
+export type SlideTitleSize = 'compact' | 'regular' | 'large' | 'display';
+export type SlideAlignment = 'left' | 'center' | 'right';
+
+export interface CarouselSlide {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  badge?: string | null;
+  image: string;
+  ctaText?: string | null;
+  ctaLink?: string | null;
+  secondaryCtaText?: string | null;
+  secondaryCtaLink?: string | null;
+  titleSize: SlideTitleSize;
+  alignment: SlideAlignment;
+  overlayOpacity: number;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+

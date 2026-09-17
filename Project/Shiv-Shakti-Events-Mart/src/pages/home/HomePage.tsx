@@ -23,6 +23,7 @@ import {
 import { ProductCard } from '../../features/products';
 import { BespokeStudio } from '../../features/bespoke-studio';
 import { QuoteBuilderWizard } from '../../features/quotes';
+import { HomeCarousel } from '../../features/carousel';
 import type { Product } from '../../shared/types/models.types';
 
 export default function HomePage() {
@@ -145,88 +146,10 @@ export default function HomePage() {
   return (
     <>
       {/* ==========================================
-          HERO BANNER MODULE
+          DYNAMIC LUXURY HERO CAROUSEL MODULE
          ========================================== */}
-      <section className="hero">
-        <div className="hero-bg"></div>
-        <div className="hero-grid"></div>
+      <HomeCarousel />
 
-        <div className="hero-content">
-          
-          <div className="hero-text">
-            <div className="badge">
-              <Sparkles className="icon" />
-              Complete Event &amp; Wedding Marketplace
-            </div>
-
-            <h1>
-              Complete Infrastructure For <span className="highlight">Royal Weddings &amp; Events</span>
-            </h1>
-            <p>
-              Direct source for designer Mandaps, German Hangar Tents, Luxury Banqueting Furniture, Industrial Catering Equipment, Ambient Decor, and Turnkey Custom Fabrication.
-            </p>
-
-            <div className="hero-cta-group">
-              <a href="#categories-showcase" className="cta-btn primary">
-                Explore What We Offer
-                <ArrowRight className="icon" />
-              </a>
-              <a href="#catalog" className="cta-btn secondary">
-                Browse Full Catalog
-              </a>
-            </div>
-
-            {/* Quick trust metrics */}
-            <div className="hero-metrics">
-              <div className="metric-item">
-                <span className="metric-val">6</span>
-                <span className="metric-label">Core Verticals</span>
-              </div>
-              <div className="metric-item">
-                <span className="metric-val">32+</span>
-                <span className="metric-label">Subcategories</span>
-              </div>
-              <div className="metric-item">
-                <span className="metric-val">1200+</span>
-                <span className="metric-label">Verified Events</span>
-              </div>
-              <div className="metric-item">
-                <span className="metric-val">4.9 ★</span>
-                <span className="metric-label">Artisan Rating</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Hero Image Frame */}
-          <div className="hero-media">
-            <div className="media-glow"></div>
-            <div className="media-frame">
-              <img 
-                src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80" 
-                alt="Royal Mandap and Event Setup" 
-              />
-              {/* Overlapping Info Badge */}
-              <div className="media-badge">
-                <div className="badge-info">
-                  <span className="badge-label">Spotlight Setup</span>
-                  <span className="badge-title">The Grand Mughal Mandap &amp; Banquet</span>
-                </div>
-                <div className="badge-price">
-                  <span className="price-label">Packages from</span>
-                  <span className="price-value">₹1,25,000</span>
-                </div>
-              </div>
-            </div>
-
-            {/* floating elements */}
-            <div className="floating-award">
-              <Award className="icon" />
-              India's Premier Wedding Infrastructure
-            </div>
-          </div>
-
-        </div>
-      </section>
 
       {/* ==========================================
           PLATFORM VALUE PROPS / TRUST BADGES

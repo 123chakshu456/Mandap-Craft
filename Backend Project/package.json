@@ -9,7 +9,9 @@
     "build": "prisma generate",
     "dev": "nodemon src/server.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "db:backup": "node src/scripts/backupDb.js",
+    "db:restore": "node src/scripts/restoreDb.js"
   },
   "keywords": [
     "nodejs",
@@ -32,7 +34,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^2.3.0",
-    "multer-storage-cloudinary": "^4.0.0"
+    "multer-storage-cloudinary": "^4.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.9",

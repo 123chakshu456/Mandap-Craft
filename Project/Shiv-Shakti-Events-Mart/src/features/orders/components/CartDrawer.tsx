@@ -1,5 +1,6 @@
-import { X, ShoppingBag } from 'lucide-react';
+import { X, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import type { CartItem } from '../hooks/useCart';
+import { handleImageError } from '../../../shared/utils/imageFallback';
 
 export interface CartDrawerProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ export default function CartDrawer({
               cart.map((item, idx) => (
                 <div key={`${item.id}-${idx}`} className="item">
                   <div className="item-image">
-                    <img src={item.image} alt={item.name} />
+                    <img src={item.image} alt={item.name} onError={handleImageError} />
                   </div>
                   <div className="item-info">
                     <div className="item-name">{item.name}</div>

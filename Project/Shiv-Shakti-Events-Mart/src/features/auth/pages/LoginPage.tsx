@@ -89,7 +89,11 @@ export default function LoginPage() {
       const res = await authApi.googleLogin(response.credential);
       setCurrentUser(res.user);
       showToast('Signed in with Google Privilege ID! 🌐');
-      navigate('/');
+      if (res.user?.role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       showToast(`❌ Google Authentication failed: ${err.message || 'Error occurred'}`);
     } finally {
@@ -116,7 +120,11 @@ export default function LoginPage() {
         const response = await authApi.register({ name, email, password });
         setCurrentUser(response.user);
         showToast(`Welcome to Shiv Shakti Events Mart, ${response.user.name || name}! Your privilege account is ready. 🎉`);
-        navigate('/');
+        if (response.user?.role === 'ADMIN') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } catch (err: any) {
         const msg = err.message || 'Registration failed. Please try again.';
         setErrorMessage(msg);
@@ -135,7 +143,11 @@ export default function LoginPage() {
         const response = await authApi.login({ email, password });
         setCurrentUser(response.user);
         showToast(`Welcome back, ${response.user.name || response.user.email}! Signed in successfully. ✨`);
-        navigate('/');
+        if (response.user?.role === 'ADMIN') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } catch (err: any) {
         const msg = err.message || 'Invalid email or password.';
         setErrorMessage(msg);
@@ -173,6 +185,15 @@ export default function LoginPage() {
               <div className="email">{currentUser.email}</div>
             </div>
             <div className="profile-actions">
+              {(currentUser as any).role === 'ADMIN' && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="btn-action"
+                  style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
+                >
+                  ⚙ Go to Admin Cockpit
+                </button>
+              )}
               <button onClick={() => navigate('/')} className="btn-action">
                 Return to Studio
               </button>

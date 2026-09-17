@@ -10,6 +10,7 @@ import { orderRoutes } from '../features/orders/index.js';
 import { quoteRoutes } from '../features/quotes/index.js';
 import { searchRoutes } from '../features/search/index.js';
 import { adminRoutes } from '../features/admin/index.js';
+import { carouselRoutes } from '../features/carousel/index.js';
 
 const router = express.Router();
 
@@ -34,5 +35,6 @@ router.use('/orders', orderRoutes);
 router.use('/quotes', quoteRoutes);
 router.use('/search', searchRoutes);
 router.use('/admin', adminRoutes);
+router.use('/carousel', carouselRoutes);
 
 export default router;

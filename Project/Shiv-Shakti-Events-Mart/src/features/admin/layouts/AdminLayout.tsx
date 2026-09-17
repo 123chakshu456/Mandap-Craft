@@ -16,6 +16,8 @@ import {
   Shield,
   Menu,
   X,
+  Database,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { authApi } from '../../auth/services/authApi';
 import type { User } from '../../../shared/types/models.types';
@@ -157,6 +159,10 @@ export const AdminLayout: React.FC = () => {
           <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '16px 12px 6px' }}>
             Content & Media
           </div>
+          <NavLink to="/admin/carousel" style={navItemStyle}>
+            <SlidersHorizontal size={17} />
+            <span>Homepage Carousel</span>
+          </NavLink>
           <NavLink to="/admin/pages" style={navItemStyle}>
             <FileText size={17} />
             <span>Website Pages CMS</span>
@@ -177,6 +183,15 @@ export const AdminLayout: React.FC = () => {
           <NavLink to="/admin/quotes" style={navItemStyle}>
             <MessageSquareQuote size={17} />
             <span>Instant Quote Requests</span>
+          </NavLink>
+
+          {/* Section: System & Data */}
+          <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '16px 12px 6px' }}>
+            System & Data
+          </div>
+          <NavLink to="/admin/backup" style={navItemStyle}>
+            <Database size={17} />
+            <span>Backup & Excel Import</span>
           </NavLink>
         </div>
 

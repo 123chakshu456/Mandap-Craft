@@ -1,5 +1,6 @@
 import { X, Heart } from 'lucide-react';
 import type { Product } from '../../../shared/types/models.types';
+import { handleImageError } from '../../../shared/utils/imageFallback';
 
 export interface ShortlistDrawerProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export default function ShortlistDrawer({
                     <img
                       src={item.image || (item.images && item.images[0]?.url)}
                       alt={item.name}
+                      onError={handleImageError}
                     />
                   </div>
                   <div className="item-info">

@@ -17,6 +17,7 @@ import UpiPaymentSection from '../components/UpiPaymentSection';
 import CardPaymentSection from '../components/CardPaymentSection';
 import BankOtpModal from '../components/BankOtpModal';
 import { PAYMENT_CONFIG } from '../../../config/paymentConfig';
+import { handleImageError } from '../../../shared/utils/imageFallback';
 import './CheckoutPage.scss';
 
 export default function CheckoutPage() {
@@ -188,6 +189,40 @@ export default function CheckoutPage() {
       return;
     }
   };
+
+  // ── EMPTY CART STATE ──
+  if ((!cart || cart.length === 0) && !isSuccess) {
+    return (
+      <div className="checkout-page-wrapper" style={{ padding: '60px 20px', textAlign: 'center', minHeight: '60vh' }}>
+        <div style={{ maxWidth: '500px', margin: '0 auto', background: '#0d1526', border: '1px solid #1e293b', borderRadius: '16px', padding: '40px 24px' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🛒</div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', margin: '0 0 10px' }}>Your Booking Cart is Empty</h2>
+          <p style={{ color: '#94a3b8', fontSize: '0.88rem', margin: '0 0 24px' }}>
+            You haven't selected any event mandaps, ceilings, or furniture items yet.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #6366f1, #7c3aed)',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+            }}
+          >
+            <ArrowRight size={16} />
+            <span>Browse Event Catalog</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ── SUCCESSFUL ORDER CONFIRMATION SCREEN ──
   if (isSuccess) {
@@ -427,7 +462,7 @@ export default function CheckoutPage() {
                 cart.map((item, idx) => (
                   <div key={idx} className="summary-item">
                     <div className="item-img">
-                      <img src={item.image} alt={item.name} />
+                      <img src={item.image} alt={item.name} onError={handleImageError} />
                     </div>
                     <div className="item-info">
                       <h4 className="item-name">{item.name}</h4>

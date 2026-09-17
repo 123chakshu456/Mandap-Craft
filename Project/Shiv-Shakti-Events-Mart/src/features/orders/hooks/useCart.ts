@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface CartItem {
   id: string;
@@ -9,9 +9,47 @@ export interface CartItem {
   quantity: number;
 }
 
+const CART_STORAGE_KEY = 'shiv_shakti_cart';
+const SHORTLIST_STORAGE_KEY = 'shiv_shakti_shortlist';
+
 export function useCart(showToast: (msg: string) => void) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [shortlist, setShortlist] = useState<string[]>([]);
+  // Hydrate cart from localStorage on mount
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Hydrate shortlist from localStorage on mount
+  const [shortlist, setShortlist] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(SHORTLIST_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Automatically synchronize cart with localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch (err) {
+      console.warn('Failed to save cart to localStorage:', err);
+    }
+  }, [cart]);
+
+  // Automatically synchronize shortlist with localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(shortlist));
+    } catch (err) {
+      console.warn('Failed to save shortlist to localStorage:', err);
+    }
+  }, [shortlist]);
 
   const handleAddToCart = (
     item: { id: string; name: string; price: number; image: string },
@@ -63,6 +101,11 @@ export function useCart(showToast: (msg: string) => void) {
 
   const clearCart = () => {
     setCart([]);
+    try {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    } catch {
+      // Non-blocking
+    }
   };
 
   return {
