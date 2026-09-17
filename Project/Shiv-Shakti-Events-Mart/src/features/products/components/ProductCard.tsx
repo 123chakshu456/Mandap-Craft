@@ -1,7 +1,7 @@
 import { Heart, Star, CheckCircle2, ArrowRight } from 'lucide-react';
 import { getCategoryById } from '../../../constants';
 import type { Product } from '../../../shared/types/models.types';
-import { handleImageError } from '../../../shared/utils/imageFallback';
+import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
 
 export interface ProductCardProps {
   item: Product | any;
@@ -42,10 +42,10 @@ export default function ProductCard({
       {/* Tag badge */}
       {item.tag && <div className="card-top-tag">{item.tag}</div>}
 
-      {/* Image Box with High Performance Lazy Loading */}
+      {/* Image Box with High Performance Lazy Loading & Dynamic Sizing */}
       <div className="card-image" onClick={() => onSelectProductDetail(item)}>
         <img
-          src={item.image || (item.images && item.images[0]?.url)}
+          src={optimizeImageUrl(item.image || (item.images && item.images[0]?.url), 480)}
           alt={item.name}
           loading="lazy"
           decoding="async"

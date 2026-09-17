@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import apiRoutes from './app/routes.js';
@@ -16,7 +17,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Built-in & Third-party Middlewares
+// Built-in & Third-party Middlewares (Compression handles high traffic)
+app.use(compression());
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());

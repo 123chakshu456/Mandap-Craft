@@ -11,7 +11,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "db:backup": "node src/scripts/backupDb.js",
-    "db:restore": "node src/scripts/restoreDb.js"
+    "db:restore": "node src/scripts/restoreDb.js",
+    "test:load": "node src/scripts/loadTestSimulation.js"
   },
   "keywords": [
     "nodejs",
@@ -26,6 +27,7 @@
     "@prisma/client": "^6.4.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
+    "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

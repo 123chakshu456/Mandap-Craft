@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { handleImageError } from '../../../shared/utils/imageFallback';
+import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
 
 export interface ProductDetailModalProps {
   product: {
@@ -38,7 +38,12 @@ export default function ProductDetailModal({
         </button>
         <div className="product-grid">
           <div className="product-image">
-            <img src={product.image} alt={product.name} onError={handleImageError} />
+            <img
+              src={optimizeImageUrl(product.image, 800)}
+              alt={product.name}
+              decoding="async"
+              onError={handleImageError}
+            />
           </div>
           <div className="product-details">
             <div>
