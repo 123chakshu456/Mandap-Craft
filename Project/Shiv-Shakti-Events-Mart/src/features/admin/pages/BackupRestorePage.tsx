@@ -7,14 +7,11 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertTriangle,
-  FileText,
   Layers,
   ShieldCheck,
-  ArrowRight,
   HardDrive,
   Info,
   Check,
-  X,
   FileCode,
 } from 'lucide-react';
 import { categoryApi } from '../../categories/services/categoryApi';

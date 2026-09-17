@@ -11,13 +11,10 @@ import {
   ExternalLink,
   Layers,
   CheckCircle,
-  Sliders,
   Type,
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Maximize2,
-  Image as ImageIcon,
 } from 'lucide-react';
 import { carouselApi } from '../../carousel/services/carouselApi';
 import { Modal } from '../../../shared/components/Modal/Modal';
@@ -1286,10 +1283,10 @@ export const CarouselSlideManagerPage: React.FC = () => {
           isOpen={Boolean(deleteTarget)}
           title="Delete Carousel Slide"
           message={`Are you sure you want to permanently delete the slide "${deleteTarget.title}"? This action cannot be undone.`}
-          confirmLabel="Delete Slide"
-          variant="danger"
+          confirmText="Delete Slide"
+          isDestructive={true}
           onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
+          onClose={() => setDeleteTarget(null)}
         />
       )}
     </div>

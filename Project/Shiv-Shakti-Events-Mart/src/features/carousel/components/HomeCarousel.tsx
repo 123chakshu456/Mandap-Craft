@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
 import { carouselApi } from '../services/carouselApi';
 import type { CarouselSlide, SlideTitleSize, SlideAlignment } from '../../../shared/types/models.types';

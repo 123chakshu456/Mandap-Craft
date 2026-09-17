@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Truck,
   ShieldCheck,
-  Award,
   User,
   Layers,
   Filter,

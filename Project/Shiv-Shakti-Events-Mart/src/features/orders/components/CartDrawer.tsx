@@ -1,4 +1,4 @@
-import { X, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
+import { X, ShoppingBag } from 'lucide-react';
 import type { CartItem } from '../hooks/useCart';
 import { handleImageError } from '../../../shared/utils/imageFallback';
 
