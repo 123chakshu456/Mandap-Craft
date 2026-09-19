@@ -13,6 +13,9 @@ export interface ProductQueryParams {
   minPrice?: number;
   maxPrice?: number;
   sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  startDate?: string;
+  endDate?: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -82,6 +85,10 @@ export const productApi = {
     if (params.badge) searchParams.set('badge', params.badge);
     if (params.page) searchParams.set('page', String(params.page));
     if (params.limit) searchParams.set('limit', String(params.limit));
+    if (params.startDate) searchParams.set('startDate', params.startDate);
+    if (params.endDate) searchParams.set('endDate', params.endDate);
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const queryString = searchParams.toString();
     const res = await httpClient<PaginatedProductsResponse>(

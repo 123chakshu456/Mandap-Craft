@@ -33,15 +33,52 @@ export const auditService = {
   /**
    * Fetch recent audit logs with pagination & filtering
    */
-  async getRecentLogs({ limit = 20, entity = null, action = null }) {
+  async getRecentLogs({
+    limit = 20,
+    entity = null,
+    action = null,
+    startDate = null,
+    endDate = null,
+    search = null,
+    sortOrder = 'desc',
+  } = {}) {
     const where = {};
-    if (entity) where.entity = entity;
-    if (action) where.action = action;
+    if (entity && entity !== 'all') where.entity = entity;
+    if (action && action !== 'all') where.action = action;
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        if (!isNaN(start.getTime())) where.createdAt.gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        if (!isNaN(end.getTime())) {
+          end.setHours(23, 59, 59, 999);
+          where.createdAt.lte = end;
+        }
+      }
+      if (Object.keys(where.createdAt).length === 0) {
+        delete where.createdAt;
+      }
+    }
+
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { userEmail: { contains: q, mode: 'insensitive' } },
+        { entity: { contains: q, mode: 'insensitive' } },
+        { action: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    const order = sortOrder === 'asc' ? 'asc' : 'desc';
 
     return prisma.auditLog.findMany({
       where,
       take: Math.min(Number(limit) || 20, 100),
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: order },
     });
   },
 };

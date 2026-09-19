@@ -9,7 +9,7 @@ const DEFAULT_SLIDES = [
     ctaText: 'Explore What We Offer',
     ctaLink: '#categories-showcase',
     secondaryCtaText: 'Browse Full Catalog',
-    secondaryCtaLink: '#catalog',
+    secondaryCtaLink: '/',
     titleSize: 'display',
     alignment: 'left',
     overlayOpacity: 0.55,
@@ -22,7 +22,7 @@ const DEFAULT_SLIDES = [
     badge: 'Industrial Scale & Engineering',
     image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1920&q=85',
     ctaText: 'View German Hangars',
-    ctaLink: '#catalog',
+    ctaLink: '/',
     secondaryCtaText: 'Instant Quote',
     secondaryCtaLink: '#quote-builder',
     titleSize: 'large',
@@ -37,7 +37,7 @@ const DEFAULT_SLIDES = [
     badge: 'Artisanal Luxury Collection',
     image: 'https://images.unsplash.com/photo-1544077960-604201fe74bc?auto=format&fit=crop&w=1920&q=85',
     ctaText: 'Browse Furniture Range',
-    ctaLink: '#catalog',
+    ctaLink: '/',
     secondaryCtaText: 'Custom Fabrication',
     secondaryCtaLink: '#quote-builder',
     titleSize: 'large',
@@ -59,6 +59,16 @@ export const carouselService = {
         for (const slide of DEFAULT_SLIDES) {
           await prisma.carouselSlide.create({ data: slide });
         }
+      } else {
+        // Normalize any legacy #catalog links to clean root /
+        await prisma.carouselSlide.updateMany({
+          where: { ctaLink: { in: ['#catalog', '/#catalog'] } },
+          data: { ctaLink: '/' },
+        });
+        await prisma.carouselSlide.updateMany({
+          where: { secondaryCtaLink: { in: ['#catalog', '/#catalog'] } },
+          data: { secondaryCtaLink: '/' },
+        });
       }
     } catch (e) {
       console.warn('Carousel seed check warning:', e.message);

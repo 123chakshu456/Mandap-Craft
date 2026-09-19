@@ -4,7 +4,7 @@ import { successResponse } from '../../shared/utils/response.js';
 
 export const getStats = async (req, res, next) => {
   try {
-    const data = await adminService.getDashboardStats();
+    const data = await adminService.getDashboardStats(req.query);
     successResponse(res, data);
   } catch (error) {
     next(error);

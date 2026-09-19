@@ -7,11 +7,11 @@ export const quoteRepository = {
     });
   },
 
-  async findAll({ where = {}, skip = 0, take = 20 }) {
+  async findAll({ where = {}, skip = 0, take = 20, orderBy = { createdAt: 'desc' } }) {
     const [quotes, total] = await Promise.all([
       prisma.quote.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take,
         include: {
@@ -24,10 +24,22 @@ export const quoteRepository = {
     return { quotes, total };
   },
 
+  async findById(id) {
+    return prisma.quote.findUnique({
+      where: { id },
+    });
+  },
+
   async updateStatus(id, status) {
     return prisma.quote.update({
       where: { id },
       data: { status },
+    });
+  },
+
+  async delete(id) {
+    return prisma.quote.delete({
+      where: { id },
     });
   },
 };

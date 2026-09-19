@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import HomePage from '../pages/home/HomePage';
 
@@ -52,6 +52,7 @@ export default function AppRoutes() {
       {/* ── PUBLIC STOREFRONT & DYNAMIC CMS ── */}
       <Route path="/" element={<MainLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="catalog" element={<Navigate to="/" replace />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
         <Route path="page/:slug" element={<DynamicPageView />} />

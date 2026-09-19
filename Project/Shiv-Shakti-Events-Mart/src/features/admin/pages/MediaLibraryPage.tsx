@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  Calendar,
+  ArrowUpDown,
 } from 'lucide-react';
 import { mediaApi } from '../../media/services/mediaApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
@@ -26,9 +28,12 @@ export const MediaLibraryPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  // Filters & Sorting
   const [search, setSearch] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('all');
+  const [datePreset, setDatePreset] = useState<'all' | 'today' | '7d' | '30d'>('all');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Upload State
   const [isUploading, setIsUploading] = useState(false);
@@ -52,11 +57,33 @@ export const MediaLibraryPage: React.FC = () => {
     setLoading(true);
     setErrorMsg('');
     try {
+      let startDate: string | undefined = undefined;
+      let endDate: string | undefined = undefined;
+      const now = new Date();
+      if (datePreset === 'today') {
+        startDate = now.toISOString().split('T')[0];
+        endDate = startDate;
+      } else if (datePreset === '7d') {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        startDate = d.toISOString().split('T')[0];
+        endDate = now.toISOString().split('T')[0];
+      } else if (datePreset === '30d') {
+        const d = new Date();
+        d.setDate(d.getDate() - 30);
+        startDate = d.toISOString().split('T')[0];
+        endDate = now.toISOString().split('T')[0];
+      }
+
       const res = await mediaApi.getMediaAssets({
         page,
         limit: 24,
         search: search.trim() || undefined,
         folder: selectedFolder !== 'all' ? selectedFolder : undefined,
+        sortBy,
+        sortOrder,
+        startDate,
+        endDate,
       });
       setAssets(res.assets || []);
       setTotal(res.total || 0);
@@ -67,7 +94,7 @@ export const MediaLibraryPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search, selectedFolder]);
+  }, [page, search, selectedFolder, datePreset, sortBy, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -452,6 +479,62 @@ export const MediaLibraryPage: React.FC = () => {
             <option value="shiv-shakti-events/products">Products</option>
             <option value="shiv-shakti-events/banners">Banners</option>
             <option value="shiv-shakti-events/cms">CMS Pages</option>
+          </select>
+        </div>
+
+        {/* Date Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Calendar size={15} color="#64748b" />
+          <select
+            value={datePreset}
+            onChange={(e) => {
+              setDatePreset(e.target.value as any);
+              setPage(1);
+            }}
+            style={{
+              padding: '9px 14px',
+              background: '#080d18',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              color: '#cbd5e1',
+              fontSize: '0.84rem',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="all">All Dates</option>
+            <option value="today">Today</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+          </select>
+        </div>
+
+        {/* Sort Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ArrowUpDown size={15} color="#64748b" />
+          <select
+            value={`${sortBy}_${sortOrder}`}
+            onChange={(e) => {
+              const [f, o] = e.target.value.split('_');
+              setSortBy(f);
+              setSortOrder(o as any);
+              setPage(1);
+            }}
+            style={{
+              padding: '9px 14px',
+              background: '#080d18',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              color: '#cbd5e1',
+              fontSize: '0.84rem',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="createdAt_desc">Date: Newest First</option>
+            <option value="createdAt_asc">Date: Oldest First</option>
+            <option value="name_asc">Name: A to Z</option>
+            <option value="bytes_desc">Size: Largest First</option>
           </select>
         </div>
       </div>

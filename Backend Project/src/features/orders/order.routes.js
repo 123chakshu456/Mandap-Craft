@@ -4,6 +4,7 @@ import {
   getMyOrders,
   getAllOrders,
   updateOrderStatus,
+  deleteOrder,
 } from './order.controller.js';
 import { authenticate, optionalAuth, authorize } from '../../shared/middlewares/authMiddleware.js';
 
@@ -16,5 +17,6 @@ router.get('/my-orders', authenticate, getMyOrders);
 // Admin-only routes
 router.get('/', authenticate, authorize('ADMIN'), getAllOrders);
 router.patch('/:id/status', authenticate, authorize('ADMIN'), updateOrderStatus);
+router.delete('/:id', authenticate, authorize('ADMIN'), deleteOrder);
 
 export default router;

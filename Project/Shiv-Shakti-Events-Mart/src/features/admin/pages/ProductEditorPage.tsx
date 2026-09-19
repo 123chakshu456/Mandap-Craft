@@ -68,6 +68,10 @@ export const ProductEditorPage: React.FC = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  // Delete State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+
   // Media Picker Modal
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaPickerTarget, setMediaPickerTarget] = useState<'primary' | 'gallery'>('primary');
@@ -302,6 +306,21 @@ export const ProductEditorPage: React.FC = () => {
     }
   };
 
+  const handleDeleteProduct = async () => {
+    if (!id || !isEditing) return;
+    setIsDeletingProduct(true);
+    try {
+      await productApi.delete(id);
+      setIsDirty(false);
+      setShowDeleteConfirm(false);
+      navigate('/admin/products', { replace: true });
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete product.');
+    } finally {
+      setIsDeletingProduct(false);
+    }
+  };
+
   // Multi-tab validation indicator check
   const tabHasError = (tab: EditorTab): boolean => {
     if (tab === 'basic') return !form.name?.trim();
@@ -398,11 +417,36 @@ export const ProductEditorPage: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isSaving || isDeletingProduct}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 16px',
+                borderRadius: '8px',
+                background: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#f87171',
+                fontWeight: 600,
+                fontSize: '0.84rem',
+                cursor: isSaving || isDeletingProduct ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s',
+              }}
+              title="Permanently delete this product SKU"
+            >
+              <Trash2 size={15} />
+              <span>Delete SKU</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => handleSave('DRAFT')}
-            disabled={isSaving}
+            disabled={isSaving || isDeletingProduct}
             style={{
               padding: '9px 16px',
               borderRadius: '8px',
@@ -411,7 +455,7 @@ export const ProductEditorPage: React.FC = () => {
               color: '#cbd5e1',
               fontWeight: 600,
               fontSize: '0.84rem',
-              cursor: isSaving ? 'not-allowed' : 'pointer',
+              cursor: isSaving || isDeletingProduct ? 'not-allowed' : 'pointer',
             }}
           >
             Save as Draft
@@ -419,7 +463,7 @@ export const ProductEditorPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleSave(form.status === 'DRAFT' ? 'PUBLISHED' : undefined)}
-            disabled={isSaving}
+            disabled={isSaving || isDeletingProduct}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -431,7 +475,7 @@ export const ProductEditorPage: React.FC = () => {
               border: 'none',
               fontWeight: 700,
               fontSize: '0.85rem',
-              cursor: isSaving ? 'not-allowed' : 'pointer',
+              cursor: isSaving || isDeletingProduct ? 'not-allowed' : 'pointer',
               boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
             }}
             title="Save changes (Ctrl+S)"
@@ -1430,6 +1474,20 @@ export const ProductEditorPage: React.FC = () => {
           title="Discard Unsaved Changes?"
           message="You have unsaved changes on this product SKU. Leaving now will permanently discard them."
           confirmText="Discard & Leave"
+        />
+      )}
+
+      {/* Delete SKU Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteProduct}
+          title="Delete Product SKU"
+          message={`Are you sure you want to permanently delete "${form.name || form.sku || 'this product'}"? All inventory listings, images, and catalog associations for this SKU will be removed permanently. This action cannot be undone.`}
+          confirmText="Delete SKU Permanently"
+          isDestructive={true}
+          isLoading={isDeletingProduct}
         />
       )}
     </div>

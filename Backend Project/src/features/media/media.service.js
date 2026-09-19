@@ -42,7 +42,16 @@ export const mediaService = {
   /**
    * Fetch paginated media assets from database
    */
-  async getMediaAssets({ page = 1, limit = 24, search = '', folder = '' }) {
+  async getMediaAssets({
+    page = 1,
+    limit = 24,
+    search = '',
+    folder = '',
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+    startDate = null,
+    endDate = null,
+  } = {}) {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 24));
     const skip = (pageNum - 1) * limitNum;
@@ -59,13 +68,35 @@ export const mediaService = {
       where.folder = folder;
     }
 
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        if (!isNaN(start.getTime())) where.createdAt.gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        if (!isNaN(end.getTime())) {
+          end.setHours(23, 59, 59, 999);
+          where.createdAt.lte = end;
+        }
+      }
+      if (Object.keys(where.createdAt).length === 0) {
+        delete where.createdAt;
+      }
+    }
+
+    const validSortFields = ['createdAt', 'name', 'bytes'];
+    const field = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const order = sortOrder === 'asc' ? 'asc' : 'desc';
+
     const [total, assets] = await Promise.all([
       prisma.mediaAsset.count({ where }),
       prisma.mediaAsset.findMany({
         where,
         skip,
         take: limitNum,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [field]: order },
       }),
     ]);
 

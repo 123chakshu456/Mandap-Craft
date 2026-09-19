@@ -14,7 +14,7 @@ const FALLBACK_SLIDES: CarouselSlide[] = [
     ctaText: 'Explore What We Offer',
     ctaLink: '#categories-showcase',
     secondaryCtaText: 'Browse Full Catalog',
-    secondaryCtaLink: '#catalog',
+    secondaryCtaLink: '/',
     titleSize: 'display',
     alignment: 'left',
     overlayOpacity: 0.55,
@@ -28,7 +28,7 @@ const FALLBACK_SLIDES: CarouselSlide[] = [
     badge: 'Industrial Scale & Engineering',
     image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1920&q=85',
     ctaText: 'View German Hangars',
-    ctaLink: '#catalog',
+    ctaLink: '/',
     secondaryCtaText: 'Instant Quote',
     secondaryCtaLink: '#quote-builder',
     titleSize: 'large',
@@ -44,7 +44,7 @@ const FALLBACK_SLIDES: CarouselSlide[] = [
     badge: 'Artisanal Luxury Collection',
     image: 'https://images.unsplash.com/photo-1544077960-604201fe74bc?auto=format&fit=crop&w=1920&q=85',
     ctaText: 'Browse Furniture Range',
-    ctaLink: '#catalog',
+    ctaLink: '/',
     secondaryCtaText: 'Custom Fabrication',
     secondaryCtaLink: '#quote-builder',
     titleSize: 'large',
@@ -130,6 +130,33 @@ export const HomeCarousel: React.FC<HomeCarouselProps> = ({ initialSlides }) => 
     }
     setTouchStartX(null);
     setTouchEndX(null);
+  };
+
+  const handleCtaClick = (e: React.MouseEvent<HTMLAnchorElement>, link?: string | null) => {
+    const targetLink = link || '/';
+    if (targetLink === '/' || targetLink === '#catalog' || targetLink === '/#catalog') {
+      e.preventDefault();
+      const catalogEl = document.getElementById('catalog');
+      if (catalogEl) {
+        catalogEl.scrollIntoView({ behavior: 'smooth' });
+      }
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      return;
+    }
+    if (targetLink.startsWith('#')) {
+      e.preventDefault();
+      const targetId = targetLink.replace(/^#/, '');
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      return;
+    }
   };
 
   if (slides.length === 0) {
@@ -263,7 +290,8 @@ export const HomeCarousel: React.FC<HomeCarouselProps> = ({ initialSlides }) => 
             <div className="carousel-actions">
               {currentSlide.ctaText && (
                 <a
-                  href={currentSlide.ctaLink || '#catalog'}
+                  href={currentSlide.ctaLink || '/'}
+                  onClick={(e) => handleCtaClick(e, currentSlide.ctaLink)}
                   className="carousel-btn primary-btn"
                 >
                   <span>{currentSlide.ctaText}</span>
@@ -272,7 +300,8 @@ export const HomeCarousel: React.FC<HomeCarouselProps> = ({ initialSlides }) => 
               )}
               {currentSlide.secondaryCtaText && (
                 <a
-                  href={currentSlide.secondaryCtaLink || '#catalog'}
+                  href={currentSlide.secondaryCtaLink || '/'}
+                  onClick={(e) => handleCtaClick(e, currentSlide.secondaryCtaLink)}
                   className="carousel-btn secondary-btn"
                 >
                   <span>{currentSlide.secondaryCtaText}</span>

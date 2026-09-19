@@ -27,3 +27,12 @@ export const updateQuoteStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteQuote = async (req, res, next) => {
+  try {
+    await quoteService.deleteQuote(req.params.id);
+    successResponse(res, null, 'Quote request deleted successfully.');
+  } catch (error) {
+    next(error);
+  }
+};

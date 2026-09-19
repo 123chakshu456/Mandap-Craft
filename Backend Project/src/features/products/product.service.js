@@ -103,6 +103,7 @@ export const productService = {
     const {
       category, subcategory, status, search, badge,
       page = 1, limit = 50,
+      startDate, endDate, sortBy, sortOrder,
     } = query;
 
     const where = {};
@@ -110,6 +111,24 @@ export const productService = {
     if (category && category !== 'all') where.categoryId = category;
     if (subcategory && subcategory !== 'all') where.subcategoryId = subcategory;
     if (status && status !== 'all') where.status = status;
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        if (!isNaN(start.getTime())) where.createdAt.gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        if (!isNaN(end.getTime())) {
+          end.setHours(23, 59, 59, 999);
+          where.createdAt.lte = end;
+        }
+      }
+      if (Object.keys(where.createdAt).length === 0) {
+        delete where.createdAt;
+      }
+    }
 
     if (search) {
       where.OR = [
@@ -133,13 +152,21 @@ export const productService = {
       };
     }
 
+    let orderBy = [{ updatedAt: 'desc' }, { createdAt: 'desc' }];
+    if (sortBy) {
+      const order = sortOrder === 'asc' ? 'asc' : 'desc';
+      if (['name', 'sku', 'price', 'status', 'createdAt', 'updatedAt'].includes(sortBy)) {
+        orderBy = [{ [sortBy]: order }];
+      }
+    }
+
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(3000, Math.max(1, parseInt(limit) || 50));
     const skip = (pageNum - 1) * limitNum;
 
     const { products, total } = await productRepository.findMany({
       where,
-      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+      orderBy,
       skip,
       take: limitNum,
     });

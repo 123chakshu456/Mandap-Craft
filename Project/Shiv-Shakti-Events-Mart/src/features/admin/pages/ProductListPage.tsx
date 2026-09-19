@@ -47,6 +47,7 @@ export const ProductListPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedBadge, setSelectedBadge] = useState('all');
+  const [selectedDatePreset, setSelectedDatePreset] = useState<'all' | 'today' | '7d' | '30d' | 'month'>('all');
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>('updatedAt');
@@ -85,6 +86,28 @@ export const ProductListPage: React.FC = () => {
     setLoading(true);
     setActionError('');
     try {
+      let startDate: string | undefined = undefined;
+      let endDate: string | undefined = undefined;
+      const now = new Date();
+      if (selectedDatePreset === 'today') {
+        startDate = now.toISOString().split('T')[0];
+        endDate = startDate;
+      } else if (selectedDatePreset === '7d') {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        startDate = d.toISOString().split('T')[0];
+        endDate = now.toISOString().split('T')[0];
+      } else if (selectedDatePreset === '30d') {
+        const d = new Date();
+        d.setDate(d.getDate() - 30);
+        startDate = d.toISOString().split('T')[0];
+        endDate = now.toISOString().split('T')[0];
+      } else if (selectedDatePreset === 'month') {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate = startOfMonth.toISOString().split('T')[0];
+        endDate = now.toISOString().split('T')[0];
+      }
+
       const res = await productApi.getAdminList({
         page,
         limit: 50,
@@ -92,6 +115,8 @@ export const ProductListPage: React.FC = () => {
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined,
         badge: selectedBadge !== 'all' ? selectedBadge : undefined,
+        startDate,
+        endDate,
       });
       setProducts(res.products || []);
       setTotal(res.total || 0);
@@ -102,7 +127,7 @@ export const ProductListPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, selectedCategory, selectedStatus, selectedBadge]);
+  }, [page, debouncedSearch, selectedCategory, selectedStatus, selectedBadge, selectedDatePreset]);
 
   useEffect(() => {
     loadProducts();
@@ -575,6 +600,31 @@ export const ProductListPage: React.FC = () => {
               {b.label}
             </option>
           ))}
+        </select>
+
+        {/* Date Filter */}
+        <select
+          value={selectedDatePreset}
+          onChange={(e) => {
+            setSelectedDatePreset(e.target.value as any);
+            setPage(1);
+          }}
+          style={{
+            padding: '9px 12px',
+            background: '#080d18',
+            border: '1px solid #1e293b',
+            borderRadius: '8px',
+            color: '#cbd5e1',
+            fontSize: '0.82rem',
+            outline: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          <option value="all">All Dates</option>
+          <option value="today">Today</option>
+          <option value="7d">Last 7 Days</option>
+          <option value="30d">Last 30 Days</option>
+          <option value="month">This Month</option>
         </select>
 
         <button

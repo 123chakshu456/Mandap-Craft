@@ -36,3 +36,12 @@ export const updateOrderStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteOrder = async (req, res, next) => {
+  try {
+    await orderService.deleteOrder(req.params.id);
+    successResponse(res, null, 'Order deleted successfully.');
+  } catch (error) {
+    next(error);
+  }
+};

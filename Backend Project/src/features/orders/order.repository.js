@@ -32,11 +32,11 @@ export const orderRepository = {
     });
   },
 
-  async findAll({ where = {}, skip = 0, take = 20 }) {
+  async findAll({ where = {}, skip = 0, take = 20, orderBy = { createdAt: 'desc' } }) {
     const [orders, total] = await Promise.all([
       prisma.order.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take,
         include: {
@@ -65,6 +65,12 @@ export const orderRepository = {
       where: { id },
       data: { status },
       include: { items: true },
+    });
+  },
+
+  async delete(id) {
+    return prisma.order.delete({
+      where: { id },
     });
   },
 };

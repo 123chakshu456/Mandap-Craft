@@ -90,6 +90,17 @@ export default function MainLayout() {
     });
   }, []);
 
+  // Clean /#catalog or #catalog from URL if present and scroll smoothly
+  useEffect(() => {
+    if (window.location.hash === '#catalog' || window.location.hash === '#/catalog') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      const catalogEl = document.getElementById('catalog');
+      if (catalogEl) {
+        catalogEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location]);
+
   // Debounced search query for backend calls
   const debouncedSearchQuery = useDebounce(searchQuery, 250);
 

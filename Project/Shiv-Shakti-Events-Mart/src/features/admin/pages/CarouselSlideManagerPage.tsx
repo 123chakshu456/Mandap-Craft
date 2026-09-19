@@ -91,7 +91,7 @@ export const CarouselSlideManagerPage: React.FC = () => {
       ctaText: 'Explore What We Offer',
       ctaLink: '#categories-showcase',
       secondaryCtaText: 'Browse Full Catalog',
-      secondaryCtaLink: '#catalog',
+      secondaryCtaLink: '/',
       titleSize: 'large',
       alignment: 'left',
       overlayOpacity: 0.5,
@@ -1246,7 +1246,7 @@ export const CarouselSlideManagerPage: React.FC = () => {
                   type="text"
                   value={editingSlide.secondaryCtaLink || ''}
                   onChange={(e) => setEditingSlide({ ...editingSlide, secondaryCtaLink: e.target.value })}
-                  placeholder="e.g. #catalog or /#quote-builder"
+                  placeholder="e.g. / or /#quote-builder"
                   style={{
                     width: '100%',
                     padding: '8px 12px',

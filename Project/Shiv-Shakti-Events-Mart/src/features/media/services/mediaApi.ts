@@ -5,7 +5,18 @@ export const mediaApi = {
   /**
    * Fetch paginated media assets from database
    */
-  async getMediaAssets(query: { page?: number; limit?: number; search?: string; folder?: string } = {}): Promise<{
+  async getMediaAssets(
+    query: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      folder?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+      startDate?: string;
+      endDate?: string;
+    } = {}
+  ): Promise<{
     assets: MediaAsset[];
     total: number;
     page: number;
@@ -16,6 +27,10 @@ export const mediaApi = {
     if (query.limit) params.append('limit', String(query.limit));
     if (query.search) params.append('search', query.search);
     if (query.folder) params.append('folder', query.folder);
+    if (query.sortBy) params.append('sortBy', query.sortBy);
+    if (query.sortOrder) params.append('sortOrder', query.sortOrder);
+    if (query.startDate) params.append('startDate', query.startDate);
+    if (query.endDate) params.append('endDate', query.endDate);
 
     const response = await fetch(`/api/media?${params.toString()}`, {
       headers: getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {},
