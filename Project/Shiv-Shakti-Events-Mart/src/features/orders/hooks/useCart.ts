@@ -7,6 +7,10 @@ export interface CartItem {
   image: string;
   type: 'events' | 'boutique';
   quantity: number;
+  pricingUnit?: 'FIXED' | 'PER_SQFT';
+  selectedSqFt?: number;
+  dimensionsNote?: string;
+  unitPrice?: number;
 }
 
 const CART_STORAGE_KEY = 'shiv_shakti_cart';
@@ -52,17 +56,40 @@ export function useCart(showToast: (msg: string) => void) {
   }, [shortlist]);
 
   const handleAddToCart = (
-    item: { id: string; name: string; price: number; image: string },
-    type: 'events' | 'boutique' = 'events'
+    item: { id: string; name: string; price: number; image: string; [key: string]: any },
+    type: 'events' | 'boutique' = 'events',
+    customArea?: { selectedSqFt: number; dimensionsNote?: string; calculatedPrice: number }
   ) => {
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
+      // If customArea is provided (per sq.ft), item key is unique to that size
+      const targetId = customArea ? `${item.id}-${customArea.selectedSqFt}sqft` : item.id;
+      const targetPrice = customArea ? customArea.calculatedPrice : item.price;
+      const dimensionsNote = customArea
+        ? `${customArea.selectedSqFt} sq.ft${customArea.dimensionsNote ? ` (${customArea.dimensionsNote})` : ''}`
+        : undefined;
+
+      const existing = prev.find(i => i.id === targetId);
       if (existing) {
-        showToast(`Increased quantity of "${item.name}" to ${existing.quantity + 1}! 📥`);
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+        showToast(`Increased quantity of "${existing.name}" to ${existing.quantity + 1}! 📥`);
+        return prev.map(i => i.id === targetId ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      showToast(`"${item.name}" added to booking cart! ✨`);
-      return [...prev, { ...item, type, quantity: 1 }];
+      const displayName = customArea ? `${item.name} (${customArea.selectedSqFt} sq.ft)` : item.name;
+      showToast(`"${displayName}" added to booking cart! ✨`);
+      return [
+        ...prev,
+        {
+          ...item,
+          id: targetId,
+          name: displayName,
+          price: targetPrice,
+          type,
+          quantity: 1,
+          pricingUnit: item.pricingUnit || (customArea ? 'PER_SQFT' : 'FIXED'),
+          selectedSqFt: customArea?.selectedSqFt,
+          dimensionsNote,
+          unitPrice: item.price,
+        },
+      ];
     });
   };
 

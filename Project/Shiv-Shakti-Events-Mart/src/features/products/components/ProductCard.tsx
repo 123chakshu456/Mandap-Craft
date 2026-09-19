@@ -67,6 +67,23 @@ export default function ProductCard({
           <span className="sub-badge-text">
             {subcategoryData?.title || item.subcategoryId}
           </span>
+          {item.pricingUnit === 'PER_SQFT' && (
+            <span
+              style={{
+                marginLeft: 'auto',
+                background: 'rgba(245, 158, 11, 0.15)',
+                color: '#fbbf24',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                padding: '2px 7px',
+                borderRadius: '999px',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                letterSpacing: '0.3px',
+              }}
+            >
+              📐 Per Sq. Ft
+            </span>
+          )}
         </div>
 
         <h3 onClick={() => onSelectProductDetail(item)} className="card-title">
@@ -88,6 +105,34 @@ export default function ProductCard({
         {/* Snippet */}
         <p className="card-description">{item.description}</p>
 
+        {/* Allowed Preset Sizes Snippet */}
+        {item.pricingUnit === 'PER_SQFT' && Array.isArray(item.presetSizes) && item.presetSizes.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', margin: '4px 0 6px' }}>
+            <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Sizes:</span>
+            {item.presetSizes.slice(0, 4).map((sz: number) => (
+              <span
+                key={sz}
+                style={{
+                  fontSize: '0.68rem',
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  border: '1px solid #334155',
+                  color: '#cbd5e1',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  fontWeight: 600,
+                }}
+              >
+                {sz} sq.ft
+              </span>
+            ))}
+            {item.presetSizes.length > 4 && (
+              <span style={{ fontSize: '0.68rem', color: '#f59e0b', fontWeight: 600 }}>
+                +{item.presetSizes.length - 4} more
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Key features pill row */}
         {item.features && item.features.length > 0 && (
           <div className="card-feature-snippet">
@@ -98,15 +143,55 @@ export default function ProductCard({
 
         {/* Pricing and Action */}
         <div className="card-footer">
-          <div className="price-section">
-            <span className="price-label">Starts at</span>
-            <span className="price">
-              <span className="currency">₹</span>
-              {item.price?.toLocaleString()}
-            </span>
-          </div>
+          {item.pricingUnit === 'PER_SQFT' ? (
+            (() => {
+              const presetSizes = Array.isArray(item.presetSizes) ? item.presetSizes : [];
+              const minPreset = presetSizes.length > 0
+                ? Math.min(...presetSizes)
+                : (item.minSqFt || item.defaultSqFt || 1);
+              const startingCost = minPreset * (item.price || 0);
 
-          {cartQuantity > 0 ? (
+              return (
+                <div className="price-section">
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                    <span className="price">
+                      <span className="currency">₹</span>
+                      {item.price?.toLocaleString()}
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>/ sq.ft</span>
+                  </div>
+                  {presetSizes.length > 0 && (
+                    <span className="price-label" style={{ fontSize: '0.7rem', color: '#fbbf24', marginTop: '1px' }}>
+                      Starts at ₹{startingCost.toLocaleString()} ({minPreset} sq.ft)
+                    </span>
+                  )}
+                </div>
+              );
+            })()
+          ) : (
+            <div className="price-section">
+              <span className="price-label">Starts at</span>
+              <span className="price">
+                <span className="currency">₹</span>
+                {item.price?.toLocaleString()}
+              </span>
+            </div>
+          )}
+
+          {item.pricingUnit === 'PER_SQFT' ? (
+            <button
+              onClick={() => onSelectProductDetail(item)}
+              className="action-btn book-btn"
+              aria-label={`Select size for ${item.name}`}
+              style={{
+                background: 'linear-gradient(135deg, #d97706, #b45309)',
+                border: '1px solid rgba(251, 191, 36, 0.4)',
+              }}
+            >
+              <span>Select Size</span>
+              <ArrowRight className="icon" />
+            </button>
+          ) : cartQuantity > 0 ? (
             <div className="card-qty-control">
               <button
                 type="button"

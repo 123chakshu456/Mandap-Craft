@@ -850,7 +850,7 @@ export default function MainLayout() {
         product={selectedProductDetail}
         onClose={() => setSelectedProductDetail(null)}
         cartQuantity={cart.find((i) => i.id === selectedProductDetail?.id)?.quantity || 0}
-        onAddToCart={(item) => handleAddToCart(item, platformMode)}
+        onAddToCart={(item, customArea) => handleAddToCart(item, platformMode, customArea)}
         onDecrementCart={handleDecrementCart}
       />
 

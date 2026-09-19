@@ -16,14 +16,15 @@ import { orderApi } from '../services/orderApi';
 import UpiPaymentSection from '../components/UpiPaymentSection';
 import CardPaymentSection from '../components/CardPaymentSection';
 import BankOtpModal from '../components/BankOtpModal';
+import type { CartItem } from '../hooks/useCart';
 import { PAYMENT_CONFIG } from '../../../config/paymentConfig';
 import { handleImageError } from '../../../shared/utils/imageFallback';
 import './CheckoutPage.scss';
 
 export default function CheckoutPage() {
   const { cart, setCart, showToast, currentUser } = useOutletContext<{
-    cart: { id: string; name: string; price: number; image: string; type: 'events' | 'boutique'; quantity: number }[];
-    setCart: React.Dispatch<React.SetStateAction<{ id: string; name: string; price: number; image: string; type: 'events' | 'boutique'; quantity: number }[]>>;
+    cart: CartItem[];
+    setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
     showToast: (msg: string) => void;
     currentUser?: { name: string; email: string; id?: string } | null;
   }>();
@@ -503,6 +504,11 @@ export default function CheckoutPage() {
                       <span className="item-type">
                         {item.type === 'events' ? '🏰 Event Infrastructure' : '🛋️ Luxury Furniture'}
                       </span>
+                      {item.dimensionsNote && (
+                        <span style={{ fontSize: '0.74rem', color: '#fbbf24', fontWeight: 600, display: 'block', margin: '2px 0' }}>
+                          📐 {item.dimensionsNote}
+                        </span>
+                      )}
                       <span className="item-price">
                         ₹{item.price.toLocaleString()} × {item.quantity}
                       </span>

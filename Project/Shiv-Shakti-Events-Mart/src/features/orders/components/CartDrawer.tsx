@@ -50,6 +50,11 @@ export default function CartDrawer({
                   </div>
                   <div className="item-info">
                     <div className="item-name">{item.name}</div>
+                    {item.dimensionsNote && (
+                      <div style={{ fontSize: '0.74rem', color: '#fbbf24', fontWeight: 600, margin: '2px 0' }}>
+                        📐 {item.dimensionsNote}
+                      </div>
+                    )}
                     <div className="item-price">₹{item.price.toLocaleString()}</div>
                     <div className="item-quantity-control">
                       <button

@@ -78,6 +78,12 @@ export interface Product {
   style: string;
   price: number;
   compareAtPrice?: number | null;
+  pricingUnit?: 'FIXED' | 'PER_SQFT';
+  areaMode?: 'PRESET_SIZES' | 'CUSTOM_DIMENSIONS' | 'BOTH' | null;
+  presetSizes?: number[];
+  minSqFt?: number | null;
+  maxSqFt?: number | null;
+  defaultSqFt?: number | null;
   rating: number;
   reviews: number;
   image: string;

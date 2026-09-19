@@ -9,6 +9,10 @@ import {
   CheckCircle2,
   Image as ImageIcon,
   FolderOpen,
+  Ruler,
+  Plus,
+  Sparkles,
+  Check,
 } from 'lucide-react';
 import { productApi } from '../../products/services/productApi';
 import { categoryApi } from '../../categories/services/categoryApi';
@@ -45,6 +49,12 @@ export const ProductEditorPage: React.FC = () => {
     style: 'Traditional',
     price: 0,
     compareAtPrice: 0,
+    pricingUnit: 'FIXED',
+    areaMode: 'PRESET_SIZES',
+    presetSizes: [],
+    minSqFt: null,
+    maxSqFt: null,
+    defaultSqFt: null,
     rating: 4.8,
     reviews: 0,
     image: '',
@@ -78,6 +88,7 @@ export const ProductEditorPage: React.FC = () => {
 
   // Helpers
   const [newFeatureText, setNewFeatureText] = useState('');
+  const [newPresetSize, setNewPresetSize] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -132,6 +143,12 @@ export const ProductEditorPage: React.FC = () => {
           if (p) {
             setForm({
               ...p,
+              pricingUnit: p.pricingUnit || 'FIXED',
+              areaMode: p.areaMode || 'PRESET_SIZES',
+              presetSizes: Array.isArray(p.presetSizes) ? p.presetSizes : [],
+              minSqFt: p.minSqFt ?? null,
+              maxSqFt: p.maxSqFt ?? null,
+              defaultSqFt: p.defaultSqFt ?? null,
               features: Array.isArray(p.features) ? p.features : [],
             });
             if (p.filterValues) {
@@ -176,6 +193,31 @@ export const ProductEditorPage: React.FC = () => {
   const handleRemoveFeature = (idx: number) => {
     updateForm({
       features: (form.features || []).filter((_, i) => i !== idx),
+    });
+  };
+
+  const handleAddPresetSize = (customVal?: number) => {
+    const val = customVal !== undefined ? customVal : parseFloat(newPresetSize);
+    if (isNaN(val) || val <= 0) return;
+    const current = Array.isArray(form.presetSizes) ? form.presetSizes : [];
+    if (current.includes(val)) {
+      setNewPresetSize('');
+      return;
+    }
+    const updated = [...current, val].sort((a, b) => a - b);
+    updateForm({
+      presetSizes: updated,
+      defaultSqFt: form.defaultSqFt || updated[0],
+    });
+    setNewPresetSize('');
+  };
+
+  const handleRemovePresetSize = (val: number) => {
+    const current = Array.isArray(form.presetSizes) ? form.presetSizes : [];
+    const updated = current.filter((s) => s !== val);
+    updateForm({
+      presetSizes: updated,
+      defaultSqFt: form.defaultSqFt === val ? (updated[0] || null) : form.defaultSqFt,
     });
   };
 
@@ -970,54 +1012,150 @@ export const ProductEditorPage: React.FC = () => {
 
         {/* 3. PRICING & STOCK */}
         {activeTab === 'pricing' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>
-              Pricing, Inventory & Priority
-            </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>
+                Pricing Model, Inventory & Specifications
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
+                Configure whether this SKU is booked at a flat fixed rate or dynamically calculated per square foot with allowed sizes.
+              </p>
+            </div>
 
+            {/* ── PRICING UNIT SELECTION (FIXED vs PER_SQFT) ── */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Pricing Structure Model *
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                {/* Fixed Pricing Card */}
+                <div
+                  onClick={() => updateForm({ pricingUnit: 'FIXED' })}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '10px',
+                    background: form.pricingUnit !== 'PER_SQFT' ? 'rgba(99, 102, 241, 0.12)' : '#080d18',
+                    border: form.pricingUnit !== 'PER_SQFT' ? '2px solid #6366f1' : '1px solid #1e293b',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.2rem' }}>🏷️</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: form.pricingUnit !== 'PER_SQFT' ? '#c7d2fe' : '#f1f5f9' }}>
+                        Fixed Package Pricing
+                      </span>
+                    </div>
+                    {form.pricingUnit !== 'PER_SQFT' && (
+                      <span style={{ background: '#6366f1', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Check size={12} strokeWidth={3} />
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+                    Standard flat price per setup or unit (e.g. Mandap full package, single chair, set of props).
+                  </p>
+                </div>
+
+                {/* Per Sq/Ft Pricing Card */}
+                <div
+                  onClick={() => updateForm({ pricingUnit: 'PER_SQFT', areaMode: form.areaMode || 'PRESET_SIZES' })}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '10px',
+                    background: form.pricingUnit === 'PER_SQFT' ? 'rgba(217, 119, 6, 0.12)' : '#080d18',
+                    border: form.pricingUnit === 'PER_SQFT' ? '2px solid #f59e0b' : '1px solid #1e293b',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.2rem' }}>📐</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: form.pricingUnit === 'PER_SQFT' ? '#fde68a' : '#f1f5f9' }}>
+                        Per Square Foot (₹ / sq.ft)
+                      </span>
+                    </div>
+                    {form.pricingUnit === 'PER_SQFT' && (
+                      <span style={{ background: '#f59e0b', color: '#000', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Check size={12} strokeWidth={3} />
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+                    Dynamic price calculated on square footage with predefined increments (e.g. 5, 6, 8 sq.ft) or dimensions.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── BASE RATES GRID ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase' }}>
-                  Sale / Rental Price (₹) *
+                  {form.pricingUnit === 'PER_SQFT' ? 'Rate per Sq. Ft (₹ / sq.ft) *' : 'Sale / Rental Price (₹) *'}
                 </label>
-                <input
-                  type="number"
-                  value={form.price || 0}
-                  onChange={(e) => updateForm({ price: parseFloat(e.target.value) || 0 })}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    background: '#080d18',
-                    border: tabHasError('pricing') ? '1px solid #ef4444' : '1px solid #1e293b',
-                    borderRadius: '8px',
-                    color: '#34d399',
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontWeight: 700 }}>
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={form.price || ''}
+                    onChange={(e) => updateForm({ price: parseFloat(e.target.value) || 0 })}
+                    placeholder="0"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px 10px 28px',
+                      background: '#080d18',
+                      border: tabHasError('pricing') ? '1px solid #ef4444' : '1px solid #1e293b',
+                      borderRadius: '8px',
+                      color: '#34d399',
+                      fontWeight: 700,
+                      fontSize: '1.05rem',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+                {form.pricingUnit === 'PER_SQFT' && (
+                  <span style={{ fontSize: '0.72rem', color: '#fbbf24', marginTop: '4px', display: 'block' }}>
+                    💡 Customer booking price will equal: (Selected sq.ft × ₹{form.price || 0})
+                  </span>
+                )}
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase' }}>
-                  Compare-At Price (₹)
+                  {form.pricingUnit === 'PER_SQFT' ? 'Original Rate / Strike (₹ / sq.ft)' : 'Compare-At Price (₹)'}
                 </label>
-                <input
-                  type="number"
-                  value={form.compareAtPrice || 0}
-                  onChange={(e) => updateForm({ compareAtPrice: parseFloat(e.target.value) || 0 })}
-                  placeholder="Original catalog price before discount"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    background: '#080d18',
-                    border: '1px solid #1e293b',
-                    borderRadius: '8px',
-                    color: '#94a3b8',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                  }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontWeight: 700 }}>
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={form.compareAtPrice || ''}
+                    onChange={(e) => updateForm({ compareAtPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="Original catalog rate"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px 10px 28px',
+                      background: '#080d18',
+                      border: '1px solid #1e293b',
+                      borderRadius: '8px',
+                      color: '#94a3b8',
+                      fontSize: '0.9rem',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
               </div>
 
               <div>
@@ -1043,7 +1181,304 @@ export const ProductEditorPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginTop: '8px' }}>
+            {/* ── PER SQ.FT ADVANCED CONFIGURATION ── */}
+            {form.pricingUnit === 'PER_SQFT' && (
+              <div
+                style={{
+                  background: 'rgba(15, 23, 42, 0.65)',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '18px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Ruler size={18} color="#f59e0b" />
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#fde68a' }}>
+                    Square Footage & Dimension Options
+                  </h4>
+                </div>
+
+                {/* Sizing Mode Selection */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase' }}>
+                    Customer Area Selection Mode
+                  </label>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'PRESET_SIZES', label: 'Preset Allowed Sizes Only', desc: 'Item is only available in specific increments (e.g. 5, 6, 8 sq.ft)' },
+                      { id: 'CUSTOM_DIMENSIONS', label: 'Custom Dimensions', desc: 'Customer inputs exact Length × Width (ft)' },
+                      { id: 'BOTH', label: 'Both (Preset Pills + Custom Calculator)', desc: 'Quick pills for common sizes + custom dimensions option' },
+                    ].map((mode) => {
+                      const isSelected = (form.areaMode || 'PRESET_SIZES') === mode.id;
+                      return (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => updateForm({ areaMode: mode.id as any })}
+                          style={{
+                            flex: '1 1 200px',
+                            padding: '12px 14px',
+                            borderRadius: '8px',
+                            background: isSelected ? '#1e293b' : '#080d18',
+                            border: isSelected ? '1px solid #f59e0b' : '1px solid #1e293b',
+                            color: isSelected ? '#fde68a' : '#94a3b8',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '3px' }}>{mode.label}</div>
+                          <div style={{ fontSize: '0.72rem', color: isSelected ? '#cbd5e1' : '#64748b' }}>{mode.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Preset Sizes List Management */}
+                {((form.areaMode || 'PRESET_SIZES') === 'PRESET_SIZES' || form.areaMode === 'BOTH') && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase' }}>
+                      Allowed Preset Sizes (Sq. Ft)
+                    </label>
+
+                    {/* Quick Add Suggestions */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b', marginRight: '4px' }}>Quick Presets:</span>
+                      {[4, 5, 6, 8, 10, 12, 15, 20, 24, 30].map((sz) => {
+                        const exists = (form.presetSizes || []).includes(sz);
+                        return (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => handleAddPresetSize(sz)}
+                            disabled={exists}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              background: exists ? '#1e293b' : '#0f172a',
+                              border: exists ? '1px solid #334155' : '1px solid #334155',
+                              color: exists ? '#475569' : '#a5b4fc',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              cursor: exists ? 'default' : 'pointer',
+                            }}
+                          >
+                            + {sz} sq.ft
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Custom Input + Add */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', maxWidth: '420px' }}>
+                      <input
+                        type="number"
+                        min="0.1"
+                        step="any"
+                        value={newPresetSize}
+                        onChange={(e) => setNewPresetSize(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddPresetSize();
+                          }
+                        }}
+                        placeholder="Enter size in sq.ft (e.g. 8)"
+                        style={{
+                          flex: 1,
+                          padding: '9px 12px',
+                          background: '#080d18',
+                          border: '1px solid #1e293b',
+                          borderRadius: '8px',
+                          color: '#f1f5f9',
+                          fontSize: '0.85rem',
+                          outline: 'none',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetSize()}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '9px 16px',
+                          background: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                          color: '#fbbf24',
+                          fontWeight: 600,
+                          fontSize: '0.82rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Plus size={14} />
+                        <span>Add Size</span>
+                      </button>
+                    </div>
+
+                    {/* Active Allowed Sizes Chips */}
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      {(form.presetSizes && form.presetSizes.length > 0) ? (
+                        form.presetSizes.map((sz) => {
+                          const isDefault = form.defaultSqFt === sz;
+                          const calculatedForSize = ((form.price || 0) * sz).toLocaleString();
+                          return (
+                            <div
+                              key={sz}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 12px',
+                                background: isDefault ? 'rgba(245, 158, 11, 0.15)' : '#080d18',
+                                border: isDefault ? '1px solid #f59e0b' : '1px solid #334155',
+                                borderRadius: '8px',
+                                fontSize: '0.84rem',
+                                color: '#f1f5f9',
+                              }}
+                            >
+                              <span style={{ fontWeight: 700, color: '#fde68a' }}>{sz} sq.ft</span>
+                              <span style={{ color: '#34d399', fontSize: '0.8rem', fontWeight: 600 }}>
+                                (₹{calculatedForSize})
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => updateForm({ defaultSqFt: sz })}
+                                title="Set as default customer preselection"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: '2px 4px',
+                                  color: isDefault ? '#fbbf24' : '#475569',
+                                  cursor: 'pointer',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {isDefault ? '★ Default' : '☆ Make Default'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePresetSize(sz)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#f87171',
+                                  cursor: 'pointer',
+                                  padding: '2px',
+                                  marginLeft: '4px',
+                                }}
+                                title="Remove size option"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>
+                          No preset sizes specified yet. Click quick presets above or type a size to define options for this SKU.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Min / Max bounds */}
+                {((form.areaMode || 'PRESET_SIZES') === 'CUSTOM_DIMENSIONS' || form.areaMode === 'BOTH') && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase' }}>
+                        Minimum Allowed Sq. Ft
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={form.minSqFt ?? ''}
+                        onChange={(e) => updateForm({ minSqFt: e.target.value ? parseFloat(e.target.value) : null })}
+                        placeholder="e.g. 4 (optional)"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          background: '#080d18',
+                          border: '1px solid #1e293b',
+                          borderRadius: '8px',
+                          color: '#f1f5f9',
+                          fontSize: '0.85rem',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase' }}>
+                        Maximum Allowed Sq. Ft
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={form.maxSqFt ?? ''}
+                        onChange={(e) => updateForm({ maxSqFt: e.target.value ? parseFloat(e.target.value) : null })}
+                        placeholder="e.g. 500 (optional)"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          background: '#080d18',
+                          border: '1px solid #1e293b',
+                          borderRadius: '8px',
+                          color: '#f1f5f9',
+                          fontSize: '0.85rem',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Customer Storefront Preview Card */}
+                <div
+                  style={{
+                    background: '#080d18',
+                    border: '1px dashed #334155',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={16} color="#fbbf24" />
+                    <div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#cbd5e1' }}>
+                        Storefront Customer View:
+                      </span>
+                      <span style={{ fontSize: '0.78rem', color: '#94a3b8', marginLeft: '6px' }}>
+                        Card will show <strong>₹{form.price || 0} / sq.ft</strong>
+                        {(form.presetSizes && form.presetSizes.length > 0)
+                          ? ` (Starts at ₹${((form.presetSizes[0] || 1) * (form.price || 0)).toLocaleString()} for ${form.presetSizes[0]} sq.ft)`
+                          : ''}
+                      </span>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', background: '#1e293b', color: '#818cf8', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                    📐 Dynamic Area Enabled
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* ── STOCK & FEATURED TOGGLES ── */}
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginTop: '4px', flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: '#f1f5f9' }}>
                 <input
                   type="checkbox"

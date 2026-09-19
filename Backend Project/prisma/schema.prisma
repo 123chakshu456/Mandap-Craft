@@ -135,6 +135,12 @@ model Product {
   style            String               @default("Traditional")
   price            Float
   compareAtPrice   Float?
+  pricingUnit      String               @default("FIXED")
+  areaMode         String?
+  presetSizes      Json?                @default("[]")
+  minSqFt          Float?
+  maxSqFt          Float?
+  defaultSqFt      Float?
   rating           Float                @default(4.5)
   reviews          Int                  @default(0)
   image            String
