@@ -1,4 +1,5 @@
 import { orderRepository } from './order.repository.js';
+import { notificationService } from '../../shared/services/notification.service.js';
 
 export const orderService = {
   async createOrder(payload, user = null) {
@@ -14,8 +15,11 @@ export const orderService = {
       paymentMethod,
     } = payload;
 
-    if (!customerName || !customerEmail || !items || !Array.isArray(items) || items.length === 0) {
-      const err = new Error('Invalid order payload: customer details and at least one item are required.');
+    const rawEmail = customerEmail ? String(customerEmail).trim() : '';
+    const rawPhone = customerPhone ? String(customerPhone).trim() : '';
+
+    if (!customerName || (!rawEmail && !rawPhone) || !items || !Array.isArray(items) || items.length === 0) {
+      const err = new Error('Invalid order payload: customer name, contact info (email and/or phone number), and at least one item are required.');
       err.statusCode = 400;
       throw err;
     }
@@ -23,20 +27,23 @@ export const orderService = {
     const randomSuffix = Math.floor(100000 + Math.random() * 900000);
     const orderNumber = `MC-${randomSuffix}`;
 
-    // Gracefully include phone number and transaction reference in order metadata
-    const finalCustomerName = customerPhone
-      ? `${customerName} (📞 +91 ${customerPhone})`
+    // Gracefully format customer phone and payment reference
+    const finalCustomerName = rawPhone
+      ? `${customerName} (📞 +91 ${rawPhone.replace(/\D/g, '')})`
       : customerName;
 
     const finalPaymentMethod = transactionRef
       ? `${paymentMethod || 'card'} (Ref: ${transactionRef})`
       : (paymentMethod || 'card');
 
-    return orderRepository.create(
+    const finalEmail = rawEmail || `${rawPhone.replace(/\D/g, '') || 'guest'}@customer.shivshaktievents.com`;
+
+    const order = await orderRepository.create(
       {
         orderNumber,
         customerName: finalCustomerName,
-        customerEmail,
+        customerEmail: finalEmail,
+        customerPhone: rawPhone || null,
         totalAmount: parseFloat(totalAmount),
         discountAmount: discountAmount ? parseFloat(discountAmount) : 0,
         grandTotal: parseFloat(grandTotal),
@@ -46,6 +53,20 @@ export const orderService = {
       },
       items
     );
+
+    // Multi-channel dispatch: Send SMS, Email, or Both (if available)
+    notificationService.sendOrderConfirmation({
+      order,
+      customerName,
+      customerEmail: rawEmail || null,
+      customerPhone: rawPhone || null,
+      grandTotal: parseFloat(grandTotal),
+      items,
+    }).catch((err) => {
+      console.error('[Order Notification Warning] Failed to dispatch order messages:', err.message);
+    });
+
+    return order;
   },
 
   async getUserOrders(userId) {

@@ -66,6 +66,7 @@ export default function CheckoutPage() {
     method: string;
     phone: string;
     ref?: string;
+    email?: string;
   }>({ method: '', phone: '' });
 
   // Coupon promo code
@@ -128,6 +129,7 @@ export default function CheckoutPage() {
         method: confirmedMethod.toUpperCase(),
         phone: finalPhone,
         ref: transactionRef,
+        email: finalEmail,
       });
 
       setIsSuccess(true);
@@ -252,20 +254,52 @@ export default function CheckoutPage() {
               <span className="label">Transaction Reference</span>
               <span className="value font-mono">{confirmedPaymentDetails.ref}</span>
             </div>
-            <div className="summary-row">
-              <span className="label">Contact Mobile</span>
-              <span className="value">+91 {confirmedPaymentDetails.phone}</span>
-            </div>
+            {confirmedPaymentDetails.phone && (
+              <div className="summary-row">
+                <span className="label">Contact Mobile</span>
+                <span className="value">📱 +91 {confirmedPaymentDetails.phone} (SMS Sent)</span>
+              </div>
+            )}
+            {confirmedPaymentDetails.email && !confirmedPaymentDetails.email.includes('@customer.shivshaktievents.com') && (
+              <div className="summary-row">
+                <span className="label">Registered Email</span>
+                <span className="value">📧 {confirmedPaymentDetails.email} (Email Sent)</span>
+              </div>
+            )}
           </div>
 
           <p className="notice">
-            A verified digital blueprint receipt, structural safety certificate, and designer assignment details have been sent to your registered contact channel.
+            A confirmation text message and digital order receipt with order reference <strong>#{confirmedOrderId}</strong> have been sent to your registered contact channel.
           </p>
 
-          <button onClick={() => navigate('/')} className="btn-home">
-            Return to Grand Showcase
-            <ArrowRight className="icon-arrow" />
-          </button>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '20px', flexWrap: 'wrap' }}>
+            {confirmedPaymentDetails.phone && (
+              <a
+                href={`https://wa.me/91${confirmedPaymentDetails.phone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello! My Shiv Shakti Events Mart order #${confirmedOrderId} is confirmed! Order Number: #${confirmedOrderId}. Total: ₹${grandTotal.toLocaleString('en-IN')}. Track updates: https://shivshaktieventsmart.vercel.app`)}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 20px',
+                  borderRadius: '8px',
+                  background: '#25D366',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)',
+                }}
+              >
+                <span>📲 Open Order in WhatsApp</span>
+              </a>
+            )}
+            <button onClick={() => navigate('/')} className="btn-home">
+              Return to Grand Showcase
+              <ArrowRight className="icon-arrow" />
+            </button>
+          </div>
         </div>
       </div>
     );

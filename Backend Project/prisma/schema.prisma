@@ -44,6 +44,7 @@ model Order {
   orderNumber     String      @unique
   customerName    String
   customerEmail   String
+  customerPhone   String?
   totalAmount     Float
   discountAmount  Float       @default(0)
   grandTotal      Float
