@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 
 import { CATEGORIES } from '../constants';
-import { useCart, CartDrawer } from '../features/orders';
+import { useCart } from '../features/orders/hooks/useCart';
+import CartDrawer from '../features/orders/components/CartDrawer';
 import { useToast, useDebounce } from '../shared/hooks';
 import { useProducts, ProductDetailModal, ShortlistDrawer } from '../features/products';
 import { CategoryMegaMenu } from '../features/categories';

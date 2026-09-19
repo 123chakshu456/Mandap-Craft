@@ -55,6 +55,9 @@ model Order {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
   @@map("orders")
 }
 
@@ -70,6 +73,7 @@ model OrderItem {
   image     String?
   createdAt DateTime @default(now())
 
+  @@index([orderId])
   @@map("order_items")
 }
 
@@ -86,6 +90,9 @@ model Quote {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
   @@map("quotes")
 }
 

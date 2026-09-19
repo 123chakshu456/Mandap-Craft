@@ -27,21 +27,30 @@ if (isCloudinaryConfigured) {
 /**
  * Save image locally if Cloudinary is not configured or fails
  */
-const saveLocalFallback = (buffer) => {
+const saveLocalFallback = (buffer, originalName = '') => {
   if (!existsSync(uploadsDir)) {
     mkdirSync(uploadsDir, { recursive: true });
   }
 
-  const filename = `asset-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
+  const rawExt = path.extname(originalName || '').toLowerCase();
+  const validExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.bmp', '.tiff', '.avif'];
+  const ext = validExts.includes(rawExt) ? rawExt : '.jpg';
+
+  const filename = `asset-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
   const filePath = path.join(uploadsDir, filename);
   writeFileSync(filePath, buffer);
 
+  const baseUrl = process.env.RENDER_EXTERNAL_URL ||
+    process.env.BASE_URL ||
+    (process.env.NODE_ENV === 'production' ? 'https://shiv-shakti-events-mart.onrender.com' : '');
+  const url = baseUrl ? `${baseUrl.replace(/\/+$/, '')}/uploads/${filename}` : `/uploads/${filename}`;
+
   return {
-    url: `/uploads/${filename}`,
+    url,
     publicId: `local_${filename}`,
     width: 800,
     height: 600,
-    format: 'jpg',
+    format: ext.replace('.', ''),
     bytes: buffer.length,
   };
 };
@@ -50,12 +59,13 @@ const saveLocalFallback = (buffer) => {
  * Upload a buffer stream to Cloudinary with local fallback
  * @param {Buffer} buffer 
  * @param {string} folder 
+ * @param {string} originalName
  * @returns {Promise<{url: string, publicId: string, width: number, height: number, format: string, bytes: number}>}
  */
-export const uploadStreamToCloudinary = (buffer, folder = 'shiv-shakti-events') => {
+export const uploadStreamToCloudinary = (buffer, folder = 'shiv-shakti-events', originalName = '') => {
   if (!isCloudinaryConfigured) {
     console.log('ℹ️ Cloudinary credentials not configured. Storing image in local /uploads directory.');
-    return Promise.resolve(saveLocalFallback(buffer));
+    return Promise.resolve(saveLocalFallback(buffer, originalName));
   }
 
   return new Promise((resolve) => {
@@ -67,7 +77,7 @@ export const uploadStreamToCloudinary = (buffer, folder = 'shiv-shakti-events') 
       (error, result) => {
         if (error || !result) {
           console.warn('⚠️ Cloudinary upload failed. Falling back to local storage:', error?.message);
-          return resolve(saveLocalFallback(buffer));
+          return resolve(saveLocalFallback(buffer, originalName));
         }
         resolve({
           url: result.secure_url,

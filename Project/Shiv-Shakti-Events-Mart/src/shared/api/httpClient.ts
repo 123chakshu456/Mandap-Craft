@@ -65,7 +65,19 @@ export async function httpClient<T = any>(
   const path = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
   const url = apiBase ? `${apiBase}${path}` : path;
 
-  const response = await fetch(url, config);
+  let response: Response;
+  try {
+    response = await fetch(url, config);
+  } catch (networkErr: any) {
+    console.error('🌐 Network Connection Error:', networkErr);
+    const err = new Error(
+      'Network Error: Unable to communicate with the server. Please verify your internet connection or server availability.'
+    ) as any;
+    err.status = 0;
+    err.isNetworkError = true;
+    throw err;
+  }
+
   const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {

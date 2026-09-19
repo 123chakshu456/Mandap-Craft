@@ -1,4 +1,3 @@
-export { default as CheckoutPage } from './pages/CheckoutPage';
 export { default as CartDrawer } from './components/CartDrawer';
 export { default as UpiPaymentSection } from './components/UpiPaymentSection';
 export { default as CardPaymentSection } from './components/CardPaymentSection';

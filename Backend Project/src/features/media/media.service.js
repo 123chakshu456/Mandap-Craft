@@ -7,7 +7,7 @@ export const mediaService = {
    * Upload single image buffer to Cloudinary & persist in MediaAsset
    */
   async uploadImage(buffer, folder = 'shiv-shakti-events', originalName = '', altText = '', req = null) {
-    const uploadResult = await uploadStreamToCloudinary(buffer, folder);
+    const uploadResult = await uploadStreamToCloudinary(buffer, folder, originalName);
 
     // Persist in media_assets table
     const asset = await prisma.mediaAsset.create({

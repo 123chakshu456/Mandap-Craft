@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import path from 'path';
 import {
   uploadMedia,
   getMediaAssets,
@@ -13,17 +14,53 @@ import { authenticate, authorize } from '../../shared/middlewares/authMiddleware
 
 const router = express.Router();
 
-// In-memory buffer storage for direct Cloudinary streaming
+// Supported image MIME types and file extensions
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/pjpeg',
+  'image/png',
+  'image/x-png',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+  'image/bmp',
+  'image/x-ms-bmp',
+  'image/tiff',
+  'image/avif',
+  'image/heic',
+  'image/heif',
+]);
+
+const ALLOWED_EXTENSIONS = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
+  '.gif',
+  '.svg',
+  '.bmp',
+  '.tiff',
+  '.avif',
+  '.heic',
+  '.heif',
+]);
+
+// In-memory buffer storage for direct Cloudinary / local fallback streaming
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
   fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-    if (allowed.includes(file.mimetype)) {
+    const mime = (file.mimetype || '').toLowerCase();
+    const ext = path.extname(file.originalname || '').toLowerCase();
+
+    if (ALLOWED_MIME_TYPES.has(mime) || ALLOWED_EXTENSIONS.has(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only JPEG, PNG, WebP, and GIF images are allowed.'));
+      const err = new Error('Unsupported image format. Please upload a valid image file (JPG, PNG, WebP, AVIF, GIF, or SVG).');
+      err.statusCode = 400;
+      cb(err);
     }
   },
 });

@@ -79,10 +79,12 @@ export const ProductEditorPage: React.FC = () => {
   // Helpers
   const [newFeatureText, setNewFeatureText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
 
   // Mark dirty on changes
   const updateForm = (updates: Partial<Product>) => {
@@ -181,10 +183,18 @@ export const ProductEditorPage: React.FC = () => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const file = files[0];
+
+    // Client-side file size guard (15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      setErrorMsg('Image file size exceeds 15MB limit. Please compress or choose a smaller image.');
+      if (e.target) e.target.value = '';
+      return;
+    }
+
     setIsUploading(true);
     setErrorMsg('');
     try {
-      const file = files[0];
       const result = await mediaApi.uploadImage(file, 'shiv-shakti-events/products');
 
       if (!form.image) {
@@ -196,10 +206,48 @@ export const ProductEditorPage: React.FC = () => {
         { url: result.url, publicId: result.publicId, isPrimary: prev.length === 0 },
       ]);
       setIsDirty(true);
+      setSuccessMsg('Image uploaded successfully and added to gallery!');
+      setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
+      console.error('Image upload failed:', err);
       setErrorMsg(err.message || 'Image upload failed. You can also paste an image URL directly.');
     } finally {
       setIsUploading(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+
+    if (file.size > 15 * 1024 * 1024) {
+      setErrorMsg('Cover photo exceeds 15MB limit. Please choose a smaller image.');
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    setErrorMsg('');
+    try {
+      const result = await mediaApi.uploadImage(file, 'shiv-shakti-events/products');
+
+      updateForm({ image: result.url });
+      setGalleryImages((prev) => {
+        const remaining = prev.filter((img) => img.url !== result.url);
+        return [{ url: result.url, publicId: result.publicId, isPrimary: true }, ...remaining.map(img => ({ ...img, isPrimary: false }))];
+      });
+      setIsDirty(true);
+      setSuccessMsg('Cover picture uploaded successfully!');
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err: any) {
+      console.error('Cover upload failed:', err);
+      setErrorMsg(err.message || 'Cover upload failed. You can also paste an image URL directly.');
+    } finally {
+      setIsUploading(false);
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -746,7 +794,37 @@ export const ProductEditorPage: React.FC = () => {
                       outline: 'none',
                     }}
                   />
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <input
+                      ref={coverFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/avif,image/svg+xml"
+                      onChange={handleCoverUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      disabled={isUploading}
+                      onClick={() => coverFileInputRef.current?.click()}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '7px 14px',
+                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(124, 58, 237, 0.2))',
+                        border: '1px solid rgba(99, 102, 241, 0.4)',
+                        borderRadius: '6px',
+                        color: '#c7d2fe',
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        cursor: isUploading ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <Upload size={14} />
+                      <span>{isUploading ? 'Uploading Image...' : 'Upload Cover Picture'}</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => {
@@ -1137,31 +1215,67 @@ export const ProductEditorPage: React.FC = () => {
 
             {/* Direct Upload Area */}
             <div
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  const fakeEvent = { target: { files: e.dataTransfer.files, value: '' } } as any;
+                  handleFileUpload(fakeEvent);
+                }
+              }}
               style={{
-                border: '2px dashed #334155',
+                border: isDragging ? '2px dashed #818cf8' : '2px dashed #334155',
                 borderRadius: '12px',
                 padding: '36px 20px',
                 textAlign: 'center',
-                cursor: 'pointer',
-                background: '#080d18',
+                cursor: isUploading ? 'not-allowed' : 'pointer',
+                background: isDragging ? 'rgba(99, 102, 241, 0.08)' : '#080d18',
                 transition: 'all 0.2s',
               }}
             >
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/avif,image/svg+xml"
                 onChange={handleFileUpload}
                 style={{ display: 'none' }}
               />
-              <Upload size={36} color="#818cf8" style={{ margin: '0 auto 10px' }} />
-              <div style={{ fontWeight: 600, color: '#f1f5f9', fontSize: '0.92rem' }}>
-                {isUploading ? 'Streaming file to Cloudinary...' : 'Click to Upload High-Res Image'}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-                Supports JPEG, PNG, WebP up to 15MB.
-              </div>
+              {isUploading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      border: '3px solid #334155',
+                      borderTopColor: '#818cf8',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite',
+                    }}
+                  />
+                  <div style={{ fontWeight: 600, color: '#c7d2fe', fontSize: '0.92rem' }}>
+                    Uploading and Optimizing Image...
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                    Streaming to secure cloud storage
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Upload size={36} color={isDragging ? '#a5b4fc' : '#818cf8'} style={{ margin: '0 auto 10px' }} />
+                  <div style={{ fontWeight: 600, color: '#f1f5f9', fontSize: '0.92rem' }}>
+                    {isDragging ? 'Drop image here to upload' : 'Click or Drag & Drop to Upload High-Res Image'}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
+                    Supports JPG, PNG, WebP, AVIF, GIF, SVG up to 15MB.
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Image URL Direct Input */}
