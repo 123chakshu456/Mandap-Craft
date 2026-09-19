@@ -20,8 +20,6 @@ import {
   getCategoryById,
 } from '../../constants';
 import { ProductCard } from '../../features/products';
-import { BespokeStudio } from '../../features/bespoke-studio';
-import { QuoteBuilderWizard } from '../../features/quotes';
 import { HomeCarousel } from '../../features/carousel';
 import type { Product } from '../../shared/types/models.types';
 
@@ -543,15 +541,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ==========================================
-          INTERACTIVE DESIGNER STUDIO MODULE (LIVE CUSTOMIZER)
-         ========================================== */}
-      <BespokeStudio showToast={showToast} />
 
-      {/* ==========================================
-          INTERACTIVE ESTIMATOR / QUOTE WIZARD (STEPPER)
-         ========================================== */}
-      <QuoteBuilderWizard showToast={showToast} />
 
       {/* ==========================================
           INFLUENCER / CLIENT SHOWCASE MODULE
