@@ -45,6 +45,7 @@ export const ProductListPage: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedBadge, setSelectedBadge] = useState('all');
   const [selectedDatePreset, setSelectedDatePreset] = useState<'all' | 'today' | '7d' | '30d' | 'month'>('all');
@@ -77,9 +78,36 @@ export const ProductListPage: React.FC = () => {
 
   // Load Categories & Badges
   useEffect(() => {
-    categoryApi.getPublicTree().then(setCategories).catch(console.error);
+    categoryApi.getAdminTree()
+      .then((tree) => {
+        if (tree && tree.length > 0) {
+          setCategories(tree);
+        } else {
+          categoryApi.getPublicTree().then(setCategories).catch(console.error);
+        }
+      })
+      .catch(() => categoryApi.getPublicTree().then(setCategories).catch(console.error));
     badgeApi.getPublicBadges().then(setBadges).catch(console.error);
   }, []);
+
+  // Available subcategories based on selected category (or all categories)
+  const availableSubcategories = useMemo(() => {
+    if (selectedCategory !== 'all') {
+      const cat = categories.find((c) => c.id === selectedCategory);
+      return cat?.children || [];
+    }
+    const map = new Map<string, Category>();
+    categories.forEach((c) => {
+      if (c.children && c.children.length > 0) {
+        c.children.forEach((sc) => {
+          if (!map.has(sc.id)) {
+            map.set(sc.id, sc);
+          }
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories, selectedCategory]);
 
   // Load Products
   const loadProducts = useCallback(async () => {
@@ -113,6 +141,7 @@ export const ProductListPage: React.FC = () => {
         limit: 50,
         search: debouncedSearch || undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        subcategory: selectedSubcategory !== 'all' ? selectedSubcategory : undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined,
         badge: selectedBadge !== 'all' ? selectedBadge : undefined,
         startDate,
@@ -127,7 +156,7 @@ export const ProductListPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, selectedCategory, selectedStatus, selectedBadge, selectedDatePreset]);
+  }, [page, debouncedSearch, selectedCategory, selectedSubcategory, selectedStatus, selectedBadge, selectedDatePreset]);
 
   useEffect(() => {
     loadProducts();
@@ -531,6 +560,7 @@ export const ProductListPage: React.FC = () => {
           value={selectedCategory}
           onChange={(e) => {
             setSelectedCategory(e.target.value);
+            setSelectedSubcategory('all');
             setPage(1);
           }}
           style={{
@@ -538,7 +568,8 @@ export const ProductListPage: React.FC = () => {
             background: '#080d18',
             border: '1px solid #1e293b',
             borderRadius: '8px',
-            color: '#cbd5e1',
+            color: selectedCategory !== 'all' ? '#818cf8' : '#cbd5e1',
+            fontWeight: selectedCategory !== 'all' ? 600 : 400,
             fontSize: '0.82rem',
             outline: 'none',
             cursor: 'pointer',
@@ -548,6 +579,39 @@ export const ProductListPage: React.FC = () => {
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.shortTitle || cat.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Subcategory filter */}
+        <select
+          value={selectedSubcategory}
+          onChange={(e) => {
+            setSelectedSubcategory(e.target.value);
+            setPage(1);
+          }}
+          disabled={availableSubcategories.length === 0}
+          style={{
+            padding: '9px 12px',
+            background: '#080d18',
+            border: '1px solid #1e293b',
+            borderRadius: '8px',
+            color: selectedSubcategory !== 'all' ? '#818cf8' : '#cbd5e1',
+            fontWeight: selectedSubcategory !== 'all' ? 600 : 400,
+            fontSize: '0.82rem',
+            outline: 'none',
+            cursor: availableSubcategories.length === 0 ? 'not-allowed' : 'pointer',
+            opacity: availableSubcategories.length === 0 ? 0.6 : 1,
+          }}
+        >
+          <option value="all">
+            {selectedCategory === 'all'
+              ? 'All Subcategories'
+              : `All ${categories.find((c) => c.id === selectedCategory)?.shortTitle || 'Subcategories'}`}
+          </option>
+          {availableSubcategories.map((sc) => (
+            <option key={sc.id} value={sc.id}>
+              {sc.name}
             </option>
           ))}
         </select>
@@ -646,6 +710,43 @@ export const ProductListPage: React.FC = () => {
           <RefreshCw size={14} />
           <span>Refresh</span>
         </button>
+
+        {/* Clear / Reset Filters */}
+        {(selectedCategory !== 'all' ||
+          selectedSubcategory !== 'all' ||
+          selectedStatus !== 'all' ||
+          selectedBadge !== 'all' ||
+          selectedDatePreset !== 'all' ||
+          searchInput.trim() !== '') && (
+          <button
+            onClick={() => {
+              setSelectedCategory('all');
+              setSelectedSubcategory('all');
+              setSelectedStatus('all');
+              setSelectedBadge('all');
+              setSelectedDatePreset('all');
+              setSearchInput('');
+              setPage(1);
+            }}
+            style={{
+              padding: '9px 12px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              borderRadius: '8px',
+              color: '#f87171',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+            }}
+            title="Reset All Filters"
+          >
+            <X size={14} />
+            <span>Reset Filters</span>
+          </button>
+        )}
       </div>
 
       {/* ── PRODUCT TABLE ── */}
