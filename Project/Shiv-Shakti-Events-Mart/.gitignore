@@ -27,6 +27,10 @@ dist-ssr
 public/ceilings/
 public/chairs/
 public/Mats/
+public/catalogue/
+catalogue/
+Catalogues/
+*.pdf
 src/assets/ceilings/
 src/assets/chairs/
 images/

@@ -45,8 +45,18 @@ Thumbs.db
 **/public/ceilings/
 **/public/chairs/
 **/public/Mats/
+**/public/catalogue/
+**/catalogue/
+**/Catalogues/
+Catalogues/
+*.pdf
 **/src/assets/ceilings/
 **/src/assets/chairs/
 **/images/
 **/img/
 **/uploads/
+
+# Backups and database snapshots
+**/backups/
+backups/
+

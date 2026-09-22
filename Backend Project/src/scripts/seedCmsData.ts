@@ -44,11 +44,6 @@ const CATEGORIES_DATA = [
         description: 'Traditional Scalloped Velvet Ruffles, Concentric Silk Rings & Mandap Roof Ceiling Work',
         image: '/ceilings/traditional_ceiling_decor.jpg',
         popularItems: ['Scalloped Velvet Ceiling Canopy', 'Triple-Layer Red & Yellow Ruffle', 'Concentric Silk Mandala Ceiling', 'Pleated Mandap Roof Decor'],
-        subSubcategories: [
-          { id: 'scalloped-ceilings', name: 'Scalloped Velvet Ceilings', slug: 'scalloped-velvet-ceilings' },
-          { id: 'silk-mandala-ceilings', name: 'Concentric Silk Mandalas', slug: 'concentric-silk-mandalas' },
-          { id: 'hanging-drape-roofs', name: 'Pleated Mandap Roofs', slug: 'pleated-mandap-roofs' },
-        ],
       },
       {
         id: 'mandaps',
@@ -57,11 +52,6 @@ const CATEGORIES_DATA = [
         description: 'Traditional Marigold, Crystal Dome & Royal Carved Wooden Mandaps',
         image: 'https://images.unsplash.com/photo-1595183818343-dac68e26830c?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Royal Marigold Mandap', 'Pastel Orchid Dome', 'Carved Teakwood Mandap', 'Glass Pillar Mandap'],
-        subSubcategories: [
-          { id: 'traditional-mandaps', name: 'Traditional Floral Mandaps', slug: 'traditional-floral-mandaps' },
-          { id: 'royal-carved-mandaps', name: 'Royal Carved Teak Mandaps', slug: 'royal-carved-teak-mandaps' },
-          { id: 'modern-glass-mandaps', name: 'Modern Crystal & Glass Mandaps', slug: 'modern-crystal-glass-mandaps' },
-        ],
       },
       {
         id: 'tents',
@@ -70,11 +60,6 @@ const CATEGORIES_DATA = [
         description: 'Waterproof German Hangar Tents, Pagoda Tents & Maharaja Shamianas',
         image: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=600&q=80',
         popularItems: ['German Hangar Structure', 'Pagoda High-Peak Tent', 'Rajasthani Mughal Tent', 'Transparent Dome Tent'],
-        subSubcategories: [
-          { id: 'german-hangars', name: 'Aluminium German Hangars', slug: 'aluminium-german-hangars' },
-          { id: 'pagoda-tents', name: 'Pagoda High-Peak Tents', slug: 'pagoda-high-peak-tents' },
-          { id: 'mughal-shamianas', name: 'Maharaja Royal Shamianas', slug: 'maharaja-royal-shamianas' },
-        ],
       },
       {
         id: 'canopies',
@@ -136,9 +121,66 @@ const CATEGORIES_DATA = [
         image: '/chairs/ornate_black_red_chair.jpg',
         popularItems: ['Ornate Black/Red Armchair', 'Pearl Black/Red Chair', 'Orlando Yellow Chair', 'Seagull Red Chair'],
         subSubcategories: [
-          { id: 'ornate-bentwood', name: 'Ornate Bentwood Chairs', slug: 'ornate-bentwood-chairs' },
-          { id: 'chiavari-chairs', name: 'Chiavari & Tiffany Chairs', slug: 'chiavari-tiffany-chairs' },
-          { id: 'banquet-cushioned', name: 'Banquet Cushioned Chairs', slug: 'banquet-cushioned-chairs' },
+                  {
+                            "id": "wooden-dining-chairs",
+                            "name": "Wooden Dining Chairs",
+                            "slug": "wooden-dining-chairs"
+                  },
+                  {
+                            "id": "metal-dining-chairs",
+                            "name": "Metal Dining Chairs",
+                            "slug": "metal-dining-chairs"
+                  },
+                  {
+                            "id": "cushion-dining-chairs",
+                            "name": "Cushion Dining Chairs",
+                            "slug": "cushion-dining-chairs"
+                  },
+                  {
+                            "id": "cushion-lounge-chairs",
+                            "name": "Cushion Lounge Chairs",
+                            "slug": "cushion-lounge-chairs"
+                  },
+                  {
+                            "id": "italian-dining-chairs",
+                            "name": "Italian Dining Chairs",
+                            "slug": "italian-dining-chairs"
+                  },
+                  {
+                            "id": "acrylic-chairs",
+                            "name": "Acrylic Chairs",
+                            "slug": "acrylic-chairs"
+                  },
+                  {
+                            "id": "metal-banquet-chairs",
+                            "name": "Metal Banquet Chairs",
+                            "slug": "metal-banquet-chairs"
+                  },
+                  {
+                            "id": "regal-resin-chairs",
+                            "name": "Regal Resin Chairs",
+                            "slug": "regal-resin-chairs"
+                  },
+                  {
+                            "id": "resin-chairs",
+                            "name": "Resin Chairs",
+                            "slug": "resin-chairs"
+                  },
+                  {
+                            "id": "carnival-chairs",
+                            "name": "Carnival Chairs",
+                            "slug": "carnival-chairs"
+                  },
+                  {
+                            "id": "round-rattan-chairs",
+                            "name": "Round Rattan Chairs",
+                            "slug": "round-rattan-chairs"
+                  },
+                  {
+                            "id": "wood-style-chairs",
+                            "name": "Wood Style Chairs",
+                            "slug": "wood-style-chairs"
+                  }
         ],
       },
       {
@@ -164,6 +206,28 @@ const CATEGORIES_DATA = [
         description: 'Round Banquet Tables, Italian Marble Coffee Tables & Dining Sets',
         image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Round Banquet Tables (60")', 'Italian Marble Coffee Table', 'Long VIP Dining Tables', 'Cocktail High Tables'],
+        subSubcategories: [
+                  {
+                            "id": "wooden-centre-tables",
+                            "name": "Wooden Centre Tables",
+                            "slug": "wooden-centre-tables"
+                  },
+                  {
+                            "id": "dining-tables",
+                            "name": "Dining Tables",
+                            "slug": "dining-tables"
+                  },
+                  {
+                            "id": "centre-tables",
+                            "name": "Centre Tables",
+                            "slug": "centre-tables"
+                  },
+                  {
+                            "id": "acrylic-tables",
+                            "name": "Acrylic Tables",
+                            "slug": "acrylic-tables"
+                  }
+        ],
       },
       {
         id: 'sofas',
@@ -172,6 +236,23 @@ const CATEGORIES_DATA = [
         description: 'Emerald Tufted Velvet Sofas, Chesterfield Lounges & Sectionals',
         image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Emerald Tufted 3-Seater', 'Cream Velvet Chesterfield', 'Royal Golden Diwan', 'L-Shaped VIP Lounge Sofa'],
+        subSubcategories: [
+                  {
+                            "id": "banquet-sofas",
+                            "name": "Banquet Sofas",
+                            "slug": "banquet-sofas"
+                  },
+                  {
+                            "id": "wedding-resin-sofas",
+                            "name": "Wedding Resin Sofas & Chairs",
+                            "slug": "wedding-resin-sofas"
+                  },
+                  {
+                            "id": "wooden-sofas",
+                            "name": "Wooden Sofas & Chairs",
+                            "slug": "wooden-sofas"
+                  }
+        ],
       },
       {
         id: 'bar-tables',
@@ -180,6 +261,18 @@ const CATEGORIES_DATA = [
         description: 'High-Top Cocktail Bar Tables, LED Illuminated & Gold Chrome Stools',
         image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Champagne Gold High Tables', 'LED Glow Cocktail Tables', 'Velvet Swivel Bar Stools', 'Rustic Wooden Bar Highs'],
+        subSubcategories: [
+                  {
+                            "id": "bar-chairs",
+                            "name": "Bar Chairs & Stools",
+                            "slug": "bar-chairs"
+                  },
+                  {
+                            "id": "bar-tables-sets",
+                            "name": "Bar Tables & High-Tops",
+                            "slug": "bar-tables-sets"
+                  }
+        ],
       },
       {
         id: 'counters',
@@ -188,6 +281,26 @@ const CATEGORIES_DATA = [
         description: 'Reception Desks, Registration Desks & Curved Modular Counters',
         image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Mirrored Reception Counter', 'Gold Laser-Cut Desk', 'Curved Welcome Counter', 'Registration Kiosks'],
+      },
+      {
+        id: 'outdoor-furniture',
+        name: 'Outdoor & Garden Furniture',
+        slug: 'outdoor-furniture',
+        description: 'Heavy-Duty Outdoor Event Chairs, Rattan Swings, Rope Daybeds & Poolside Recliners',
+        image: '/catalogue/cat_p24_1_rattan-swing_of-01.jpg',
+        popularItems: ['Outdoor Dining Chair', 'Rattan Garden Swing', 'Rope Swing Chair', 'Poolside Recliner'],
+        subSubcategories: [
+                  {
+                            "id": "outdoor-chairs",
+                            "name": "Outdoor Chairs",
+                            "slug": "outdoor-chairs"
+                  },
+                  {
+                            "id": "swings-recliners",
+                            "name": "Swings & Poolside Recliners",
+                            "slug": "swings-recliners"
+                  }
+        ],
       },
     ],
   },
@@ -344,6 +457,13 @@ const CATEGORIES_DATA = [
         description: 'High-Capacity Industrial Mist Coolers & Commercial Ducting AC Units',
         image: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Commercial Mist Jet Cooler (100L)', 'Heavy Ducting Portable AC (5 Ton)', 'Centrifugal Outdoor Air Cooler', 'Silent Water Evaporative Cooler'],
+        subSubcategories: [
+                  {
+                            "id": "tent-air-coolers",
+                            "name": "Tent Air Coolers",
+                            "slug": "tent-air-coolers"
+                  }
+        ],
       },
       {
         id: 'fans',
@@ -352,6 +472,13 @@ const CATEGORIES_DATA = [
         description: '3-Speed Pedestal Misting Fans, Giant Industrial Floor Fans & Wall Mounts',
         image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=600&q=80',
         popularItems: ['26" Heavy-Duty Pedestal Misting Fan', 'High-Velocity Floor Drum Fan', 'Industrial Wall Mounted Fan', 'Oscillating Tent Pole Fans'],
+        subSubcategories: [
+                  {
+                            "id": "outdoor-mist-fans",
+                            "name": "Outdoor Mist Fans",
+                            "slug": "outdoor-mist-fans"
+                  }
+        ],
       },
       {
         id: 'carpets',
@@ -384,6 +511,21 @@ const CATEGORIES_DATA = [
         description: 'Barricades, Stanchions with Velvet Ropes, Sound Rigging & Ladder Scaffolding',
         image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Gold Stanchions with Red Velvet Ropes', 'Crowd Control Steel Barricades', 'Aluminum Scaffolding Tower', 'Heavy Ground Anchoring Stakes'],
+      },
+      {
+        id: 'heaters',
+        name: 'Patio & Event Heaters',
+        slug: 'heaters',
+        description: 'Commercial Outdoor Patio Heaters, Electric Quartz Infrared & Pyramid Flame Gas Heaters',
+        image: '/catalogue/cat_p2_4_patio-heater_pyramid-heater.jpg',
+        popularItems: ['Pyramid Flame Gas Heater', 'Electric Patio Heater', 'Commercial Mushroom Gas Heater'],
+        subSubcategories: [
+                  {
+                            "id": "patio-heaters",
+                            "name": "Patio Heaters",
+                            "slug": "patio-heaters"
+                  }
+        ],
       },
     ],
   },

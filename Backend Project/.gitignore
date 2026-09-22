@@ -9,3 +9,8 @@ dist/
 coverage/
 prisma/*.db
 prisma/*.db-journal
+
+# Backups and database snapshots
+backups/
+*.json.bak
+

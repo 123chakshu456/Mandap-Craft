@@ -165,6 +165,13 @@ export const CATEGORIES: CategoryData[] = [
         image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Mirrored Reception Counter', 'Gold Laser-Cut Desk', 'Curved Welcome Counter', 'Registration Kiosks'],
       },
+      {
+        id: 'outdoor-furniture',
+        title: 'Outdoor Furniture',
+        description: 'Heavy-Duty Outdoor Event Chairs, Rattan Swings, Rope Daybeds & Poolside Recliners',
+        image: '/catalogue/cat_p24_1_rattan-swing_of-01.jpg',
+        popularItems: ['Rattan Garden Swing', 'Rope Swing Chair', 'Poolside Recliner', 'Outdoor Dining Chair'],
+      },
     ],
   },
   {
@@ -340,6 +347,13 @@ export const CATEGORIES: CategoryData[] = [
         description: 'Barricades, Stanchions with Velvet Ropes, Sound Rigging & Ladder Scaffolding',
         image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Gold Stanchions with Red Velvet Ropes', 'Crowd Control Steel Barricades', 'Aluminum Scaffolding Tower', 'Heavy Ground Anchoring Stakes'],
+      },
+      {
+        id: 'heaters',
+        title: 'Patio & Event Heaters',
+        description: 'Commercial Outdoor Patio Heaters, Electric Quartz Infrared & Pyramid Flame Gas Heaters',
+        image: '/catalogue/cat_p2_4_patio-heater_pyramid-heater.jpg',
+        popularItems: ['Pyramid Flame Gas Heater', 'Electric Patio Heater', 'Commercial Mushroom Gas Heater'],
       },
     ],
   },

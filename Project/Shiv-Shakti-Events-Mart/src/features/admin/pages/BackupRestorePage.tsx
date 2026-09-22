@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   Layers,
   ShieldCheck,
-  HardDrive,
   Info,
   Check,
   FileCode,
@@ -48,10 +47,7 @@ export const BackupRestorePage: React.FC = () => {
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const restoreInputRef = useRef<HTMLInputElement>(null);
 
-  // Master Baseline Seeder state
-  const [isSeedingMaster, setIsSeedingMaster] = useState<boolean>(false);
-  const [masterSeedResult, setMasterSeedResult] = useState<{ inserted: number; updated: number; total: number } | null>(null);
-  const [masterSeedError, setMasterSeedError] = useState<string | null>(null);
+
 
   // Load category hierarchy for destination route picker
   useEffect(() => {
@@ -190,25 +186,7 @@ export const BackupRestorePage: React.FC = () => {
     }
   };
 
-  // 4. Handle Master Baseline Seed
-  const handleSeedMaster = async () => {
-    if (!window.confirm('This will restore all default 992 baseline catalog products from the system master files. Proceed?')) {
-      return;
-    }
 
-    setIsSeedingMaster(true);
-    setMasterSeedError(null);
-    setMasterSeedResult(null);
-
-    try {
-      const res = await dataApi.restoreMaster();
-      setMasterSeedResult(res);
-    } catch (err: any) {
-      setMasterSeedError(err.message || 'Master baseline restore failed.');
-    } finally {
-      setIsSeedingMaster(false);
-    }
-  };
 
   return (
     <div style={{ padding: '24px 32px', maxWidth: '1400px', margin: '0 auto', color: '#f8fafc' }}>
@@ -1134,7 +1112,7 @@ export const BackupRestorePage: React.FC = () => {
             )}
           </div>
 
-          {/* Re-seed Master Baseline Catalog Card */}
+          {/* Dynamic Database Architecture Info Card */}
           <div
             style={{
               background: '#0d1526',
@@ -1150,116 +1128,69 @@ export const BackupRestorePage: React.FC = () => {
                   width: '42px',
                   height: '42px',
                   borderRadius: '10px',
-                  background: 'rgba(245, 158, 11, 0.15)',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#fbbf24',
+                  color: '#34d399',
                 }}
               >
-                <HardDrive size={22} />
+                <Database size={22} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
-                  Re-seed Master Baseline Catalog
+                  Dynamic Database Architecture
                 </h3>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Fallback to default 992 baseline catalog</span>
+                <span style={{ fontSize: '0.75rem', color: '#34d399' }}>Live Cloud Database Active</span>
               </div>
             </div>
 
             <p style={{ color: '#cbd5e1', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '16px' }}>
-              If your database was wiped or emptied, you can click this button to automatically reload the complete baseline catalog directly from the server’s master seed files without running terminal scripts.
+              All product catalog data is stored directly in PostgreSQL and managed dynamically through the Admin Cockpit. No mock datasets or static seed files are stored locally in the repository.
             </p>
 
             <div
               style={{
-                background: 'rgba(245, 158, 11, 0.08)',
-                border: '1px solid rgba(245, 158, 11, 0.2)',
+                background: 'rgba(59, 130, 246, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
                 borderRadius: '8px',
                 padding: '12px 14px',
                 marginBottom: '20px',
                 fontSize: '0.78rem',
-                color: '#fde68a',
+                color: '#93c5fd',
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '8px',
               }}
             >
-              <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <Info size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                Existing products with matching names/SKUs will be preserved or refreshed with baseline specs.
+                To add, update, or import new products in bulk, use the <strong>Catalog Importer</strong> tab with the official Excel template, or create SKUs directly from the Products manager.
               </div>
             </div>
 
-            {masterSeedError && (
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  color: '#f87171',
-                  fontSize: '0.8rem',
-                  marginBottom: '14px',
-                }}
-              >
-                {masterSeedError}
-              </div>
-            )}
-
             <button
-              onClick={handleSeedMaster}
-              disabled={isSeedingMaster}
+              onClick={() => setActiveTab('excel')}
               style={{
                 width: '100%',
                 padding: '12px 18px',
                 borderRadius: '8px',
                 border: 'none',
-                background: isSeedingMaster ? '#334155' : 'linear-gradient(135deg, #d97706, #b45309)',
+                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
                 color: '#fff',
                 fontSize: '0.9rem',
                 fontWeight: 700,
-                cursor: isSeedingMaster ? 'not-allowed' : 'pointer',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
               }}
             >
-              {isSeedingMaster ? (
-                <>
-                  <RefreshCw size={17} className="spin" />
-                  <span>Reloading Master Baseline Catalog...</span>
-                </>
-              ) : (
-                <>
-                  <RefreshCw size={17} />
-                  <span>Restore Master Baseline Catalog (992 SKUs)</span>
-                </>
-              )}
+              <FileSpreadsheet size={17} />
+              <span>Go to Excel / Bulk Catalog Importer</span>
             </button>
-
-            {masterSeedResult && (
-              <div
-                style={{
-                  marginTop: '16px',
-                  padding: '14px',
-                  borderRadius: '10px',
-                  background: 'rgba(16, 185, 129, 0.1)',
-                  border: '1px solid rgba(16, 185, 129, 0.25)',
-                  fontSize: '0.82rem',
-                }}
-              >
-                <div style={{ color: '#34d399', fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <CheckCircle2 size={16} />
-                  <span>Baseline Restored Successfully!</span>
-                </div>
-                <div style={{ color: '#cbd5e1' }}>
-                  Processed {masterSeedResult.total} items: {masterSeedResult.inserted} inserted, {masterSeedResult.updated} refreshed.
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}

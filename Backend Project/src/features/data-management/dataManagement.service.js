@@ -675,7 +675,7 @@ export const dataManagementService = {
     const jsonPath = join(__dirname, '../../scripts/products_seed.json');
 
     if (!existsSync(jsonPath)) {
-      throw new Error('Base master seed file (products_seed.json) not found on server.');
+      throw new Error('Static master seed file (products_seed.json) has been removed from repository. Catalog products are managed dynamically via the Admin Dashboard or Excel Import.');
     }
 
     const CATALOG_PRODUCTS = JSON.parse(readFileSync(jsonPath, 'utf8'));
