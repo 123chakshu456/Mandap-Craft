@@ -19,12 +19,13 @@ import {
   X,
   Clock,
   Trash2,
+  Pencil,
 } from 'lucide-react';
 import { adminApi } from '../services/adminApi';
 import { orderApi } from '../../orders/services/orderApi';
 import { quoteApi } from '../../quotes/services/quoteApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
-import type { AdminStats, Order, Quote, AuditLog } from '../../../shared/types/models.types';
+import type { AdminStats, Order, Quote, AuditLog, Product } from '../../../shared/types/models.types';
 
 type DatePreset = 'all' | 'today' | '7d' | '30d' | 'month' | 'custom';
 type OrderSortField = 'createdAt' | 'grandTotal' | 'orderNumber' | 'customerName';
@@ -38,6 +39,7 @@ export const DashboardOverviewPage: React.FC = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [recentQuotes, setRecentQuotes] = useState<Quote[]>([]);
+  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [auditLoading, setAuditLoading] = useState(false);
@@ -105,6 +107,7 @@ export const DashboardOverviewPage: React.FC = () => {
       setStats(data.stats);
       setRecentOrders(data.recentOrders || []);
       setRecentQuotes(data.recentQuotes || []);
+      setRecentProducts(data.recentProducts || []);
     } catch (err) {
       console.error('Failed to load admin stats:', err);
     } finally {
@@ -171,6 +174,39 @@ export const DashboardOverviewPage: React.FC = () => {
     const date = dateObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
     const time = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     return { date, time };
+  };
+
+  const formatUploadTiming = (isoString?: string) => {
+    if (!isoString) return { date: '—', time: '', relative: '', full: 'Not recorded' };
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return { date: '—', time: '', relative: '', full: 'Invalid date' };
+
+    const date = d.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+    const time = d.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
+
+    const diffMs = Date.now() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    let relative = '';
+    if (diffMins < 1) relative = 'Just now';
+    else if (diffMins < 60) relative = `${diffMins}m ago`;
+    else if (diffHours < 24) relative = `${diffHours}h ago`;
+    else if (diffDays === 1) relative = 'Yesterday';
+    else if (diffDays < 7) relative = `${diffDays}d ago`;
+    else relative = `${Math.floor(diffDays / 7)}w ago`;
+
+    return { date, time, relative, full: `${date} at ${time}` };
   };
 
   const getStatusBadge = (status: string) => {
@@ -1030,6 +1066,235 @@ export const DashboardOverviewPage: React.FC = () => {
               </table>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ── RECENTLY UPLOADED SKUS & TIMINGS CARD ── */}
+      <div
+        style={{
+          marginTop: '28px',
+          background: '#0d1526',
+          border: '1px solid #1e293b',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid #1e293b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#0a1020',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'rgba(99, 102, 241, 0.15)',
+                color: '#818cf8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Package size={17} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+                  Recently Uploaded Product SKUs
+                </h3>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    background: 'rgba(99, 102, 241, 0.2)',
+                    color: '#a5b4fc',
+                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                    padding: '2px 8px',
+                    borderRadius: '99px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {recentProducts.length} Recent Uploads
+                </span>
+              </div>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '2px 0 0' }}>
+                Real-time upload timeline showing when inventory items and catalogue SKUs were published to the platform
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => navigate('/admin/products')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '7px',
+                background: 'rgba(99, 102, 241, 0.15)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                color: '#a5b4fc',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              <span>View All 1,216 SKUs with Timings</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+        </div>
+
+        {/* Products Table */}
+        <div style={{ overflowX: 'auto' }}>
+          {recentProducts.length === 0 ? (
+            <div style={{ padding: '36px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+              No product uploads recorded yet.
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+              <thead>
+                <tr style={{ background: '#090e1a', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #1e293b' }}>
+                  <th style={{ padding: '10px 14px', width: '56px' }}>Image</th>
+                  <th style={{ padding: '10px 14px', width: '150px' }}>SKU Code</th>
+                  <th style={{ padding: '10px 14px' }}>Product Details</th>
+                  <th style={{ padding: '10px 14px' }}>Category & Route</th>
+                  <th style={{ padding: '10px 14px' }}>Price</th>
+                  <th style={{ padding: '10px 14px' }}>Status</th>
+                  <th style={{ padding: '10px 14px', width: '180px' }}>Upload Timing</th>
+                  <th style={{ padding: '10px 14px', width: '70px', textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentProducts.map((prod) => {
+                  const { date, time, relative, full } = formatUploadTiming(prod.createdAt);
+                  const isVeryRecent = relative === 'Just now' || relative.includes('m ago');
+                  const isRecent = relative.includes('h ago') || relative === 'Yesterday';
+
+                  return (
+                    <tr
+                      key={prod.id}
+                      style={{
+                        borderBottom: '1px solid #1a2335',
+                        transition: 'background 0.15s',
+                      }}
+                    >
+                      <td style={{ padding: '10px 14px' }}>
+                        <img
+                          src={prod.image || '/placeholder.jpg'}
+                          alt={prod.name}
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            objectFit: 'cover',
+                            borderRadius: '7px',
+                            border: '1px solid #1e293b',
+                            background: '#1e293b',
+                          }}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </td>
+                      <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontWeight: 700, color: '#818cf8', fontSize: '0.8rem' }}>
+                        {prod.sku || 'SKU-PENDING'}
+                      </td>
+                      <td style={{ padding: '10px 14px' }}>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9', lineHeight: 1.3 }}>
+                          {prod.name}
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px 14px', color: '#94a3b8', textTransform: 'capitalize' }}>
+                        {prod.categoryId} {prod.subcategoryId ? `› ${prod.subcategoryId}` : ''}
+                      </td>
+                      <td style={{ padding: '10px 14px', fontWeight: 700, color: '#34d399' }}>
+                        {formatCurrency(prod.price)}
+                      </td>
+                      <td style={{ padding: '10px 14px' }}>
+                        {getStatusBadge(prod.status)}
+                      </td>
+                      <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                        <div title={`Uploaded to platform on: ${full}`}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f1f5f9' }}>
+                              {date}
+                            </span>
+                            {relative && (
+                              <span
+                                style={{
+                                  fontSize: '0.66rem',
+                                  fontWeight: 700,
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  background: isVeryRecent
+                                    ? 'rgba(16, 185, 129, 0.2)'
+                                    : isRecent
+                                    ? 'rgba(99, 102, 241, 0.18)'
+                                    : 'rgba(30, 41, 59, 0.7)',
+                                  color: isVeryRecent
+                                    ? '#34d399'
+                                    : isRecent
+                                    ? '#a5b4fc'
+                                    : '#94a3b8',
+                                  border: isVeryRecent
+                                    ? '1px solid rgba(16, 185, 129, 0.3)'
+                                    : isRecent
+                                    ? '1px solid rgba(99, 102, 241, 0.3)'
+                                    : '1px solid rgba(51, 65, 85, 0.5)',
+                                }}
+                              >
+                                {relative}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={11} color="#64748b" />
+                            <span>{time}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/admin/products/${prod.id}`)}
+                          title="Edit Product SKU"
+                          style={{
+                            padding: '5px 9px',
+                            background: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '6px',
+                            color: '#cbd5e1',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.74rem',
+                            fontWeight: 600,
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          <Pencil size={12} />
+                          <span>Edit</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

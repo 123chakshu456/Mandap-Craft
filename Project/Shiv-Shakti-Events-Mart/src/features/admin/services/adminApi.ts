@@ -1,11 +1,12 @@
 import httpClient from '../../../shared/api/httpClient';
-import type { AdminStats, Order, Quote, AuditLog } from '../../../shared/types/models.types';
+import type { AdminStats, Order, Quote, AuditLog, Product } from '../../../shared/types/models.types';
 
 export const adminApi = {
   async getStats(params: { startDate?: string; endDate?: string } = {}): Promise<{
     stats: AdminStats;
     recentOrders: Order[];
     recentQuotes: Quote[];
+    recentProducts?: Product[];
     dateRange?: { startDate: string | null; endDate: string | null };
   }> {
     const searchParams = new URLSearchParams();
@@ -17,6 +18,7 @@ export const adminApi = {
       stats: AdminStats;
       recentOrders: Order[];
       recentQuotes: Quote[];
+      recentProducts?: Product[];
       dateRange?: { startDate: string | null; endDate: string | null };
     }>(`/admin/stats${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
@@ -35,6 +37,7 @@ export const adminApi = {
       },
       recentOrders: [],
       recentQuotes: [],
+      recentProducts: [],
     };
   },
 

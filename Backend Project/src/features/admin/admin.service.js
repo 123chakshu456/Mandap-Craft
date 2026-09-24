@@ -38,6 +38,7 @@ export const adminService = {
       totalCategories,
       recentOrders,
       recentQuotes,
+      recentProducts,
     ] = await Promise.all([
       prisma.product.count(),
       prisma.product.count({ where: { status: 'PUBLISHED' } }),
@@ -75,6 +76,24 @@ export const adminService = {
           createdAt: true,
         },
       }),
+      prisma.product.findMany({
+        take: 8,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          sku: true,
+          name: true,
+          slug: true,
+          price: true,
+          compareAtPrice: true,
+          status: true,
+          image: true,
+          categoryId: true,
+          subcategoryId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
     ]);
 
     const revenueData = await prisma.order.aggregate({
@@ -97,6 +116,7 @@ export const adminService = {
       },
       recentOrders,
       recentQuotes,
+      recentProducts,
       dateRange: {
         startDate: startDate || null,
         endDate: endDate || null,

@@ -18,6 +18,7 @@ import {
   ArrowDown,
   X,
   AlertCircle,
+  Clock,
 } from 'lucide-react';
 import { productApi } from '../../products/services/productApi';
 import { categoryApi } from '../../categories/services/categoryApi';
@@ -26,7 +27,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmD
 import { Modal } from '../../../shared/components/Modal/Modal';
 import type { Product, Category, Badge } from '../../../shared/types/models.types';
 
-type SortField = 'name' | 'sku' | 'price' | 'status' | 'updatedAt';
+type SortField = 'name' | 'sku' | 'price' | 'status' | 'createdAt' | 'updatedAt';
 type SortDirection = 'asc' | 'desc';
 
 export const ProductListPage: React.FC = () => {
@@ -50,8 +51,8 @@ export const ProductListPage: React.FC = () => {
   const [selectedBadge, setSelectedBadge] = useState('all');
   const [selectedDatePreset, setSelectedDatePreset] = useState<'all' | 'today' | '7d' | '30d' | 'month'>('all');
 
-  // Sorting
-  const [sortField, setSortField] = useState<SortField>('updatedAt');
+  // Sorting - default to newest uploaded SKUs
+  const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Bulk Selection & Actions
@@ -146,6 +147,8 @@ export const ProductListPage: React.FC = () => {
         badge: selectedBadge !== 'all' ? selectedBadge : undefined,
         startDate,
         endDate,
+        sortBy: sortField,
+        sortOrder: sortDirection,
       });
       setProducts(res.products || []);
       setTotal(res.total || 0);
@@ -156,11 +159,44 @@ export const ProductListPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, selectedCategory, selectedSubcategory, selectedStatus, selectedBadge, selectedDatePreset]);
+  }, [page, debouncedSearch, selectedCategory, selectedSubcategory, selectedStatus, selectedBadge, selectedDatePreset, sortField, sortDirection]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  // Upload Timing Formatter with Relative Age and Full Precision
+  const formatUploadTiming = (isoString?: string) => {
+    if (!isoString) return { date: '—', time: '', relative: '', full: 'Not recorded' };
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return { date: '—', time: '', relative: '', full: 'Invalid date' };
+
+    const date = d.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+    const time = d.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    const diffMs = Date.now() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    let relative = '';
+    if (diffMins < 1) relative = 'Just now';
+    else if (diffMins < 60) relative = `${diffMins}m ago`;
+    else if (diffHours < 24) relative = `${diffHours}h ago`;
+    else if (diffDays === 1) relative = 'Yesterday';
+    else if (diffDays < 7) relative = `${diffDays}d ago`;
+    else relative = `${Math.floor(diffDays / 7)}w ago`;
+
+    return { date, time, relative, full: `${date} at ${time}` };
+  };
 
   // Client-side Sort of Current Page
   const sortedProducts = useMemo(() => {
@@ -171,6 +207,9 @@ export const ProductListPage: React.FC = () => {
       if (sortField === 'price') {
         aVal = Number(a.price) || 0;
         bVal = Number(b.price) || 0;
+      } else if (sortField === 'createdAt') {
+        aVal = new Date(a.createdAt || 0).getTime();
+        bVal = new Date(b.createdAt || 0).getTime();
       } else if (sortField === 'updatedAt') {
         aVal = new Date(a.updatedAt || a.createdAt || 0).getTime();
         bVal = new Date(b.updatedAt || b.createdAt || 0).getTime();
@@ -809,13 +848,24 @@ export const ProductListPage: React.FC = () => {
                     {renderSortIndicator('status')}
                   </div>
                 </th>
+                <th
+                  onClick={() => handleHeaderSort('createdAt')}
+                  style={{ padding: '12px 14px', width: '165px', cursor: 'pointer', userSelect: 'none' }}
+                  title="Click to sort by SKU upload timestamp"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Clock size={13} style={{ color: sortField === 'createdAt' ? '#818cf8' : '#64748b' }} />
+                    <span style={{ color: sortField === 'createdAt' ? '#818cf8' : undefined }}>Uploaded At</span>
+                    {renderSortIndicator('createdAt')}
+                  </div>
+                </th>
                 <th style={{ padding: '12px 14px', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '50px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={9} style={{ padding: '50px', textAlign: 'center', color: '#64748b' }}>
                     <div
                       style={{
                         width: 24,
@@ -832,7 +882,7 @@ export const ProductListPage: React.FC = () => {
                 </tr>
               ) : sortedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '50px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={9} style={{ padding: '50px', textAlign: 'center', color: '#64748b' }}>
                     No products matched your search or filters.
                   </td>
                 </tr>
@@ -941,6 +991,53 @@ export const ProductListPage: React.FC = () => {
                           />
                           {product.status}
                         </span>
+                      </td>
+                      <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                        {(() => {
+                          const { date, time, relative, full } = formatUploadTiming(product.createdAt);
+                          const isVeryRecent = relative === 'Just now' || relative.includes('m ago');
+                          const isRecent = relative.includes('h ago') || relative === 'Yesterday';
+                          return (
+                            <div title={`Uploaded to platform on: ${full}`}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f1f5f9' }}>
+                                  {date}
+                                </span>
+                                {relative && (
+                                  <span
+                                    style={{
+                                      fontSize: '0.66rem',
+                                      fontWeight: 700,
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      background: isVeryRecent
+                                        ? 'rgba(16, 185, 129, 0.2)'
+                                        : isRecent
+                                        ? 'rgba(99, 102, 241, 0.18)'
+                                        : 'rgba(30, 41, 59, 0.7)',
+                                      color: isVeryRecent
+                                        ? '#34d399'
+                                        : isRecent
+                                        ? '#a5b4fc'
+                                        : '#94a3b8',
+                                      border: isVeryRecent
+                                        ? '1px solid rgba(16, 185, 129, 0.3)'
+                                        : isRecent
+                                        ? '1px solid rgba(99, 102, 241, 0.3)'
+                                        : '1px solid rgba(51, 65, 85, 0.5)',
+                                    }}
+                                  >
+                                    {relative}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock size={11} color="#64748b" />
+                                <span>{time}</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td style={{ padding: '12px 14px', textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '6px' }}>
