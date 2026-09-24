@@ -25,6 +25,7 @@ import { categoryApi } from '../../categories/services/categoryApi';
 import { badgeApi } from '../../badges/services/badgeApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
 import { Modal } from '../../../shared/components/Modal/Modal';
+import { CommonLoader, CommonError } from '../../../shared/components/CommonLoader';
 import type { Product, Category, Badge } from '../../../shared/types/models.types';
 
 type SortField = 'name' | 'sku' | 'price' | 'status' | 'createdAt' | 'updatedAt';
@@ -786,11 +787,21 @@ export const ProductListPage: React.FC = () => {
             <span>Reset Filters</span>
           </button>
         )}
+
+        {/* Live Filter Activity Indicator */}
+        {loading && (
+          <CommonLoader
+            variant="inline"
+            message="Filtering SKUs..."
+            theme="dark"
+          />
+        )}
       </div>
 
       {/* ── PRODUCT TABLE ── */}
       <div
         style={{
+          position: 'relative',
           background: '#0d1526',
           border: '1px solid #1e293b',
           borderRadius: '12px',
@@ -798,6 +809,11 @@ export const ProductListPage: React.FC = () => {
           boxShadow: '0 4px 6px -1px rgba(0,0,0,0.2)',
         }}
       >
+        {/* Semi-transparent Overlay Loader during filter transitions */}
+        {loading && sortedProducts.length > 0 && (
+          <CommonLoader variant="overlay" message="Updating catalog..." theme="dark" />
+        )}
+
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
             <thead>
@@ -863,23 +879,22 @@ export const ProductListPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={9} style={{ padding: '50px', textAlign: 'center', color: '#64748b' }}>
-                    <div
-                      style={{
-                        width: 24,
-                        height: 24,
-                        border: '3px solid #334155',
-                        borderTopColor: '#6366f1',
-                        borderRadius: '50%',
-                        animation: 'spin 0.8s linear infinite',
-                        margin: '0 auto 12px',
-                      }}
-                    />
-                    Loading catalog items...
-                  </td>
-                </tr>
+              {loading && sortedProducts.length === 0 ? (
+                <CommonLoader
+                  variant="table"
+                  colSpan={9}
+                  message="Filtering catalog items..."
+                  theme="dark"
+                />
+              ) : actionError ? (
+                <CommonError
+                  variant="table"
+                  colSpan={9}
+                  title="Failed to load catalog inventory"
+                  message={actionError}
+                  onRetry={() => loadProducts()}
+                  theme="dark"
+                />
               ) : sortedProducts.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ padding: '50px', textAlign: 'center', color: '#64748b' }}>

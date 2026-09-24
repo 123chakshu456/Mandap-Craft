@@ -34,7 +34,7 @@ export default function MainLayout() {
   const [selectedStyleFilter, setSelectedStyleFilter] = useState('All');
 
   // Products from API (replaces CATALOG_PRODUCTS static import)
-  const { products, isLoading: isLoadingProducts, refetch: refetchProducts } = useProducts();
+  const { products, isLoading: isLoadingProducts, refetch: refetchProducts, error: productsError } = useProducts();
 
   // Global Search states
   const [searchResults, setSearchResults] = useState<SearchResults>({ orders: [], quotes: [], posts: [] });
@@ -685,6 +685,7 @@ export default function MainLayout() {
             products,
             isLoadingProducts,
             refetchProducts,
+            productsError,
           }}
         />
       </main>

@@ -12,6 +12,7 @@ import {
 import { orderApi } from '../../orders/services/orderApi';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
+import { CommonLoader, CommonError } from '../../../shared/components/CommonLoader';
 import type { Order } from '../../../shared/types/models.types';
 
 type DatePreset = 'all' | 'today' | '7d' | '30d' | 'month' | 'custom';
@@ -24,6 +25,7 @@ export const OrderManagerPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filters
   const [searchInput, setSearchInput] = useState('');
@@ -84,6 +86,7 @@ export const OrderManagerPage: React.FC = () => {
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await orderApi.getAllOrders({
         page,
@@ -98,8 +101,9 @@ export const OrderManagerPage: React.FC = () => {
       setOrders(res.orders || []);
       setTotal(res.total || 0);
       setTotalPages(res.totalPages || 1);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load orders:', err);
+      setError(err.message || 'Failed to load bookings and orders.');
     } finally {
       setLoading(false);
     }
@@ -443,8 +447,13 @@ export const OrderManagerPage: React.FC = () => {
             </div>
           )}
 
-          <div style={{ marginLeft: 'auto', color: '#64748b', fontSize: '0.78rem' }}>
-            Found <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{total}</span> bookings
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {loading && (
+              <CommonLoader variant="inline" message="Filtering bookings..." theme="dark" />
+            )}
+            <div style={{ color: '#64748b', fontSize: '0.78rem' }}>
+              Found <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{total}</span> bookings
+            </div>
           </div>
         </div>
       </div>
@@ -452,6 +461,7 @@ export const OrderManagerPage: React.FC = () => {
       {/* Orders Table */}
       <div
         style={{
+          position: 'relative',
           background: '#0d1526',
           border: '1px solid #1e293b',
           borderRadius: '12px',
@@ -459,6 +469,11 @@ export const OrderManagerPage: React.FC = () => {
           boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
         }}
       >
+        {/* Semi-transparent Overlay Loader during filter transitions */}
+        {loading && orders.length > 0 && (
+          <CommonLoader variant="overlay" message="Updating bookings..." theme="dark" />
+        )}
+
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
             <thead>
@@ -505,12 +520,22 @@ export const OrderManagerPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                    Loading orders...
-                  </td>
-                </tr>
+              {loading && orders.length === 0 ? (
+                <CommonLoader
+                  variant="table"
+                  colSpan={7}
+                  message="Loading bookings & orders..."
+                  theme="dark"
+                />
+              ) : error ? (
+                <CommonError
+                  variant="table"
+                  colSpan={7}
+                  title="Unable to load bookings"
+                  message={error}
+                  onRetry={() => loadOrders()}
+                  theme="dark"
+                />
               ) : orders.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>

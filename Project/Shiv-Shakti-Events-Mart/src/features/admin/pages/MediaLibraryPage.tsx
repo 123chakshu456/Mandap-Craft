@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { mediaApi } from '../../media/services/mediaApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
+import { CommonLoader, CommonError } from '../../../shared/components/CommonLoader';
 import type { MediaAsset } from '../../../shared/types/models.types';
 
 export const MediaLibraryPage: React.FC = () => {
@@ -537,37 +538,37 @@ export const MediaLibraryPage: React.FC = () => {
             <option value="bytes_desc">Size: Largest First</option>
           </select>
         </div>
+
+        {/* Live Filter Indicator */}
+        {loading && (
+          <CommonLoader variant="inline" message="Filtering media..." theme="dark" />
+        )}
       </div>
 
       {/* Media Grid */}
-      {loading ? (
-        <div
-          style={{
-            height: '360px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            color: '#64748b',
-          }}
-        >
-          <Loader2 size={32} className="animate-spin" color="#6366f1" />
-          <span style={{ fontSize: '0.88rem' }}>Loading synchronized CDN media library...</span>
-        </div>
-      ) : assets.length === 0 ? (
-        <div
-          style={{
-            padding: '60px 20px',
-            textAlign: 'center',
-            background: '#0d1526',
-            border: '1px solid #1e293b',
-            borderRadius: '12px',
-            color: '#64748b',
-          }}
-        >
-          <ImageIcon size={44} color="#334155" style={{ marginBottom: '12px' }} />
-          <h3 style={{ margin: 0, color: '#94a3b8', fontSize: '1rem', fontWeight: 600 }}>
+      <div style={{ position: 'relative', minHeight: '360px' }}>
+        {/* Semi-transparent Overlay Loader during filter transitions */}
+        {loading && assets.length > 0 && (
+          <CommonLoader variant="overlay" message="Updating media library..." theme="dark" />
+        )}
+
+        {loading && assets.length === 0 ? (
+          <CommonLoader variant="card" message="Loading synchronized CDN media library..." theme="dark" />
+        ) : errorMsg ? (
+          <CommonError variant="card" title="Media Library Error" message={errorMsg} onRetry={loadAssets} theme="dark" />
+        ) : assets.length === 0 ? (
+          <div
+            style={{
+              padding: '60px 20px',
+              textAlign: 'center',
+              background: '#0d1526',
+              border: '1px solid #1e293b',
+              borderRadius: '12px',
+              color: '#64748b',
+            }}
+          >
+            <ImageIcon size={44} color="#334155" style={{ marginBottom: '12px' }} />
+            <h3 style={{ margin: 0, color: '#94a3b8', fontSize: '1rem', fontWeight: 600 }}>
             No assets found matching filters
           </h3>
           <p style={{ margin: '6px 0 16px', fontSize: '0.84rem' }}>
@@ -761,6 +762,7 @@ export const MediaLibraryPage: React.FC = () => {
           ))}
         </div>
       )}
+      </div>
 
       {/* Pagination */}
       {totalPages > 1 && (

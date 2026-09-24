@@ -21,6 +21,7 @@ import {
 } from '../../constants';
 import { ProductCard } from '../../features/products';
 import { HomeCarousel } from '../../features/carousel';
+import { CommonLoader, CommonError } from '../../shared/components/CommonLoader';
 import type { Product } from '../../shared/types/models.types';
 
 export default function HomePage() {
@@ -43,6 +44,9 @@ export default function HomePage() {
     setSelectedProductDetail,
     showToast,
     products = [],
+    isLoadingProducts = false,
+    refetchProducts,
+    productsError = null,
   } = useOutletContext<{
     platformMode?: 'events' | 'boutique';
     setPlatformMode?: Dispatch<SetStateAction<'events' | 'boutique'>>;
@@ -65,7 +69,21 @@ export default function HomePage() {
     showToast: (msg: string) => void;
     products?: Product[];
     isLoadingProducts?: boolean;
+    refetchProducts?: () => void;
+    productsError?: string | null;
   }>();
+
+  // Active filter transition state for immediate visual feedback
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  // Trigger smooth feedback whenever filter criteria change
+  useEffect(() => {
+    setIsFiltering(true);
+    const timer = setTimeout(() => {
+      setIsFiltering(false);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
 
   // Active showcase tab for the "Explore Categories" section
   const [showcaseCategoryTab, setShowcaseCategoryTab] = useState<string>('wedding');
@@ -345,7 +363,7 @@ export default function HomePage() {
             </div>
 
             {/* Style Filters */}
-            <div className="filters">
+            <div className="filters" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {['All', 'Royal', 'Traditional', 'Modern', 'Industrial', 'Bespoke'].map((filter) => (
                 <button
                   key={filter}
@@ -355,6 +373,9 @@ export default function HomePage() {
                   {filter}
                 </button>
               ))}
+              {(isFiltering || isLoadingProducts) && (
+                <CommonLoader variant="inline" message="Updating..." theme="light" />
+              )}
             </div>
           </div>
 
@@ -450,6 +471,9 @@ export default function HomePage() {
                   </span>
                 )}
                 <span className="results-count">({displayedItems.length} items found)</span>
+                {(isFiltering || isLoadingProducts) && (
+                  <CommonLoader variant="inline" message="Filtering collection..." theme="light" />
+                )}
               </div>
               <button 
                 type="button" 
@@ -461,82 +485,99 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Catalog Grid */}
-          {displayedItems.length > 0 ? (
-            <>
-              <div className="products-grid">
-                {visibleItems.map((item: any) => {
-                  const isFavorite = shortlist.includes(item.id);
-                  const cartItem = cart.find((i) => i.id === item.id);
-                  return (
-                    <ProductCard
-                      key={item.id}
-                      item={item}
-                      isFavorite={isFavorite}
-                      cartQuantity={cartItem?.quantity || 0}
-                      onToggleShortlist={handleToggleShortlist}
-                      onSelectProductDetail={setSelectedProductDetail}
-                      onAddToCart={handleAddToCart}
-                      onDecrementCart={handleDecrementCart}
-                    />
-                  );
-                })}
-              </div>
+          {/* Catalog Grid Area with CommonLoader & CommonError */}
+          <div style={{ position: 'relative', minHeight: '300px', width: '100%' }}>
+            {/* Semi-transparent Overlay Loader during filter transitions */}
+            {isFiltering && displayedItems.length > 0 && (
+              <CommonLoader variant="overlay" message="Updating collection..." theme="light" />
+            )}
 
-              {/* Incremental Load More Progress Control */}
-              {displayedItems.length > visibleCount && (
-                <div className="catalog-load-more-box" style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ fontSize: '14px', color: '#555', fontWeight: 600 }}>
-                    Showing <strong style={{ color: '#1a4d4d' }}>{visibleItems.length}</strong> of <strong style={{ color: '#1a4d4d' }}>{displayedItems.length}</strong> Products
-                  </div>
-                  <div style={{ width: '240px', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div 
-                      style={{ 
-                        width: `${Math.min(100, (visibleItems.length / displayedItems.length) * 100)}%`, 
-                        height: '100%', 
-                        background: 'linear-gradient(90deg, #1a4d4d, #d4af37)',
-                        borderRadius: '4px',
-                        transition: 'width 0.3s ease'
-                      }}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setVisibleCount(prev => prev + 24)}
-                    style={{
-                      padding: '14px 38px',
-                      borderRadius: '30px',
-                      backgroundColor: '#1a4d4d',
-                      color: '#ffffff',
-                      border: 'none',
-                      fontWeight: 'bold',
-                      fontSize: '15px',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 16px rgba(26, 77, 77, 0.25)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      transition: 'transform 0.2s ease'
-                    }}
-                  >
-                    <span>✨ Load More Products ({displayedItems.length - visibleItems.length} Remaining)</span>
-                  </button>
+            {isLoadingProducts && products.length === 0 ? (
+              <CommonLoader variant="card" message="Loading live event infrastructure catalog..." theme="light" />
+            ) : productsError ? (
+              <CommonError
+                variant="card"
+                title="Catalog Currently Unavailable"
+                message={productsError}
+                onRetry={refetchProducts}
+                theme="light"
+              />
+            ) : displayedItems.length > 0 ? (
+              <>
+                <div className="products-grid">
+                  {visibleItems.map((item: any) => {
+                    const isFavorite = shortlist.includes(item.id);
+                    const cartItem = cart.find((i) => i.id === item.id);
+                    return (
+                      <ProductCard
+                        key={item.id}
+                        item={item}
+                        isFavorite={isFavorite}
+                        cartQuantity={cartItem?.quantity || 0}
+                        onToggleShortlist={handleToggleShortlist}
+                        onSelectProductDetail={setSelectedProductDetail}
+                        onAddToCart={handleAddToCart}
+                        onDecrementCart={handleDecrementCart}
+                      />
+                    );
+                  })}
                 </div>
-              )}
-            </>
-          ) : (
-            <div className="no-results">
-              <Sparkles className="icon" />
-              <h3>No matching products found</h3>
-              <p>Try resetting filters or searching with different keywords.</p>
-              <button 
-                onClick={handleClearFilters}
-                className="reset-btn"
-              >
-                Reset All Filters
-              </button>
-            </div>
-          )}
+
+                {/* Incremental Load More Progress Control */}
+                {displayedItems.length > visibleCount && (
+                  <div className="catalog-load-more-box" style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ fontSize: '14px', color: '#555', fontWeight: 600 }}>
+                      Showing <strong style={{ color: '#1a4d4d' }}>{visibleItems.length}</strong> of <strong style={{ color: '#1a4d4d' }}>{displayedItems.length}</strong> Products
+                    </div>
+                    <div style={{ width: '240px', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div 
+                        style={{ 
+                          width: `${Math.min(100, (visibleItems.length / displayedItems.length) * 100)}%`, 
+                          height: '100%', 
+                          background: 'linear-gradient(90deg, #1a4d4d, #d4af37)',
+                          borderRadius: '4px',
+                          transition: 'width 0.3s ease'
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount(prev => prev + 24)}
+                      style={{
+                        padding: '14px 38px',
+                        borderRadius: '30px',
+                        backgroundColor: '#1a4d4d',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontWeight: 'bold',
+                        fontSize: '15px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 16px rgba(26, 77, 77, 0.25)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'transform 0.2s ease'
+                      }}
+                    >
+                      <span>✨ Load More Products ({displayedItems.length - visibleItems.length} Remaining)</span>
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="no-results">
+                <Sparkles className="icon" />
+                <h3>No matching products found</h3>
+                <p>Try resetting filters or searching with different keywords.</p>
+                <button 
+                  onClick={handleClearFilters}
+                  className="reset-btn"
+                >
+                  Reset All Filters
+                </button>
+              </div>
+            )}
+          </div>
 
         </div>
       </section>

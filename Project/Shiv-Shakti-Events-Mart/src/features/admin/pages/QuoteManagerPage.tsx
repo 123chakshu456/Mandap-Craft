@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { quoteApi } from '../../quotes/services/quoteApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
+import { CommonLoader, CommonError } from '../../../shared/components/CommonLoader';
 import type { Quote } from '../../../shared/types/models.types';
 
 type DatePreset = 'all' | 'today' | '7d' | '30d' | 'month' | 'custom';
@@ -23,6 +24,7 @@ export const QuoteManagerPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filters
   const [searchInput, setSearchInput] = useState('');
@@ -80,6 +82,7 @@ export const QuoteManagerPage: React.FC = () => {
 
   const loadQuotes = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await quoteApi.getAllQuotes({
         page,
@@ -94,8 +97,9 @@ export const QuoteManagerPage: React.FC = () => {
       setQuotes(res.quotes || []);
       setTotal(res.total || 0);
       setTotalPages(res.totalPages || 1);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load quotes:', err);
+      setError(err.message || 'Failed to load quote requests.');
     } finally {
       setLoading(false);
     }
@@ -432,8 +436,13 @@ export const QuoteManagerPage: React.FC = () => {
             </div>
           )}
 
-          <div style={{ marginLeft: 'auto', color: '#64748b', fontSize: '0.78rem' }}>
-            Found <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{total}</span> quote requests
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {loading && (
+              <CommonLoader variant="inline" message="Filtering quotes..." theme="dark" />
+            )}
+            <div style={{ color: '#64748b', fontSize: '0.78rem' }}>
+              Found <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{total}</span> quote requests
+            </div>
           </div>
         </div>
       </div>
@@ -441,6 +450,7 @@ export const QuoteManagerPage: React.FC = () => {
       {/* Table */}
       <div
         style={{
+          position: 'relative',
           background: '#0d1526',
           border: '1px solid #1e293b',
           borderRadius: '12px',
@@ -448,6 +458,11 @@ export const QuoteManagerPage: React.FC = () => {
           boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
         }}
       >
+        {/* Semi-transparent Overlay Loader during filter transitions */}
+        {loading && quotes.length > 0 && (
+          <CommonLoader variant="overlay" message="Updating quotes..." theme="dark" />
+        )}
+
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
             <thead>
@@ -497,12 +512,22 @@ export const QuoteManagerPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                    Loading quote requests...
-                  </td>
-                </tr>
+              {loading && quotes.length === 0 ? (
+                <CommonLoader
+                  variant="table"
+                  colSpan={8}
+                  message="Loading quote requests..."
+                  theme="dark"
+                />
+              ) : error ? (
+                <CommonError
+                  variant="table"
+                  colSpan={8}
+                  title="Unable to load quotes"
+                  message={error}
+                  onRetry={() => loadQuotes()}
+                  theme="dark"
+                />
               ) : quotes.length === 0 ? (
                 <tr>
                   <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
