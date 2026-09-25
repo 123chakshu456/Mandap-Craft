@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
@@ -15,11 +15,12 @@ import {
 } from 'lucide-react';
 
 import { CATEGORIES } from '../constants';
+import type { CategoryData } from '../constants/categories';
 import { useCart } from '../features/orders/hooks/useCart';
 import CartDrawer from '../features/orders/components/CartDrawer';
 import { useToast, useDebounce } from '../shared/hooks';
 import { useProducts, ProductDetailModal, ShortlistDrawer } from '../features/products';
-import { CategoryMegaMenu } from '../features/categories';
+import { CategoryMegaMenu, useCategories } from '../features/categories';
 import { authApi } from '../features/auth';
 import { searchApi, type SearchResults } from '../features/search';
 import type { Product } from '../shared/types/models.types';
@@ -35,6 +36,35 @@ export default function MainLayout() {
 
   // Products from API (replaces CATALOG_PRODUCTS static import)
   const { products, isLoading: isLoadingProducts, refetch: refetchProducts, error: productsError } = useProducts();
+  const { categories: liveCategories } = useCategories();
+
+  // Synchronize menu categories with dynamic database tree while preserving rich visual metadata (icons, promo, images)
+  const menuCategories = useMemo<CategoryData[]>(() => {
+    if (!liveCategories || liveCategories.length === 0) {
+      return CATEGORIES;
+    }
+
+    return CATEGORIES.map((staticCat) => {
+      const liveCat = liveCategories.find((c) => c.id === staticCat.id || c.slug === staticCat.id);
+      if (!liveCat) return staticCat;
+
+      // Update subcategories titles/names from live DB if present
+      const updatedSubsections = staticCat.subsections.map((sub) => {
+        const liveSub = liveCat.children?.find((s) => s.id === sub.id || s.slug === sub.id);
+        return {
+          ...sub,
+          title: liveSub?.name || sub.title,
+        };
+      });
+
+      return {
+        ...staticCat,
+        title: (liveCat.shortTitle || liveCat.name || staticCat.title).toUpperCase(),
+        shortTitle: liveCat.shortTitle || liveCat.name || staticCat.shortTitle,
+        subsections: updatedSubsections,
+      };
+    });
+  }, [liveCategories]);
 
   // Global Search states
   const [searchResults, setSearchResults] = useState<SearchResults>({ orders: [], quotes: [], posts: [] });
@@ -571,7 +601,7 @@ export default function MainLayout() {
             MEGA-MENU CATEGORY NAVIGATION BAR
            ========================================== */}
         <CategoryMegaMenu
-          categories={CATEGORIES}
+          categories={menuCategories}
           selectedCategory={selectedCategory}
           hoveredCategory={hoveredCategory}
           hoveredSubcategory={hoveredSubcategory}
@@ -641,7 +671,7 @@ export default function MainLayout() {
           </button>
 
           <div className="drawer-accordion-list">
-            {CATEGORIES.map((cat) => {
+            {menuCategories.map((cat) => {
               const isExpanded = expandedMobileCategory === cat.id;
               return (
                 <div key={cat.id} className="drawer-accordion-item">

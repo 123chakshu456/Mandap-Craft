@@ -299,6 +299,27 @@ export const ProductListPage: React.FC = () => {
     }
   }, [categories, selectedCategory, selectedSubcategory, availableSubcategories]);
 
+  // Category & Subcategory display label helpers
+  const getCategoryLabel = (catId?: string | null) => {
+    if (!catId) return '—';
+    const cat = categories.find((c) => c.id === catId || c.slug === catId);
+    return cat?.shortTitle || cat?.name || catId;
+  };
+
+  const getSubcategoryLabel = (catId?: string | null, subId?: string | null) => {
+    if (!subId) return '';
+    if (catId) {
+      const cat = categories.find((c) => c.id === catId || c.slug === catId);
+      const sub = cat?.children?.find((s) => s.id === subId || s.slug === subId);
+      if (sub) return sub.name;
+    }
+    for (const cat of categories) {
+      const sub = cat.children?.find((s) => s.id === subId || s.slug === subId);
+      if (sub) return sub.name;
+    }
+    return subId;
+  };
+
   // Load Products
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -1195,8 +1216,15 @@ export const ProductListPage: React.FC = () => {
                           ))}
                         </div>
                       </td>
-                      <td style={{ padding: '12px 14px', color: '#94a3b8', textTransform: 'capitalize' }}>
-                        {product.categoryId} {product.subcategoryId ? `› ${product.subcategoryId}` : ''}
+                      <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontWeight: 600, color: '#f1f5f9' }}>
+                          {getCategoryLabel(product.categoryId)}
+                        </span>
+                        {product.subcategoryId && (
+                          <span style={{ color: '#818cf8', marginLeft: '6px' }}>
+                            › {getSubcategoryLabel(product.categoryId, product.subcategoryId)}
+                          </span>
+                        )}
                       </td>
                       <td style={{ padding: '12px 14px' }}>
                         <div style={{ fontWeight: 700, color: '#e2e8f0' }}>{formatPrice(product.price)}</div>

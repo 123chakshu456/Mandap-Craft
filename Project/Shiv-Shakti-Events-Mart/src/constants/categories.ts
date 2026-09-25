@@ -92,7 +92,7 @@ export const CATEGORIES: CategoryData[] = [
       },
       {
         id: 'stage-items',
-        title: 'Stage items',
+        title: 'Stage Items',
         description: 'Stage Carpeting, Maharaja Throne Sofas, Brass Urlis & Royal Steps',
         image: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Maharaja Twin Thrones', 'Carved Royal Risers', 'Grand Brass Urlis', 'Illuminated Acrylic Steps'],
@@ -118,7 +118,7 @@ export const CATEGORIES: CategoryData[] = [
     subsections: [
       {
         id: 'chairs',
-        title: 'All Chairs',
+        title: 'Chairs',
         description: 'Bespoke Bentwood Designer Chairs & Commercial Molded Plastic Armchairs',
         image: '/chairs/ornate_black_red_chair.jpg',
         popularItems: ['Ornate Black/Red Armchair (₹3,000)', 'Pearl Black/Red Chair (₹2,950)', 'Orlando Yellow Chair (₹1,700)', 'Seagull Red Chair (₹780)'],
@@ -153,7 +153,7 @@ export const CATEGORIES: CategoryData[] = [
       },
       {
         id: 'bar-tables',
-        title: 'Bar tables',
+        title: 'Bar Tables',
         description: 'High-Top Cocktail Bar Tables, LED Illuminated & Gold Chrome Stools',
         image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Champagne Gold High Tables', 'LED Glow Cocktail Tables', 'Velvet Swivel Bar Stools', 'Rustic Wooden Bar Highs'],
@@ -200,28 +200,28 @@ export const CATEGORIES: CategoryData[] = [
       },
       {
         id: 'serving-items',
-        title: 'Serving items',
+        title: 'Serving Items',
         description: 'Roll-Top Chafing Dishes, Silver Platters, Beverage Dispensers & Tongs',
         image: 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Roll-Top Hydraulic Chafing Dish', 'Hammered Copper Serving Bowls', 'Triple Tier Beverage Dispenser', 'Carved Silver Serving Trays'],
       },
       {
         id: 'gas-pipes',
-        title: 'Gas pipes',
+        title: 'Gas Pipes',
         description: 'High-Pressure Reinforced LPG Gas Pipes, Industrial Regulators & Manifolds',
         image: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Commercial Steel Braided Gas Pipe', 'High-Flow Multi-Cylinder Manifold', 'Heavy Duty Gas Pressure Regulator', 'Quick-Release Gas Connectors'],
       },
       {
         id: 'catering-equipment',
-        title: 'Catering equipment',
+        title: 'Catering Equipment',
         description: 'Commercial Bhatti Burners, Tandoor Ovens, Deep Fryers & Hot Boxes',
         image: 'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Stainless Steel Clay Tandoor', 'Triple Burner Commercial Bhatti', 'Electric Insulated Hot Box', 'Heavy Duty Commercial Fryer'],
       },
       {
         id: 'buffet-counters',
-        title: 'Buffet counters',
+        title: 'Buffet Counters',
         description: 'Granite-Top Live Food Stations, Chaat Counters & LED Buffet Display Sets',
         image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
         popularItems: ['LED Backlit Buffet Counter', 'Granite-Top Live Dosa/Chaat Counter', 'Wooden Rustic Buffet Island', 'Carved Royal Sweet Counter'],
@@ -247,7 +247,7 @@ export const CATEGORIES: CategoryData[] = [
     subsections: [
       {
         id: 'artificial-flowers',
-        title: 'Artificial flowers',
+        title: 'Artificial Flowers',
         description: 'High-Density Rose Walls, Hanging Wisteria, Hydrangea Mats & Garlands',
         image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=600&q=80',
         popularItems: ['3D Real-Touch Rose Wall', 'Cascading White Wisteria Hangings', 'Marigold Toran Garlands', 'Tropical Palm & Orchid Mats'],
@@ -336,21 +336,21 @@ export const CATEGORIES: CategoryData[] = [
       },
       {
         id: 'electrical-items',
-        title: 'Electrical items',
+        title: 'Electrical Items',
         description: 'Main Distribution Panels (DBs), Heavy Rubber Cables, DB Boxes & Extension Hubs',
         image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
         popularItems: ['63A 3-Phase Weatherproof DB Box', 'Heavy Armored Power Cable (100m)', 'Rubberized Industrial Cable Protectors', 'High-Load Spike Extension Boards'],
       },
       {
         id: 'miscellaneous-equipment',
-        title: 'Miscellaneous equipment',
+        title: 'Miscellaneous Equipment',
         description: 'Barricades, Stanchions with Velvet Ropes, Sound Rigging & Ladder Scaffolding',
         image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Gold Stanchions with Red Velvet Ropes', 'Crowd Control Steel Barricades', 'Aluminum Scaffolding Tower', 'Heavy Ground Anchoring Stakes'],
       },
       {
         id: 'heaters',
-        title: 'Patio & Event Heaters',
+        title: 'Heaters',
         description: 'Commercial Outdoor Patio Heaters, Electric Quartz Infrared & Pyramid Flame Gas Heaters',
         image: '/catalogue/cat_p2_4_patio-heater_pyramid-heater.jpg',
         popularItems: ['Pyramid Flame Gas Heater', 'Electric Patio Heater', 'Commercial Mushroom Gas Heater'],
@@ -359,8 +359,8 @@ export const CATEGORIES: CategoryData[] = [
   },
   {
     id: 'custom-manufacturing',
-    title: 'CUSTOM / MANUFACTURING',
-    shortTitle: 'Custom / Mfg',
+    title: 'CUSTOM MANUFACTURING',
+    shortTitle: 'Custom Manufacturing',
     tagline: 'In-House Fabrication, Bespoke Structures & Brand Customization',
     icon: '🛠️',
     badge: 'Custom Made',
@@ -376,28 +376,28 @@ export const CATEGORIES: CategoryData[] = [
     subsections: [
       {
         id: 'custom-tents',
-        title: 'Custom tents',
+        title: 'Custom Tents',
         description: 'Tailored Heavy-Span Aluminum Tents, Transparent Glass Pavilions & Custom Shapes',
         image: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Custom Curvature Clear-Span Tent', 'Heavy Weatherproof Dome Pavilion', 'Double-Decker VIP Hospitality Tent', 'Branded Corporate Expo Structure'],
       },
       {
         id: 'custom-counters',
-        title: 'Custom counters',
+        title: 'Custom Counters',
         description: 'Bespoke Logo Backlit Reception Counters, Bar Islands & Interactive Registration Kiosks',
         image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80',
         popularItems: ['3D Acrylic Backlit Brand Counter', 'Curved Brass-Inlaid Bar Counter', 'Hydraulic Mobile DJ Booth', 'Touchscreen Integrated Kiosk Counter'],
       },
       {
         id: 'custom-furniture',
-        title: 'Custom furniture',
+        title: 'Custom Furniture',
         description: 'Hand-Carved Heritage Teak Thrones, Custom Banquet Benches & Unique Booths',
         image: 'https://images.unsplash.com/photo-1581428982868-e410dd047a90?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Custom Engraved Teakwood Swing', 'Bespoke Velvet Curved Banquettes', 'Gold-Leaf Embossed Maharaja Chairs', 'Geometric Marble Dining Sets'],
       },
       {
         id: 'custom-decor',
-        title: 'Custom décor',
+        title: 'Custom Decor',
         description: 'Bespoke 3D Sculptures, Mythological Statues, Giant Flower Arcs & Kinetic Displays',
         image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
         popularItems: ['12-Foot Fiberglass Peacock Sculpture', 'Custom Acrylic LED Chandelier Array', 'Kinetic Floral Ceiling Rig', 'Gold-Coated Mythological Temple Facade'],
