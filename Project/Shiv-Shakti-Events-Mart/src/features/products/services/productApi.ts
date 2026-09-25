@@ -80,6 +80,7 @@ export const productApi = {
     const searchParams = new URLSearchParams();
     if (params.category) searchParams.set('category', params.category);
     if (params.subcategory) searchParams.set('subcategory', params.subcategory);
+    if (params.subSubcategory) searchParams.set('subSubcategory', params.subSubcategory);
     if (params.status) searchParams.set('status', params.status);
     if (params.search) searchParams.set('search', params.search);
     if (params.badge) searchParams.set('badge', params.badge);

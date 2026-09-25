@@ -51,7 +51,7 @@ export const ProductEditorPage: React.FC = () => {
   const [filters, setFilters] = useState<Filter[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
 
-  // Default category / subcategory from navigation state or localStorage when creating a new SKU
+  // Default category / subcategory / sub-subcategory from navigation state or localStorage when creating a new SKU
   const defaultCategory =
     (location.state as any)?.category ||
     localStorage.getItem('admin_products_filter_category') ||
@@ -60,6 +60,10 @@ export const ProductEditorPage: React.FC = () => {
     (location.state as any)?.subcategory ||
     localStorage.getItem('admin_products_filter_subcategory') ||
     'mandaps';
+  const defaultSubSubcategory =
+    (location.state as any)?.subSubcategory ||
+    localStorage.getItem('admin_products_filter_subsubcategory') ||
+    '';
 
   // Form State
   const [form, setForm] = useState<Partial<Product>>({
@@ -68,7 +72,7 @@ export const ProductEditorPage: React.FC = () => {
     slug: '',
     categoryId: defaultCategory !== 'all' ? defaultCategory : 'wedding',
     subcategoryId: defaultSubcategory !== 'all' ? defaultSubcategory : 'mandaps',
-    subSubcategoryId: '',
+    subSubcategoryId: defaultSubSubcategory !== 'all' ? defaultSubSubcategory : '',
     style: 'Traditional',
     price: 0,
     compareAtPrice: 0,
@@ -152,7 +156,15 @@ export const ProductEditorPage: React.FC = () => {
 
   // Load Reference Data
   useEffect(() => {
-    categoryApi.getPublicTree().then(setCategories).catch(console.error);
+    categoryApi.getAdminTree()
+      .then((tree) => {
+        if (tree && tree.length > 0) {
+          setCategories(tree);
+        } else {
+          categoryApi.getPublicTree().then(setCategories).catch(console.error);
+        }
+      })
+      .catch(() => categoryApi.getPublicTree().then(setCategories).catch(console.error));
     filterApi.getAdminFilters().then(setFilters).catch(console.error);
     badgeApi.getPublicBadges().then(setBadges).catch(console.error);
   }, []);

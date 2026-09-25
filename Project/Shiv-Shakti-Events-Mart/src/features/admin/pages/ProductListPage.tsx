@@ -34,6 +34,7 @@ type SortDirection = 'asc' | 'desc';
 const STORAGE_KEYS = {
   CATEGORY: 'admin_products_filter_category',
   SUBCATEGORY: 'admin_products_filter_subcategory',
+  SUBSUBCATEGORY: 'admin_products_filter_subsubcategory',
   STATUS: 'admin_products_filter_status',
   BADGE: 'admin_products_filter_badge',
   DATE_PRESET: 'admin_products_filter_date_preset',
@@ -90,6 +91,9 @@ export const ProductListPage: React.FC = () => {
   );
   const [selectedSubcategory, setSelectedSubcategory] = useState(() =>
     getInitialFilter('subcategory', STORAGE_KEYS.SUBCATEGORY, 'all')
+  );
+  const [selectedSubSubcategory, setSelectedSubSubcategory] = useState(() =>
+    getInitialFilter('subsubcategory', STORAGE_KEYS.SUBSUBCATEGORY, 'all')
   );
   const [selectedStatus, setSelectedStatus] = useState(() =>
     getInitialFilter('status', STORAGE_KEYS.STATUS, 'all')
@@ -153,6 +157,13 @@ export const ProductListPage: React.FC = () => {
       localStorage.removeItem(STORAGE_KEYS.SUBCATEGORY);
     }
 
+    if (selectedSubSubcategory !== 'all') {
+      params.set('subsubcategory', selectedSubSubcategory);
+      localStorage.setItem(STORAGE_KEYS.SUBSUBCATEGORY, selectedSubSubcategory);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.SUBSUBCATEGORY);
+    }
+
     if (selectedStatus !== 'all') {
       params.set('status', selectedStatus);
       localStorage.setItem(STORAGE_KEYS.STATUS, selectedStatus);
@@ -210,6 +221,7 @@ export const ProductListPage: React.FC = () => {
   }, [
     selectedCategory,
     selectedSubcategory,
+    selectedSubSubcategory,
     selectedStatus,
     selectedBadge,
     selectedDatePreset,
@@ -223,6 +235,7 @@ export const ProductListPage: React.FC = () => {
   useEffect(() => {
     const urlCat = searchParams.get('category') || 'all';
     const urlSub = searchParams.get('subcategory') || 'all';
+    const urlSubSub = searchParams.get('subsubcategory') || 'all';
     const urlStatus = searchParams.get('status') || 'all';
     const urlBadge = searchParams.get('badge') || 'all';
     const urlDate = searchParams.get('date') || 'all';
@@ -233,6 +246,7 @@ export const ProductListPage: React.FC = () => {
 
     if (urlCat !== selectedCategory) setSelectedCategory(urlCat);
     if (urlSub !== selectedSubcategory) setSelectedSubcategory(urlSub);
+    if (urlSubSub !== selectedSubSubcategory) setSelectedSubSubcategory(urlSubSub);
     if (urlStatus !== selectedStatus) setSelectedStatus(urlStatus);
     if (urlBadge !== selectedBadge) setSelectedBadge(urlBadge);
     if (urlDate !== selectedDatePreset && ['all', 'today', '7d', '30d', 'month'].includes(urlDate)) {
@@ -280,7 +294,43 @@ export const ProductListPage: React.FC = () => {
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [categories, selectedCategory]);
 
-  // Validate that selected category and subcategory exist once categories tree is loaded
+  // Available sub-subcategories based on selected category & subcategory
+  const availableSubSubcategories = useMemo(() => {
+    if (selectedSubcategory !== 'all') {
+      for (const cat of categories) {
+        const sub = cat.children?.find((s) => s.id === selectedSubcategory);
+        if (sub && sub.children && sub.children.length > 0) {
+          return sub.children;
+        }
+      }
+      return [];
+    }
+
+    if (selectedCategory !== 'all') {
+      const cat = categories.find((c) => c.id === selectedCategory);
+      const list: Category[] = [];
+      cat?.children?.forEach((sc) => {
+        if (sc.children && sc.children.length > 0) {
+          list.push(...sc.children);
+        }
+      });
+      return list;
+    }
+
+    const map = new Map<string, Category>();
+    categories.forEach((c) => {
+      c.children?.forEach((sc) => {
+        sc.children?.forEach((ssc) => {
+          if (!map.has(ssc.id)) {
+            map.set(ssc.id, ssc);
+          }
+        });
+      });
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories, selectedCategory, selectedSubcategory]);
+
+  // Validate that selected category, subcategory, and sub-subcategory exist once categories tree is loaded
   useEffect(() => {
     if (categories.length === 0) return;
     if (selectedCategory !== 'all') {
@@ -288,18 +338,27 @@ export const ProductListPage: React.FC = () => {
       if (!catExists) {
         setSelectedCategory('all');
         setSelectedSubcategory('all');
+        setSelectedSubSubcategory('all');
         return;
       }
       if (selectedSubcategory !== 'all') {
         const subExists = availableSubcategories.some((sc) => sc.id === selectedSubcategory);
         if (!subExists) {
           setSelectedSubcategory('all');
+          setSelectedSubSubcategory('all');
+          return;
         }
       }
     }
-  }, [categories, selectedCategory, selectedSubcategory, availableSubcategories]);
+    if (selectedSubSubcategory !== 'all') {
+      const subSubExists = availableSubSubcategories.some((ssc) => ssc.id === selectedSubSubcategory);
+      if (!subSubExists) {
+        setSelectedSubSubcategory('all');
+      }
+    }
+  }, [categories, selectedCategory, selectedSubcategory, selectedSubSubcategory, availableSubcategories, availableSubSubcategories]);
 
-  // Category & Subcategory display label helpers
+  // Category, Subcategory & Sub-subcategory display label helpers
   const getCategoryLabel = (catId?: string | null) => {
     if (!catId) return '—';
     const cat = categories.find((c) => c.id === catId || c.slug === catId);
@@ -318,6 +377,27 @@ export const ProductListPage: React.FC = () => {
       if (sub) return sub.name;
     }
     return subId;
+  };
+
+  const getSubSubcategoryLabel = (catId?: string | null, subId?: string | null, subSubId?: string | null) => {
+    if (!subSubId) return '';
+    for (const cat of categories) {
+      if (!catId || cat.id === catId || cat.slug === catId) {
+        for (const sub of cat.children || []) {
+          if (!subId || sub.id === subId || sub.slug === subId) {
+            const ssc = sub.children?.find((s) => s.id === subSubId || s.slug === subSubId);
+            if (ssc) return ssc.shortTitle || ssc.name;
+          }
+        }
+      }
+    }
+    for (const cat of categories) {
+      for (const sub of cat.children || []) {
+        const ssc = sub.children?.find((s) => s.id === subSubId || s.slug === subSubId);
+        if (ssc) return ssc.shortTitle || ssc.name;
+      }
+    }
+    return subSubId;
   };
 
   // Load Products
@@ -353,6 +433,7 @@ export const ProductListPage: React.FC = () => {
         search: debouncedSearch || undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
         subcategory: selectedSubcategory !== 'all' ? selectedSubcategory : undefined,
+        subSubcategory: selectedSubSubcategory !== 'all' ? selectedSubSubcategory : undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined,
         badge: selectedBadge !== 'all' ? selectedBadge : undefined,
         startDate,
@@ -369,7 +450,7 @@ export const ProductListPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, selectedCategory, selectedSubcategory, selectedStatus, selectedBadge, selectedDatePreset, sortField, sortDirection]);
+  }, [page, debouncedSearch, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedStatus, selectedBadge, selectedDatePreset, sortField, sortDirection]);
 
   useEffect(() => {
     loadProducts();
@@ -744,6 +825,7 @@ export const ProductListPage: React.FC = () => {
                   returnUrl: location.pathname + location.search,
                   category: selectedCategory,
                   subcategory: selectedSubcategory,
+                  subSubcategory: selectedSubSubcategory,
                 },
               })
             }
@@ -818,6 +900,7 @@ export const ProductListPage: React.FC = () => {
           onChange={(e) => {
             setSelectedCategory(e.target.value);
             setSelectedSubcategory('all');
+            setSelectedSubSubcategory('all');
             setPage(1);
           }}
           style={{
@@ -845,6 +928,7 @@ export const ProductListPage: React.FC = () => {
           value={selectedSubcategory}
           onChange={(e) => {
             setSelectedSubcategory(e.target.value);
+            setSelectedSubSubcategory('all');
             setPage(1);
           }}
           disabled={availableSubcategories.length === 0}
@@ -869,6 +953,41 @@ export const ProductListPage: React.FC = () => {
           {availableSubcategories.map((sc) => (
             <option key={sc.id} value={sc.id}>
               {sc.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Sub-subcategory filter */}
+        <select
+          value={selectedSubSubcategory}
+          onChange={(e) => {
+            setSelectedSubSubcategory(e.target.value);
+            setPage(1);
+          }}
+          disabled={availableSubSubcategories.length === 0}
+          style={{
+            padding: '9px 12px',
+            background: '#080d18',
+            border: '1px solid #1e293b',
+            borderRadius: '8px',
+            color: selectedSubSubcategory !== 'all' ? '#818cf8' : '#cbd5e1',
+            fontWeight: selectedSubSubcategory !== 'all' ? 600 : 400,
+            fontSize: '0.82rem',
+            outline: 'none',
+            cursor: availableSubSubcategories.length === 0 ? 'not-allowed' : 'pointer',
+            opacity: availableSubSubcategories.length === 0 ? 0.6 : 1,
+          }}
+        >
+          <option value="all">
+            {selectedSubcategory !== 'all'
+              ? `All ${availableSubcategories.find((s) => s.id === selectedSubcategory)?.name || ''} Sub-subcategories`
+              : selectedCategory !== 'all'
+              ? `All ${categories.find((c) => c.id === selectedCategory)?.shortTitle || ''} Sub-subcategories`
+              : 'All Sub-subcategories'}
+          </option>
+          {availableSubSubcategories.map((ssc) => (
+            <option key={ssc.id} value={ssc.id}>
+              {ssc.shortTitle || ssc.name}
             </option>
           ))}
         </select>
@@ -971,6 +1090,7 @@ export const ProductListPage: React.FC = () => {
         {/* Clear / Reset Filters */}
         {(selectedCategory !== 'all' ||
           selectedSubcategory !== 'all' ||
+          selectedSubSubcategory !== 'all' ||
           selectedStatus !== 'all' ||
           selectedBadge !== 'all' ||
           selectedDatePreset !== 'all' ||
@@ -979,6 +1099,7 @@ export const ProductListPage: React.FC = () => {
             onClick={() => {
               setSelectedCategory('all');
               setSelectedSubcategory('all');
+              setSelectedSubSubcategory('all');
               setSelectedStatus('all');
               setSelectedBadge('all');
               setSelectedDatePreset('all');
@@ -1065,7 +1186,7 @@ export const ProductListPage: React.FC = () => {
                     {renderSortIndicator('name')}
                   </div>
                 </th>
-                <th style={{ padding: '12px 14px' }}>Category</th>
+                <th style={{ padding: '12px 14px' }}>Category Hierarchy</th>
                 <th
                   onClick={() => handleHeaderSort('price')}
                   style={{ padding: '12px 14px', cursor: 'pointer', userSelect: 'none' }}
@@ -1223,6 +1344,11 @@ export const ProductListPage: React.FC = () => {
                         {product.subcategoryId && (
                           <span style={{ color: '#818cf8', marginLeft: '6px' }}>
                             › {getSubcategoryLabel(product.categoryId, product.subcategoryId)}
+                          </span>
+                        )}
+                        {product.subSubcategoryId && (
+                          <span style={{ color: '#38bdf8', marginLeft: '6px' }}>
+                            › {getSubSubcategoryLabel(product.categoryId, product.subcategoryId, product.subSubcategoryId)}
                           </span>
                         )}
                       </td>

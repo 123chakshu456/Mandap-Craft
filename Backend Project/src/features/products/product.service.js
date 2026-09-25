@@ -101,7 +101,7 @@ export const productService = {
    */
   async getAdminProducts(query = {}) {
     const {
-      category, subcategory, status, search, badge,
+      category, subcategory, subSubcategory, status, search, badge,
       page = 1, limit = 50,
       startDate, endDate, sortBy, sortOrder,
     } = query;
@@ -110,6 +110,7 @@ export const productService = {
 
     if (category && category !== 'all') where.categoryId = category;
     if (subcategory && subcategory !== 'all') where.subcategoryId = subcategory;
+    if (subSubcategory && subSubcategory !== 'all') where.subSubcategoryId = subSubcategory;
     if (status && status !== 'all') where.status = status;
 
     if (startDate || endDate) {
