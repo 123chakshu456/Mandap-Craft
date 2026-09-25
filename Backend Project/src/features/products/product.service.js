@@ -1,6 +1,25 @@
+import prisma from '../../shared/config/prisma.js';
 import { productRepository } from './product.repository.js';
 import { slugify } from '../../shared/utils/slugify.js';
 import { auditService } from '../../shared/services/audit.service.js';
+
+/**
+ * Helper to resolve category, subcategory, or sub-subcategory by ID or Slug.
+ * Ensures queries match both ID and Slug without returning empty sets.
+ */
+const resolveCategoryIds = async (value) => {
+  if (!value || value === 'all') return null;
+  const cat = await prisma.category.findFirst({
+    where: {
+      OR: [
+        { id: value },
+        { slug: value },
+      ],
+    },
+    select: { id: true, slug: true },
+  });
+  return cat ? [cat.id, cat.slug] : [value];
+};
 
 export const productService = {
   /**
@@ -20,9 +39,22 @@ export const productService = {
       inStock: true,
     };
 
-    if (category && category !== 'all') where.categoryId = category;
-    if (subcategory && subcategory !== 'all') where.subcategoryId = subcategory;
-    if (subSubcategory && subSubcategory !== 'all') where.subSubcategoryId = subSubcategory;
+    const catVal = category || query.cat;
+    const subVal = subcategory || query.sub || query.subCategory;
+    const subSubVal = subSubcategory || query.subsubcategory || query.sub_subcategory || query.microCategory;
+
+    if (catVal && catVal !== 'all') {
+      const ids = await resolveCategoryIds(catVal);
+      if (ids) where.categoryId = { in: ids };
+    }
+    if (subVal && subVal !== 'all') {
+      const ids = await resolveCategoryIds(subVal);
+      if (ids) where.subcategoryId = { in: ids };
+    }
+    if (subSubVal && subSubVal !== 'all') {
+      const ids = await resolveCategoryIds(subSubVal);
+      if (ids) where.subSubcategoryId = { in: ids };
+    }
     if (style && style !== 'All') where.style = style;
     if (featured === 'true' || featured === true) where.isFeatured = true;
 
@@ -108,9 +140,22 @@ export const productService = {
 
     const where = {};
 
-    if (category && category !== 'all') where.categoryId = category;
-    if (subcategory && subcategory !== 'all') where.subcategoryId = subcategory;
-    if (subSubcategory && subSubcategory !== 'all') where.subSubcategoryId = subSubcategory;
+    const catVal = category || query.cat;
+    const subVal = subcategory || query.sub || query.subCategory;
+    const subSubVal = subSubcategory || query.subsubcategory || query.sub_subcategory || query.microCategory;
+
+    if (catVal && catVal !== 'all') {
+      const ids = await resolveCategoryIds(catVal);
+      if (ids) where.categoryId = { in: ids };
+    }
+    if (subVal && subVal !== 'all') {
+      const ids = await resolveCategoryIds(subVal);
+      if (ids) where.subcategoryId = { in: ids };
+    }
+    if (subSubVal && subSubVal !== 'all') {
+      const ids = await resolveCategoryIds(subSubVal);
+      if (ids) where.subSubcategoryId = { in: ids };
+    }
     if (status && status !== 'all') where.status = status;
 
     if (startDate || endDate) {

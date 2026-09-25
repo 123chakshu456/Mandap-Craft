@@ -278,7 +278,7 @@ export const ProductListPage: React.FC = () => {
   // Available subcategories based on selected category (or all categories)
   const availableSubcategories = useMemo(() => {
     if (selectedCategory !== 'all') {
-      const cat = categories.find((c) => c.id === selectedCategory);
+      const cat = categories.find((c) => c.id === selectedCategory || c.slug === selectedCategory);
       return cat?.children || [];
     }
     const map = new Map<string, Category>();
@@ -298,7 +298,7 @@ export const ProductListPage: React.FC = () => {
   const availableSubSubcategories = useMemo(() => {
     if (selectedSubcategory !== 'all') {
       for (const cat of categories) {
-        const sub = cat.children?.find((s) => s.id === selectedSubcategory);
+        const sub = cat.children?.find((s) => s.id === selectedSubcategory || s.slug === selectedSubcategory);
         if (sub && sub.children && sub.children.length > 0) {
           return sub.children;
         }
@@ -307,7 +307,7 @@ export const ProductListPage: React.FC = () => {
     }
 
     if (selectedCategory !== 'all') {
-      const cat = categories.find((c) => c.id === selectedCategory);
+      const cat = categories.find((c) => c.id === selectedCategory || c.slug === selectedCategory);
       const list: Category[] = [];
       cat?.children?.forEach((sc) => {
         if (sc.children && sc.children.length > 0) {
@@ -334,7 +334,7 @@ export const ProductListPage: React.FC = () => {
   useEffect(() => {
     if (categories.length === 0) return;
     if (selectedCategory !== 'all') {
-      const catExists = categories.some((c) => c.id === selectedCategory);
+      const catExists = categories.some((c) => c.id === selectedCategory || c.slug === selectedCategory);
       if (!catExists) {
         setSelectedCategory('all');
         setSelectedSubcategory('all');
@@ -342,7 +342,7 @@ export const ProductListPage: React.FC = () => {
         return;
       }
       if (selectedSubcategory !== 'all') {
-        const subExists = availableSubcategories.some((sc) => sc.id === selectedSubcategory);
+        const subExists = availableSubcategories.some((sc) => sc.id === selectedSubcategory || sc.slug === selectedSubcategory);
         if (!subExists) {
           setSelectedSubcategory('all');
           setSelectedSubSubcategory('all');
@@ -351,7 +351,7 @@ export const ProductListPage: React.FC = () => {
       }
     }
     if (selectedSubSubcategory !== 'all') {
-      const subSubExists = availableSubSubcategories.some((ssc) => ssc.id === selectedSubSubcategory);
+      const subSubExists = availableSubSubcategories.some((ssc) => ssc.id === selectedSubSubcategory || ssc.slug === selectedSubSubcategory);
       if (!subSubExists) {
         setSelectedSubSubcategory('all');
       }
@@ -444,6 +444,10 @@ export const ProductListPage: React.FC = () => {
       setProducts(res.products || []);
       setTotal(res.total || 0);
       setTotalPages(res.totalPages || 1);
+      // If higher page index has no products but total count > 0, auto-clamp to page 1
+      if (res.total > 0 && (res.products?.length === 0 || page > (res.totalPages || 1)) && page > 1) {
+        setPage(1);
+      }
     } catch (err: any) {
       console.error('Failed to load products:', err);
       setActionError(err.message || 'Failed to load catalog inventory.');
