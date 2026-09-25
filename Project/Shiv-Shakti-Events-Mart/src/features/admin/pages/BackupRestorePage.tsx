@@ -20,11 +20,17 @@ import type { Category } from '../../../shared/types/models.types';
 export const BackupRestorePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'excel' | 'backup' | 'restore'>('excel');
 
-  // Categories hierarchy for route selector
+  // Categories hierarchy for route selector with persistence
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedVerticalId, setSelectedVerticalId] = useState<string>('wedding');
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
-  const [selectedSubSubcategoryId, setSelectedSubSubcategoryId] = useState<string>('');
+  const [selectedVerticalId, setSelectedVerticalId] = useState<string>(() => {
+    return localStorage.getItem('admin_import_vertical_id') || 'wedding';
+  });
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>(() => {
+    return localStorage.getItem('admin_import_subcat_id') || '';
+  });
+  const [selectedSubSubcategoryId, setSelectedSubSubcategoryId] = useState<string>(() => {
+    return localStorage.getItem('admin_import_subsubcat_id') || '';
+  });
   const [defaultStatus, setDefaultStatus] = useState<string>('PUBLISHED');
   const [defaultStyle, setDefaultStyle] = useState<string>('Traditional');
 
@@ -54,9 +60,20 @@ export const BackupRestorePage: React.FC = () => {
     categoryApi.getAdminTree().then((tree) => {
       setCategories(tree || []);
       if (tree && tree.length > 0) {
-        setSelectedVerticalId(tree[0].id);
-        if (tree[0].children && tree[0].children.length > 0) {
-          setSelectedSubcategoryId(tree[0].children[0].id);
+        const savedVertical = localStorage.getItem('admin_import_vertical_id');
+        const savedSubcat = localStorage.getItem('admin_import_subcat_id');
+        const savedSubSub = localStorage.getItem('admin_import_subsubcat_id');
+        const foundVertical = (savedVertical && tree.find((t) => t.id === savedVertical)) || tree[0];
+        setSelectedVerticalId(foundVertical.id);
+        if (foundVertical.children && foundVertical.children.length > 0) {
+          const foundSub = (savedSubcat && foundVertical.children.find((s) => s.id === savedSubcat)) || foundVertical.children[0];
+          setSelectedSubcategoryId(foundSub.id);
+          if (foundSub.children && foundSub.children.length > 0) {
+            const foundSubSub = (savedSubSub && foundSub.children.find((ss) => ss.id === savedSubSub)) || foundSub.children[0];
+            setSelectedSubSubcategoryId(foundSubSub.id);
+          } else {
+            setSelectedSubSubcategoryId('');
+          }
         }
       }
     }).catch((err) => console.error('Failed to load categories:', err));
@@ -70,27 +87,36 @@ export const BackupRestorePage: React.FC = () => {
 
   const handleVerticalChange = (verticalId: string) => {
     setSelectedVerticalId(verticalId);
+    localStorage.setItem('admin_import_vertical_id', verticalId);
     const vert = categories.find((c) => c.id === verticalId);
     if (vert && vert.children && vert.children.length > 0) {
       setSelectedSubcategoryId(vert.children[0].id);
+      localStorage.setItem('admin_import_subcat_id', vert.children[0].id);
       if (vert.children[0].children && vert.children[0].children.length > 0) {
         setSelectedSubSubcategoryId(vert.children[0].children[0].id);
+        localStorage.setItem('admin_import_subsubcat_id', vert.children[0].children[0].id);
       } else {
         setSelectedSubSubcategoryId('');
+        localStorage.removeItem('admin_import_subsubcat_id');
       }
     } else {
       setSelectedSubcategoryId('');
       setSelectedSubSubcategoryId('');
+      localStorage.removeItem('admin_import_subcat_id');
+      localStorage.removeItem('admin_import_subsubcat_id');
     }
   };
 
   const handleSubcategoryChange = (subcatId: string) => {
     setSelectedSubcategoryId(subcatId);
+    localStorage.setItem('admin_import_subcat_id', subcatId);
     const subcat = availableSubcategories.find((sc) => sc.id === subcatId);
     if (subcat && subcat.children && subcat.children.length > 0) {
       setSelectedSubSubcategoryId(subcat.children[0].id);
+      localStorage.setItem('admin_import_subsubcat_id', subcat.children[0].id);
     } else {
       setSelectedSubSubcategoryId('');
+      localStorage.removeItem('admin_import_subsubcat_id');
     }
   };
 
@@ -444,7 +470,14 @@ export const BackupRestorePage: React.FC = () => {
                     </label>
                     <select
                       value={selectedSubSubcategoryId}
-                      onChange={(e) => setSelectedSubSubcategoryId(e.target.value)}
+                      onChange={(e) => {
+                        setSelectedSubSubcategoryId(e.target.value);
+                        if (e.target.value) {
+                          localStorage.setItem('admin_import_subsubcat_id', e.target.value);
+                        } else {
+                          localStorage.removeItem('admin_import_subsubcat_id');
+                        }
+                      }}
                       style={{
                         width: '100%',
                         padding: '8px 12px',

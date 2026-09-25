@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   Save,
@@ -28,7 +28,20 @@ type EditorTab = 'basic' | 'category' | 'pricing' | 'description' | 'media' | 'f
 export const ProductEditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const isEditing = Boolean(id && id !== 'new');
+
+  // Helper to return to catalog with filter state preserved
+  const returnToCatalog = (replace: boolean = false) => {
+    const returnUrl = (location.state as any)?.returnUrl;
+    if (returnUrl) {
+      navigate(returnUrl, { replace });
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/admin/products', { replace });
+    }
+  };
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<EditorTab>('basic');
@@ -38,13 +51,23 @@ export const ProductEditorPage: React.FC = () => {
   const [filters, setFilters] = useState<Filter[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
 
+  // Default category / subcategory from navigation state or localStorage when creating a new SKU
+  const defaultCategory =
+    (location.state as any)?.category ||
+    localStorage.getItem('admin_products_filter_category') ||
+    'wedding';
+  const defaultSubcategory =
+    (location.state as any)?.subcategory ||
+    localStorage.getItem('admin_products_filter_subcategory') ||
+    'mandaps';
+
   // Form State
   const [form, setForm] = useState<Partial<Product>>({
     name: '',
     sku: '',
     slug: '',
-    categoryId: 'wedding',
-    subcategoryId: 'mandaps',
+    categoryId: defaultCategory !== 'all' ? defaultCategory : 'wedding',
+    subcategoryId: defaultSubcategory !== 'all' ? defaultSubcategory : 'mandaps',
     subSubcategoryId: '',
     style: 'Traditional',
     price: 0,
@@ -392,7 +415,7 @@ export const ProductEditorPage: React.FC = () => {
     if (isDirty) {
       setShowExitConfirm(true);
     } else {
-      navigate('/admin/products');
+      returnToCatalog();
     }
   };
 
@@ -403,7 +426,7 @@ export const ProductEditorPage: React.FC = () => {
       await productApi.delete(id);
       setIsDirty(false);
       setShowDeleteConfirm(false);
-      navigate('/admin/products', { replace: true });
+      returnToCatalog(true);
     } catch (err: any) {
       alert(err.message || 'Failed to delete product.');
     } finally {
@@ -2019,7 +2042,7 @@ export const ProductEditorPage: React.FC = () => {
         <ConfirmDialog
           isOpen={showExitConfirm}
           onClose={() => setShowExitConfirm(false)}
-          onConfirm={() => navigate('/admin/products')}
+          onConfirm={() => returnToCatalog()}
           title="Discard Unsaved Changes?"
           message="You have unsaved changes on this product SKU. Leaving now will permanently discard them."
           confirmText="Discard & Leave"

@@ -45,8 +45,44 @@ export default function MainLayout() {
   const desktopSearchRef = useRef<HTMLFormElement>(null);
   const mobileSearchRef = useRef<HTMLFormElement>(null);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const cat = p.get('category');
+      if (cat) return cat;
+      const stored = sessionStorage.getItem('storefront_selected_category');
+      if (stored) return stored;
+    } catch {}
+    return 'all';
+  });
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const sub = p.get('subcategory');
+      if (sub) return sub;
+      const stored = sessionStorage.getItem('storefront_selected_subcategory');
+      if (stored) return stored;
+    } catch {}
+    return 'all';
+  });
+
+  // Persist storefront category & subcategory selection in sessionStorage
+  useEffect(() => {
+    if (location.pathname === '/') {
+      try {
+        if (selectedCategory !== 'all') {
+          sessionStorage.setItem('storefront_selected_category', selectedCategory);
+        } else {
+          sessionStorage.removeItem('storefront_selected_category');
+        }
+        if (selectedSubcategory !== 'all') {
+          sessionStorage.setItem('storefront_selected_subcategory', selectedSubcategory);
+        } else {
+          sessionStorage.removeItem('storefront_selected_subcategory');
+        }
+      } catch {}
+    }
+  }, [selectedCategory, selectedSubcategory, location.pathname]);
 
   // Mega-Menu & Mobile Nav States
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);

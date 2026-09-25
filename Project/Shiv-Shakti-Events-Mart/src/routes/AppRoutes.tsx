@@ -41,6 +41,7 @@ export default function AppRoutes() {
           <Route path="products" element={<ProductListPage />} />
           <Route path="products/new" element={<ProductEditorPage />} />
           <Route path="products/:id/edit" element={<ProductEditorPage />} />
+          <Route path="products/:id" element={<ProductEditorPage />} />
           <Route path="categories" element={<CategoryManagerPage />} />
           <Route path="filters" element={<FilterManagerPage />} />
           <Route path="badges" element={<BadgeManagerPage />} />

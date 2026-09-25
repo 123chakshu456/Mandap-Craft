@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -31,30 +31,86 @@ import type { Product, Category, Badge } from '../../../shared/types/models.type
 type SortField = 'name' | 'sku' | 'price' | 'status' | 'createdAt' | 'updatedAt';
 type SortDirection = 'asc' | 'desc';
 
+const STORAGE_KEYS = {
+  CATEGORY: 'admin_products_filter_category',
+  SUBCATEGORY: 'admin_products_filter_subcategory',
+  STATUS: 'admin_products_filter_status',
+  BADGE: 'admin_products_filter_badge',
+  DATE_PRESET: 'admin_products_filter_date_preset',
+  SEARCH: 'admin_products_filter_search',
+  PAGE: 'admin_products_filter_page',
+  SORT_FIELD: 'admin_products_sort_field',
+  SORT_DIRECTION: 'admin_products_sort_direction',
+};
+
+const getInitialFilter = (paramKey: string, storageKey: string, defaultValue: string) => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get(paramKey);
+    if (fromUrl !== null && fromUrl !== '') {
+      return fromUrl;
+    }
+    const fromStorage = localStorage.getItem(storageKey);
+    if (fromStorage !== null && fromStorage !== '') {
+      return fromStorage;
+    }
+  } catch (e) {
+    console.error('Error reading filter persistence:', e);
+  }
+  return defaultValue;
+};
+
 export const ProductListPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // State
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState<number>(() => {
+    const p = getInitialFilter('page', STORAGE_KEYS.PAGE, '1');
+    const num = parseInt(p, 10);
+    return isNaN(num) || num < 1 ? 1 : num;
+  });
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Filters
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedSubcategory, setSelectedSubcategory] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedBadge, setSelectedBadge] = useState('all');
-  const [selectedDatePreset, setSelectedDatePreset] = useState<'all' | 'today' | '7d' | '30d' | 'month'>('all');
+  // Filters with persistence across page reloads & SKU edits
+  const [searchInput, setSearchInput] = useState(() =>
+    getInitialFilter('search', STORAGE_KEYS.SEARCH, '')
+  );
+  const [debouncedSearch, setDebouncedSearch] = useState(() =>
+    getInitialFilter('search', STORAGE_KEYS.SEARCH, '')
+  );
+  const [selectedCategory, setSelectedCategory] = useState(() =>
+    getInitialFilter('category', STORAGE_KEYS.CATEGORY, 'all')
+  );
+  const [selectedSubcategory, setSelectedSubcategory] = useState(() =>
+    getInitialFilter('subcategory', STORAGE_KEYS.SUBCATEGORY, 'all')
+  );
+  const [selectedStatus, setSelectedStatus] = useState(() =>
+    getInitialFilter('status', STORAGE_KEYS.STATUS, 'all')
+  );
+  const [selectedBadge, setSelectedBadge] = useState(() =>
+    getInitialFilter('badge', STORAGE_KEYS.BADGE, 'all')
+  );
+  const [selectedDatePreset, setSelectedDatePreset] = useState<'all' | 'today' | '7d' | '30d' | 'month'>(() => {
+    const val = getInitialFilter('date', STORAGE_KEYS.DATE_PRESET, 'all');
+    return ['all', 'today', '7d', '30d', 'month'].includes(val) ? (val as any) : 'all';
+  });
 
   // Sorting - default to newest uploaded SKUs
-  const [sortField, setSortField] = useState<SortField>('createdAt');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortField, setSortField] = useState<SortField>(() => {
+    const sf = getInitialFilter('sortBy', STORAGE_KEYS.SORT_FIELD, 'createdAt');
+    return ['name', 'sku', 'price', 'status', 'createdAt', 'updatedAt'].includes(sf) ? (sf as any) : 'createdAt';
+  });
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
+    const sd = getInitialFilter('sortOrder', STORAGE_KEYS.SORT_DIRECTION, 'desc');
+    return sd === 'asc' ? 'asc' : 'desc';
+  });
 
   // Bulk Selection & Actions
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -73,10 +129,123 @@ export const ProductListPage: React.FC = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchInput);
-      setPage(1);
+      if (searchInput !== debouncedSearch) {
+        setPage(1);
+      }
     }, 300);
     return () => clearTimeout(handler);
   }, [searchInput]);
+
+  // Synchronize state changes to URL query params and localStorage
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedCategory !== 'all') {
+      params.set('category', selectedCategory);
+      localStorage.setItem(STORAGE_KEYS.CATEGORY, selectedCategory);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.CATEGORY);
+    }
+
+    if (selectedSubcategory !== 'all') {
+      params.set('subcategory', selectedSubcategory);
+      localStorage.setItem(STORAGE_KEYS.SUBCATEGORY, selectedSubcategory);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.SUBCATEGORY);
+    }
+
+    if (selectedStatus !== 'all') {
+      params.set('status', selectedStatus);
+      localStorage.setItem(STORAGE_KEYS.STATUS, selectedStatus);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.STATUS);
+    }
+
+    if (selectedBadge !== 'all') {
+      params.set('badge', selectedBadge);
+      localStorage.setItem(STORAGE_KEYS.BADGE, selectedBadge);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.BADGE);
+    }
+
+    if (selectedDatePreset !== 'all') {
+      params.set('date', selectedDatePreset);
+      localStorage.setItem(STORAGE_KEYS.DATE_PRESET, selectedDatePreset);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.DATE_PRESET);
+    }
+
+    if (debouncedSearch.trim()) {
+      params.set('search', debouncedSearch.trim());
+      localStorage.setItem(STORAGE_KEYS.SEARCH, debouncedSearch.trim());
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.SEARCH);
+    }
+
+    if (page > 1) {
+      params.set('page', String(page));
+      localStorage.setItem(STORAGE_KEYS.PAGE, String(page));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.PAGE);
+    }
+
+    if (sortField !== 'createdAt') {
+      params.set('sortBy', sortField);
+      localStorage.setItem(STORAGE_KEYS.SORT_FIELD, sortField);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.SORT_FIELD);
+    }
+
+    if (sortDirection !== 'desc') {
+      params.set('sortOrder', sortDirection);
+      localStorage.setItem(STORAGE_KEYS.SORT_DIRECTION, sortDirection);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.SORT_DIRECTION);
+    }
+
+    const currentQuery = searchParams.toString();
+    const newQuery = params.toString();
+    if (currentQuery !== newQuery) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [
+    selectedCategory,
+    selectedSubcategory,
+    selectedStatus,
+    selectedBadge,
+    selectedDatePreset,
+    debouncedSearch,
+    page,
+    sortField,
+    sortDirection,
+  ]);
+
+  // Handle browser Back / Forward history transitions
+  useEffect(() => {
+    const urlCat = searchParams.get('category') || 'all';
+    const urlSub = searchParams.get('subcategory') || 'all';
+    const urlStatus = searchParams.get('status') || 'all';
+    const urlBadge = searchParams.get('badge') || 'all';
+    const urlDate = searchParams.get('date') || 'all';
+    const urlSearch = searchParams.get('search') || '';
+    const urlPage = parseInt(searchParams.get('page') || '1', 10);
+    const urlSortField = (searchParams.get('sortBy') as SortField) || 'createdAt';
+    const urlSortDir = (searchParams.get('sortOrder') as SortDirection) || 'desc';
+
+    if (urlCat !== selectedCategory) setSelectedCategory(urlCat);
+    if (urlSub !== selectedSubcategory) setSelectedSubcategory(urlSub);
+    if (urlStatus !== selectedStatus) setSelectedStatus(urlStatus);
+    if (urlBadge !== selectedBadge) setSelectedBadge(urlBadge);
+    if (urlDate !== selectedDatePreset && ['all', 'today', '7d', '30d', 'month'].includes(urlDate)) {
+      setSelectedDatePreset(urlDate as any);
+    }
+    if (urlSearch !== debouncedSearch) {
+      setSearchInput(urlSearch);
+      setDebouncedSearch(urlSearch);
+    }
+    if (!isNaN(urlPage) && urlPage !== page) setPage(urlPage);
+    if (urlSortField !== sortField) setSortField(urlSortField);
+    if (urlSortDir !== sortDirection) setSortDirection(urlSortDir);
+  }, [searchParams]);
 
   // Load Categories & Badges
   useEffect(() => {
@@ -110,6 +279,25 @@ export const ProductListPage: React.FC = () => {
     });
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [categories, selectedCategory]);
+
+  // Validate that selected category and subcategory exist once categories tree is loaded
+  useEffect(() => {
+    if (categories.length === 0) return;
+    if (selectedCategory !== 'all') {
+      const catExists = categories.some((c) => c.id === selectedCategory);
+      if (!catExists) {
+        setSelectedCategory('all');
+        setSelectedSubcategory('all');
+        return;
+      }
+      if (selectedSubcategory !== 'all') {
+        const subExists = availableSubcategories.some((sc) => sc.id === selectedSubcategory);
+        if (!subExists) {
+          setSelectedSubcategory('all');
+        }
+      }
+    }
+  }, [categories, selectedCategory, selectedSubcategory, availableSubcategories]);
 
   // Load Products
   const loadProducts = useCallback(async () => {
@@ -529,7 +717,15 @@ export const ProductListPage: React.FC = () => {
           </button>
 
           <button
-            onClick={() => navigate('/admin/products/new')}
+            onClick={() =>
+              navigate('/admin/products/new', {
+                state: {
+                  returnUrl: location.pathname + location.search,
+                  category: selectedCategory,
+                  subcategory: selectedSubcategory,
+                },
+              })
+            }
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -766,7 +962,10 @@ export const ProductListPage: React.FC = () => {
               setSelectedBadge('all');
               setSelectedDatePreset('all');
               setSearchInput('');
+              setDebouncedSearch('');
               setPage(1);
+              Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
+              setSearchParams({}, { replace: true });
             }}
             style={{
               padding: '9px 12px',
@@ -941,11 +1140,40 @@ export const ProductListPage: React.FC = () => {
                           }}
                         />
                       </td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontWeight: 600, color: '#818cf8', fontSize: '0.8rem' }}>
+                      <td
+                        onClick={() =>
+                          navigate(`/admin/products/${product.id}/edit`, {
+                            state: { returnUrl: location.pathname + location.search },
+                          })
+                        }
+                        style={{
+                          padding: '12px 14px',
+                          fontFamily: 'monospace',
+                          fontWeight: 600,
+                          color: '#818cf8',
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                        }}
+                        title="Click to edit SKU"
+                      >
                         {product.sku || 'SKU-PENDING'}
                       </td>
                       <td style={{ padding: '12px 14px' }}>
-                        <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: '2px', lineHeight: 1.3 }}>
+                        <div
+                          onClick={() =>
+                            navigate(`/admin/products/${product.id}/edit`, {
+                              state: { returnUrl: location.pathname + location.search },
+                            })
+                          }
+                          style={{
+                            fontWeight: 600,
+                            color: '#f1f5f9',
+                            marginBottom: '2px',
+                            lineHeight: 1.3,
+                            cursor: 'pointer',
+                          }}
+                          title="Click to edit product"
+                        >
                           {product.name}
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1092,7 +1320,11 @@ export const ProductListPage: React.FC = () => {
                           )}
 
                           <button
-                            onClick={() => navigate(`/admin/products/${product.id}/edit`)}
+                            onClick={() =>
+                              navigate(`/admin/products/${product.id}/edit`, {
+                                state: { returnUrl: location.pathname + location.search },
+                              })
+                            }
                             style={{
                               padding: '5px 8px',
                               background: '#1e293b',
