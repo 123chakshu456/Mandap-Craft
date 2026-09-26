@@ -150,14 +150,14 @@ export const ProductListPage: React.FC = () => {
       localStorage.removeItem(STORAGE_KEYS.CATEGORY);
     }
 
-    if (selectedSubcategory !== 'all') {
+    if (selectedSubcategory !== 'all' && selectedSubcategory !== '') {
       params.set('subcategory', selectedSubcategory);
       localStorage.setItem(STORAGE_KEYS.SUBCATEGORY, selectedSubcategory);
     } else {
       localStorage.removeItem(STORAGE_KEYS.SUBCATEGORY);
     }
 
-    if (selectedSubSubcategory !== 'all') {
+    if (selectedSubSubcategory !== 'all' && selectedSubSubcategory !== '') {
       params.set('subsubcategory', selectedSubSubcategory);
       localStorage.setItem(STORAGE_KEYS.SUBSUBCATEGORY, selectedSubSubcategory);
     } else {
@@ -275,88 +275,64 @@ export const ProductListPage: React.FC = () => {
     badgeApi.getPublicBadges().then(setBadges).catch(console.error);
   }, []);
 
-  // Available subcategories based on selected category (or all categories)
+  // Available subcategories strictly under selected category
   const availableSubcategories = useMemo(() => {
     if (selectedCategory !== 'all') {
       const cat = categories.find((c) => c.id === selectedCategory || c.slug === selectedCategory);
       return cat?.children || [];
     }
-    const map = new Map<string, Category>();
-    categories.forEach((c) => {
-      if (c.children && c.children.length > 0) {
-        c.children.forEach((sc) => {
-          if (!map.has(sc.id)) {
-            map.set(sc.id, sc);
-          }
-        });
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    return [];
   }, [categories, selectedCategory]);
 
-  // Available sub-subcategories based on selected category & subcategory
+  // Available sub-subcategories strictly under selected subcategory
   const availableSubSubcategories = useMemo(() => {
-    if (selectedSubcategory !== 'all') {
+    if (selectedSubcategory !== 'all' && selectedSubcategory !== '') {
       for (const cat of categories) {
         const sub = cat.children?.find((s) => s.id === selectedSubcategory || s.slug === selectedSubcategory);
         if (sub && sub.children && sub.children.length > 0) {
           return sub.children;
         }
       }
-      return [];
     }
-
-    if (selectedCategory !== 'all') {
-      const cat = categories.find((c) => c.id === selectedCategory || c.slug === selectedCategory);
-      const list: Category[] = [];
-      cat?.children?.forEach((sc) => {
-        if (sc.children && sc.children.length > 0) {
-          list.push(...sc.children);
-        }
-      });
-      return list;
-    }
-
-    const map = new Map<string, Category>();
-    categories.forEach((c) => {
-      c.children?.forEach((sc) => {
-        sc.children?.forEach((ssc) => {
-          if (!map.has(ssc.id)) {
-            map.set(ssc.id, ssc);
-          }
-        });
-      });
-    });
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [categories, selectedCategory, selectedSubcategory]);
+    return [];
+  }, [categories, selectedSubcategory]);
 
   // Validate that selected category, subcategory, and sub-subcategory exist once categories tree is loaded
   useEffect(() => {
     if (categories.length === 0) return;
     if (selectedCategory !== 'all') {
-      const catExists = categories.some((c) => c.id === selectedCategory || c.slug === selectedCategory);
-      if (!catExists) {
+      const cat = categories.find((c) => c.id === selectedCategory || c.slug === selectedCategory);
+      if (!cat) {
         setSelectedCategory('all');
         setSelectedSubcategory('all');
         setSelectedSubSubcategory('all');
         return;
       }
-      if (selectedSubcategory !== 'all') {
-        const subExists = availableSubcategories.some((sc) => sc.id === selectedSubcategory || sc.slug === selectedSubcategory);
-        if (!subExists) {
-          setSelectedSubcategory('all');
-          setSelectedSubSubcategory('all');
+      if (selectedSubcategory !== 'all' && selectedSubcategory !== '') {
+        const sub = cat.children?.find((sc) => sc.id === selectedSubcategory || sc.slug === selectedSubcategory);
+        if (!sub) {
+          const firstSub = cat.children?.[0]?.id || '';
+          setSelectedSubcategory(firstSub);
+          const firstSubSub = cat.children?.[0]?.children?.[0]?.id || '';
+          setSelectedSubSubcategory(firstSubSub);
           return;
         }
+        if (selectedSubSubcategory !== 'all' && selectedSubSubcategory !== '') {
+          const subSubExists = sub.children?.some((ssc) => ssc.id === selectedSubSubcategory || ssc.slug === selectedSubSubcategory);
+          if (!subSubExists) {
+            setSelectedSubSubcategory(sub.children?.[0]?.id || '');
+          }
+        } else if (sub.children && sub.children.length > 0) {
+          setSelectedSubSubcategory(sub.children[0].id);
+        }
+      } else if (cat.children && cat.children.length > 0) {
+        const firstSub = cat.children[0].id;
+        setSelectedSubcategory(firstSub);
+        const firstSubSub = cat.children[0].children?.[0]?.id || '';
+        setSelectedSubSubcategory(firstSubSub);
       }
     }
-    if (selectedSubSubcategory !== 'all') {
-      const subSubExists = availableSubSubcategories.some((ssc) => ssc.id === selectedSubSubcategory || ssc.slug === selectedSubSubcategory);
-      if (!subSubExists) {
-        setSelectedSubSubcategory('all');
-      }
-    }
-  }, [categories, selectedCategory, selectedSubcategory, selectedSubSubcategory, availableSubcategories, availableSubSubcategories]);
+  }, [categories, selectedCategory, selectedSubcategory, selectedSubSubcategory]);
 
   // Category, Subcategory & Sub-subcategory display label helpers
   const getCategoryLabel = (catId?: string | null) => {
@@ -432,8 +408,8 @@ export const ProductListPage: React.FC = () => {
         limit: 50,
         search: debouncedSearch || undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        subcategory: selectedSubcategory !== 'all' ? selectedSubcategory : undefined,
-        subSubcategory: selectedSubSubcategory !== 'all' ? selectedSubSubcategory : undefined,
+        subcategory: selectedSubcategory !== 'all' && selectedSubcategory !== '' ? selectedSubcategory : undefined,
+        subSubcategory: selectedSubSubcategory !== 'all' && selectedSubSubcategory !== '' ? selectedSubSubcategory : undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined,
         badge: selectedBadge !== 'all' ? selectedBadge : undefined,
         startDate,
@@ -902,9 +878,18 @@ export const ProductListPage: React.FC = () => {
         <select
           value={selectedCategory}
           onChange={(e) => {
-            setSelectedCategory(e.target.value);
-            setSelectedSubcategory('all');
-            setSelectedSubSubcategory('all');
+            const nextCatId = e.target.value;
+            setSelectedCategory(nextCatId);
+            if (nextCatId === 'all') {
+              setSelectedSubcategory('all');
+              setSelectedSubSubcategory('all');
+            } else {
+              const catObj = categories.find((c) => c.id === nextCatId || c.slug === nextCatId);
+              const firstSub = catObj?.children?.[0]?.id || '';
+              const firstSubSub = catObj?.children?.[0]?.children?.[0]?.id || '';
+              setSelectedSubcategory(firstSub);
+              setSelectedSubSubcategory(firstSubSub);
+            }
             setPage(1);
           }}
           style={{
@@ -929,71 +914,74 @@ export const ProductListPage: React.FC = () => {
 
         {/* Subcategory filter */}
         <select
-          value={selectedSubcategory}
+          value={selectedCategory === 'all' ? '' : selectedSubcategory}
           onChange={(e) => {
-            setSelectedSubcategory(e.target.value);
-            setSelectedSubSubcategory('all');
+            const nextSubId = e.target.value;
+            setSelectedSubcategory(nextSubId);
+            const subObj = availableSubcategories.find((s) => s.id === nextSubId || s.slug === nextSubId);
+            const firstSubSub = subObj?.children?.[0]?.id || '';
+            setSelectedSubSubcategory(firstSubSub);
             setPage(1);
           }}
-          disabled={availableSubcategories.length === 0}
+          disabled={selectedCategory === 'all' || availableSubcategories.length === 0}
           style={{
             padding: '9px 12px',
             background: '#080d18',
             border: '1px solid #1e293b',
             borderRadius: '8px',
-            color: selectedSubcategory !== 'all' ? '#818cf8' : '#cbd5e1',
-            fontWeight: selectedSubcategory !== 'all' ? 600 : 400,
+            color: selectedSubcategory !== 'all' && selectedSubcategory !== '' ? '#818cf8' : '#cbd5e1',
+            fontWeight: selectedSubcategory !== 'all' && selectedSubcategory !== '' ? 600 : 400,
             fontSize: '0.82rem',
             outline: 'none',
-            cursor: availableSubcategories.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: availableSubcategories.length === 0 ? 0.6 : 1,
+            cursor: selectedCategory === 'all' || availableSubcategories.length === 0 ? 'not-allowed' : 'pointer',
+            opacity: selectedCategory === 'all' || availableSubcategories.length === 0 ? 0.6 : 1,
           }}
         >
-          <option value="all">
-            {selectedCategory === 'all'
-              ? 'All Subcategories'
-              : `All ${categories.find((c) => c.id === selectedCategory)?.shortTitle || 'Subcategories'}`}
-          </option>
-          {availableSubcategories.map((sc) => (
-            <option key={sc.id} value={sc.id}>
-              {sc.name}
-            </option>
-          ))}
+          {selectedCategory === 'all' ? (
+            <option value="" disabled>Select Category First</option>
+          ) : availableSubcategories.length === 0 ? (
+            <option value="" disabled>No Subcategories</option>
+          ) : (
+            availableSubcategories.map((sc) => (
+              <option key={sc.id} value={sc.id}>
+                {sc.name}
+              </option>
+            ))
+          )}
         </select>
 
         {/* Sub-subcategory filter */}
         <select
-          value={selectedSubSubcategory}
+          value={selectedCategory === 'all' || selectedSubcategory === 'all' ? '' : selectedSubSubcategory}
           onChange={(e) => {
             setSelectedSubSubcategory(e.target.value);
             setPage(1);
           }}
-          disabled={availableSubSubcategories.length === 0}
+          disabled={selectedCategory === 'all' || selectedSubcategory === 'all' || availableSubSubcategories.length === 0}
           style={{
             padding: '9px 12px',
             background: '#080d18',
             border: '1px solid #1e293b',
             borderRadius: '8px',
-            color: selectedSubSubcategory !== 'all' ? '#818cf8' : '#cbd5e1',
-            fontWeight: selectedSubSubcategory !== 'all' ? 600 : 400,
+            color: selectedSubSubcategory !== 'all' && selectedSubSubcategory !== '' ? '#818cf8' : '#cbd5e1',
+            fontWeight: selectedSubSubcategory !== 'all' && selectedSubSubcategory !== '' ? 600 : 400,
             fontSize: '0.82rem',
             outline: 'none',
-            cursor: availableSubSubcategories.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: availableSubSubcategories.length === 0 ? 0.6 : 1,
+            cursor: selectedCategory === 'all' || selectedSubcategory === 'all' || availableSubSubcategories.length === 0 ? 'not-allowed' : 'pointer',
+            opacity: selectedCategory === 'all' || selectedSubcategory === 'all' || availableSubSubcategories.length === 0 ? 0.6 : 1,
           }}
         >
-          <option value="all">
-            {selectedSubcategory !== 'all'
-              ? `All ${availableSubcategories.find((s) => s.id === selectedSubcategory)?.name || ''} Sub-subcategories`
-              : selectedCategory !== 'all'
-              ? `All ${categories.find((c) => c.id === selectedCategory)?.shortTitle || ''} Sub-subcategories`
-              : 'All Sub-subcategories'}
-          </option>
-          {availableSubSubcategories.map((ssc) => (
-            <option key={ssc.id} value={ssc.id}>
-              {ssc.shortTitle || ssc.name}
-            </option>
-          ))}
+          {selectedCategory === 'all' || selectedSubcategory === 'all' ? (
+            <option value="" disabled>Select Subcategory First</option>
+          ) : availableSubSubcategories.length === 0 ? (
+            <option value="" disabled>No Sub-subcategories</option>
+          ) : (
+            availableSubSubcategories.map((ssc) => (
+              <option key={ssc.id} value={ssc.id}>
+                {ssc.shortTitle || ssc.name}
+              </option>
+            ))
+          )}
         </select>
 
         {/* Status filter */}
@@ -1093,8 +1081,8 @@ export const ProductListPage: React.FC = () => {
 
         {/* Clear / Reset Filters */}
         {(selectedCategory !== 'all' ||
-          selectedSubcategory !== 'all' ||
-          selectedSubSubcategory !== 'all' ||
+          (selectedSubcategory !== 'all' && selectedSubcategory !== '') ||
+          (selectedSubSubcategory !== 'all' && selectedSubSubcategory !== '') ||
           selectedStatus !== 'all' ||
           selectedBadge !== 'all' ||
           selectedDatePreset !== 'all' ||

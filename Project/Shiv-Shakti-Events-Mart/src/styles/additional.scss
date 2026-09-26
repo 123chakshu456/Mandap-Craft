@@ -548,6 +548,8 @@
         .logo-text {
           font-size: $font-size-xl;
           @include heading-serif;
+          font-weight: 900;
+          -webkit-text-stroke: 0.35px currentColor;
           color: $color-white;
         }
 

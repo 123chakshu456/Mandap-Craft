@@ -40,6 +40,8 @@
     .logo-text {
       white-space: nowrap;
       letter-spacing: 0.05em;
+      font-weight: 900;
+      -webkit-text-stroke: 0.35px currentColor;
     }
     .logo-subtext {
       display: block;
@@ -780,7 +782,8 @@
     .drawer-logo {
       .logo-text {
         font-size: $font-size-base;
-        font-weight: $font-weight-extrabold;
+        font-weight: 900;
+        -webkit-text-stroke: 0.3px currentColor;
         letter-spacing: 0.1em;
         color: $color-primary-dark;
         display: block;
