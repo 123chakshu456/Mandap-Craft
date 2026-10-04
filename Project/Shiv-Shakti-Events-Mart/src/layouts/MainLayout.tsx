@@ -24,6 +24,8 @@ import { CategoryMegaMenu, useCategories } from '../features/categories';
 import { authApi } from '../features/auth';
 import { searchApi, type SearchResults } from '../features/search';
 import type { Product } from '../shared/types/models.types';
+import FloatingActionDock from '../shared/components/FloatingActionDock/FloatingActionDock';
+import CatalogueDownloadModal from '../shared/components/CatalogueDownload/CatalogueDownloadModal';
 
 export default function MainLayout() {
   const navigate = useNavigate();
@@ -127,6 +129,13 @@ export default function MainLayout() {
   // Modals & UI states
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isShortlistOpen, setIsShortlistOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [downloadInitialCategory, setDownloadInitialCategory] = useState<string>('all');
+
+  const handleOpenDownloadCatalogue = (categoryId?: string) => {
+    setDownloadInitialCategory(categoryId || 'all');
+    setIsDownloadModalOpen(true);
+  };
   const [selectedProductDetail, setSelectedProductDetail] = useState<{
     id: string;
     name: string;
@@ -669,6 +678,7 @@ export default function MainLayout() {
           onSubcategoryHover={(subId) => setHoveredSubcategory(subId)}
           onCategoryClick={handleCategoryClick}
           onSubcategoryClick={handleSubcategoryClick}
+          onOpenDownloadCatalogue={handleOpenDownloadCatalogue}
         />
       </header>
 
@@ -718,6 +728,34 @@ export default function MainLayout() {
             </div>
           )}
         </form>
+
+        {/* Mobile Download Catalogue Quick Button */}
+        <div style={{ padding: '0 16px 10px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              handleOpenDownloadCatalogue('all');
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              border: '1.5px solid rgba(212, 175, 55, 0.5)',
+              background: '#fdf8ed',
+              color: '#0f2f2f',
+              fontWeight: '700',
+              fontSize: '12.5px',
+              cursor: 'pointer',
+            }}
+          >
+            📥 Download Specification Catalogue (PDF)
+          </button>
+        </div>
 
         <div className="drawer-content">
           <button
@@ -811,6 +849,7 @@ export default function MainLayout() {
             isLoadingProducts,
             refetchProducts,
             productsError,
+            handleOpenDownloadCatalogue,
           }}
         />
       </main>
@@ -978,6 +1017,25 @@ export default function MainLayout() {
         cartQuantity={cart.find((i) => i.id === selectedProductDetail?.id)?.quantity || 0}
         onAddToCart={(item, customArea) => handleAddToCart(item, platformMode, customArea)}
         onDecrementCart={handleDecrementCart}
+      />
+
+      {/* 4. FIXED BOTTOM-RIGHT ACTION DOCK (Contact Us, Enquire At, Book Now) */}
+      <FloatingActionDock
+        cart={cart}
+        products={products}
+        onOpenCart={() => setIsCartOpen(true)}
+        showToast={showToast}
+        onNavigate={(path) => navigate(path)}
+      />
+
+      {/* 5. DOWNLOAD SPECIFICATION CATALOGUE MODAL (PDF Specifications, Zero Pricing) */}
+      <CatalogueDownloadModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        initialCategory={downloadInitialCategory}
+        categories={menuCategories}
+        products={products}
+        showToast={showToast}
       />
 
     </div>

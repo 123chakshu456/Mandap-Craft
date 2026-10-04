@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ArrowRight, Download } from 'lucide-react';
 import type { CategoryData } from '../../../constants/categories';
 
 export interface CategoryMegaMenuProps {
@@ -11,6 +11,7 @@ export interface CategoryMegaMenuProps {
   onSubcategoryHover: (subId: string) => void;
   onCategoryClick: (catId: string) => void;
   onSubcategoryClick: (catId: string, subId: string) => void;
+  onOpenDownloadCatalogue?: (catId?: string) => void;
 }
 
 export default function CategoryMegaMenu({
@@ -23,6 +24,7 @@ export default function CategoryMegaMenu({
   onSubcategoryHover,
   onCategoryClick,
   onSubcategoryClick,
+  onOpenDownloadCatalogue,
 }: CategoryMegaMenuProps) {
   const activeCategoryData = categories.find((c) => c.id === hoveredCategory);
 
@@ -68,6 +70,21 @@ export default function CategoryMegaMenu({
               </li>
             );
           })}
+
+          {/* Download Catalogue Nav Button */}
+          {onOpenDownloadCatalogue && (
+            <li className="category-nav-item download-nav-item">
+              <button
+                type="button"
+                onClick={() => onOpenDownloadCatalogue('all')}
+                className="category-nav-link download-brochure-nav-btn"
+                title="Download Category Specification Catalogue (PDF)"
+              >
+                <Download className="cat-icon" size={14} />
+                <span className="cat-label">Download Catalogue</span>
+              </button>
+            </li>
+          )}
         </ul>
       </div>
 
@@ -126,14 +143,27 @@ export default function CategoryMegaMenu({
                       <h3>{activeSubcategory.title}</h3>
                       <p className="content-panel-desc">{activeSubcategory.description}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onSubcategoryClick(activeCategoryData.id, activeSubcategory.id)}
-                      className="content-view-all-btn"
-                    >
-                      View All {activeSubcategory.title}
-                      <ArrowRight className="icon" />
-                    </button>
+                    <div className="megamenu-action-group">
+                      {onOpenDownloadCatalogue && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenDownloadCatalogue(activeCategoryData.id)}
+                          className="megamenu-download-btn"
+                          title={`Download ${activeCategoryData.title} PDF Catalogue`}
+                        >
+                          <Download className="icon" />
+                          <span>Download {activeCategoryData.shortTitle} Catalogue</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onSubcategoryClick(activeCategoryData.id, activeSubcategory.id)}
+                        className="content-view-all-btn"
+                      >
+                        View All {activeSubcategory.title}
+                        <ArrowRight className="icon" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="items-section">

@@ -29,36 +29,6 @@ export const CATALOG_PRODUCTS: ProductItem[] = [];
 export const DECOR_THEMES: ProductItem[] = [];
 export const FURNITURE_ITEMS: ProductItem[] = [];
 
-export const INFLUENCER_REELS = [
-  {
-    name: 'Shwetambari Shetty',
-    quote: '"My Shiv Shakti Events Mart wedding was straight out of an ancient royal fable. Impeccable attention to floral symmetry!"',
-    role: 'Wellness Entrepreneur & Bride',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80',
-    views: '1.2M'
-  },
-  {
-    name: 'Vineeta Singh',
-    quote: '"The custom teakwood swing and emerald sofas added an unbeatable premium touch to our home decor transition."',
-    role: 'CEO & Luxury Lifestyle Critic',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=80',
-    views: '840K'
-  },
-  {
-    name: 'Mallika Dua',
-    quote: '"Who says traditional drapes can\'t look modern? Shiv Shakti Events Mart cracked the exact contemporary Indian aesthetic!"',
-    role: 'Actor & Content Creator',
-    image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80',
-    views: '2.1M'
-  },
-  {
-    name: 'Maheep Kapoor',
-    quote: '"Absolutely love their home styling. The brass work is pristine, and the craftsmanship details are pure luxury."',
-    role: 'Interior Designer & Stylist',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=500&q=80',
-    views: '1.5M'
-  }
-];
 
 export const CUSTOMIZER_BACKDROPS = [
   { id: 'palace', name: 'Palace Courtyard', image: 'https://images.unsplash.com/photo-1585121517533-030f22496a75?auto=format&fit=crop&w=600&q=80' },

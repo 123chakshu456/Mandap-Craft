@@ -3,20 +3,17 @@ import type { Dispatch, SetStateAction } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
   Sparkles,
-  ArrowRight,
-  Play,
   SlidersHorizontal,
   ChevronDown,
   Truck,
   ShieldCheck,
   User,
-  Layers,
   Filter,
+  Download,
 } from 'lucide-react';
 
 import {
   CATEGORIES,
-  INFLUENCER_REELS,
   getCategoryById,
 } from '../../constants';
 import { ProductCard } from '../../features/products';
@@ -34,8 +31,6 @@ export default function HomePage() {
     setSelectedCategory,
     selectedSubcategory,
     setSelectedSubcategory,
-    handleCategoryClick,
-    handleSubcategoryClick,
     shortlist,
     handleToggleShortlist,
     cart,
@@ -47,6 +42,7 @@ export default function HomePage() {
     isLoadingProducts = false,
     refetchProducts,
     productsError = null,
+    handleOpenDownloadCatalogue,
   } = useOutletContext<{
     platformMode?: 'events' | 'boutique';
     setPlatformMode?: Dispatch<SetStateAction<'events' | 'boutique'>>;
@@ -71,6 +67,7 @@ export default function HomePage() {
     isLoadingProducts?: boolean;
     refetchProducts?: () => void;
     productsError?: string | null;
+    handleOpenDownloadCatalogue?: (catId?: string) => void;
   }>();
 
   // Active filter transition state for immediate visual feedback
@@ -85,9 +82,6 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
 
-  // Active showcase tab for the "Explore Categories" section
-  const [showcaseCategoryTab, setShowcaseCategoryTab] = useState<string>('wedding');
-
   // FAQ State
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -98,13 +92,6 @@ export default function HomePage() {
   useEffect(() => {
     setVisibleCount(24);
   }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
-
-  // Sync showcase tab with selectedCategory if user clicked from top menu
-  useEffect(() => {
-    if (selectedCategory && selectedCategory !== 'all') {
-      setShowcaseCategoryTab(selectedCategory);
-    }
-  }, [selectedCategory]);
 
   // Filtered Products from API
   const displayedItems = useMemo(() => {
@@ -143,11 +130,6 @@ export default function HomePage() {
   const activeCategoryObj = useMemo(() => {
     return getCategoryById(selectedCategory);
   }, [selectedCategory]);
-
-  // Active showcase category object
-  const activeShowcaseCategory = useMemo(() => {
-    return getCategoryById(showcaseCategoryTab) || CATEGORIES[0];
-  }, [showcaseCategoryTab]);
 
   // Reset all catalog filters
   const handleClearFilters = () => {
@@ -210,139 +192,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* =========================================================================
-          WHAT WE OFFER: EXPLORE BY CATEGORY (HOMEPAGE SHOWCASE LIKE PEPPERFRY)
-         ========================================================================= */}
-      <section id="categories-showcase" className="categories-showcase-section">
-        <div className="showcase-container">
-          
-          {/* Section Header */}
-          <div className="section-header text-center">
-            <span className="section-label">
-              <Layers className="icon-sm" /> What We Offer
-            </span>
-            <h2>Explore Our Complete Event &amp; Wedding Ecosystem</h2>
-            <p>
-              From sacred mandap rituals and commercial catering lines to plush furniture and climate control—choose a category to discover curated subsections.
-            </p>
-          </div>
 
-          {/* 6 Category Tabs Switcher */}
-          <div className="showcase-tabs-wrapper">
-            <div className="showcase-tabs-container">
-              {CATEGORIES.map((cat) => {
-                const isActive = showcaseCategoryTab === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setShowcaseCategoryTab(cat.id)}
-                    className={`showcase-tab-btn ${isActive ? 'active' : ''}`}
-                  >
-                    <span className="tab-icon">{cat.icon}</span>
-                    <span className="tab-title">{cat.title}</span>
-                    <span className="tab-count">{cat.subsections.length}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Active Category Header Banner */}
-          <div className="showcase-category-header">
-            <div className="header-info">
-              <div className="category-meta">
-                <span className="category-icon-large">{activeShowcaseCategory.icon}</span>
-                <div>
-                  <div className="category-title-row">
-                    <h3>{activeShowcaseCategory.title}</h3>
-                    {activeShowcaseCategory.badge && (
-                      <span className="category-pill-badge">{activeShowcaseCategory.badge}</span>
-                    )}
-                  </div>
-                  <p className="category-tagline">{activeShowcaseCategory.tagline}</p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleCategoryClick(activeShowcaseCategory.id)}
-              className="view-all-category-btn"
-            >
-              <span>View All {activeShowcaseCategory.shortTitle} in Catalog</span>
-              <ArrowRight className="icon" />
-            </button>
-          </div>
-
-          {/* Subcategories Visual Cards Grid */}
-          <div className="subcategories-grid">
-            {activeShowcaseCategory.subsections.map((sub) => (
-              <div 
-                key={sub.id} 
-                className="subcategory-card"
-                onClick={() => handleSubcategoryClick(activeShowcaseCategory.id, sub.id)}
-              >
-                <div className="card-media">
-                  <img src={sub.image} alt={sub.title} />
-                  <div className="card-overlay"></div>
-                  <div className="card-action-badge">
-                    <span>Browse Collection</span>
-                    <ArrowRight className="icon" />
-                  </div>
-                </div>
-
-                <div className="card-body">
-                  <div className="card-header-row">
-                    <h4>{sub.title}</h4>
-                  </div>
-                  <p className="card-description">{sub.description}</p>
-                  
-                  {/* Popular Item Tags */}
-                  <div className="card-popular-tags">
-                    <span className="tags-label">Popular:</span>
-                    <div className="tags-list">
-                      {sub.popularItems.slice(0, 3).map((item, idx) => (
-                        <span key={idx} className="popular-tag-chip">
-                          {item}
-                        </span>
-                      ))}
-                      {sub.popularItems.length > 3 && (
-                        <span className="popular-tag-chip more">
-                          +{sub.popularItems.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom Quick-Jump Grid for all 6 categories */}
-          <div className="all-categories-strip">
-            <span className="strip-title">Quick Navigate Across All Verticals:</span>
-            <div className="strip-pills">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => {
-                    setShowcaseCategoryTab(c.id);
-                    handleCategoryClick(c.id);
-                  }}
-                  className={`strip-pill-btn ${selectedCategory === c.id ? 'active' : ''}`}
-                >
-                  <span className="pill-icon">{c.icon}</span>
-                  <span className="pill-text">{c.title}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </section>
 
       {/* ==========================================
           PRODUCT CATALOG & FILTERING MODULE
@@ -362,8 +212,20 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Style Filters */}
+            {/* Style Filters & Download Action */}
             <div className="filters" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {handleOpenDownloadCatalogue && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenDownloadCatalogue(selectedCategory)}
+                  className="download-catalogue-btn"
+                  title={`Download ${selectedCategory === 'all' ? 'Master' : activeCategoryObj?.shortTitle || 'Category'} PDF Specification Catalogue`}
+                >
+                  <Download className="icon" />
+                  <span>Download {selectedCategory === 'all' ? 'Master' : activeCategoryObj?.shortTitle || 'Category'} Catalogue (PDF)</span>
+                  <span className="pdf-tag">Specs Only</span>
+                </button>
+              )}
               {['All', 'Royal', 'Traditional', 'Modern', 'Industrial', 'Bespoke'].map((filter) => (
                 <button
                   key={filter}
@@ -584,38 +446,7 @@ export default function HomePage() {
 
 
 
-      {/* ==========================================
-          INFLUENCER / CLIENT SHOWCASE MODULE
-         ========================================== */}
-      <section className="influencer">
-        <div className="influencer-container">
-          
-          <div className="section-header">
-            <span className="section-label">Client Stories &amp; Testimonials</span>
-            <h2>Celebrated By Leading Event Curators</h2>
-          </div>
 
-          <div className="reels-grid">
-            {INFLUENCER_REELS.map((reel, idx) => (
-              <div key={idx} className="reel-card">
-                <img src={reel.image} alt={reel.name} />
-                <div className="reel-play">
-                  <Play className="icon" />
-                </div>
-                <div className="reel-badge">
-                  {reel.views} Views
-                </div>
-                <div className="reel-footer">
-                  <div className="person-quote">{reel.quote}</div>
-                  <div className="person-name">{reel.name}</div>
-                  <div className="person-role">{reel.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
 
       {/* ==========================================
           FAQ ACCORDION MODULE

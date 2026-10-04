@@ -88,10 +88,10 @@ export const CarouselSlideManagerPage: React.FC = () => {
       subtitle: '',
       badge: "India's Premier Wedding Infrastructure",
       image: PRESET_IMAGES[0].url,
-      ctaText: 'Explore What We Offer',
-      ctaLink: '#categories-showcase',
+      ctaText: 'Explore Live Catalogue',
+      ctaLink: '#catalog',
       secondaryCtaText: 'Browse Full Catalog',
-      secondaryCtaLink: '/',
+      secondaryCtaLink: '#catalog',
       titleSize: 'large',
       alignment: 'left',
       overlayOpacity: 0.5,
@@ -1207,7 +1207,7 @@ export const CarouselSlideManagerPage: React.FC = () => {
                   type="text"
                   value={editingSlide.ctaLink || ''}
                   onChange={(e) => setEditingSlide({ ...editingSlide, ctaLink: e.target.value })}
-                  placeholder="e.g. #categories-showcase or /checkout"
+                  placeholder="e.g. #catalog or /checkout"
                   style={{
                     width: '100%',
                     padding: '8px 12px',
