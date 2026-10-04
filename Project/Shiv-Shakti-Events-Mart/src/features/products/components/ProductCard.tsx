@@ -1,7 +1,18 @@
-import { Heart, Star, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, Star, ArrowRight, ChevronLeft, ChevronRight, Zap, Gauge, Maximize2, Scale, Layers } from 'lucide-react';
 import { getCategoryById } from '../../../constants';
 import type { Product } from '../../../shared/types/models.types';
 import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
+
+export interface MachineModelVariant {
+  model: string;
+  motor?: string;
+  size?: string;
+  weight?: string;
+  capacity?: string;
+  price: number;
+  description?: string;
+}
 
 export interface ProductCardProps {
   item: Product | any;
@@ -25,11 +36,86 @@ export default function ProductCard({
   const categoryData = getCategoryById(item.categoryId || '');
   const subcategoryData = categoryData?.subsections.find((s) => s.id === item.subcategoryId);
 
+  // Extract all available images
+  const rawImages: string[] = [];
+  if (Array.isArray(item.images) && item.images.length > 0) {
+    item.images.forEach((img: any) => {
+      const url = typeof img === 'string' ? img : img?.url;
+      if (url && !rawImages.includes(url)) rawImages.push(url);
+    });
+  }
+  if (item.image && !rawImages.includes(item.image)) {
+    rawImages.unshift(item.image);
+  }
+  const displayImages = rawImages.length > 0 ? rawImages : ['/images/placeholder.jpg'];
+
+  const [currentImgIdx, setCurrentImgIdx] = useState(0);
+
+  // Extract machine model variants if available
+  const machineModels: MachineModelVariant[] | null =
+    Array.isArray(item.presetSizes) && item.presetSizes.length > 0 && typeof item.presetSizes[0] === 'object'
+      ? (item.presetSizes as MachineModelVariant[])
+      : null;
+
+  const [selectedModelIdx, setSelectedModelIdx] = useState(0);
+  const activeModel = machineModels ? machineModels[selectedModelIdx] || machineModels[0] : null;
+
+  // Active price: selected model price if present, else base price
+  const activePrice = activeModel ? activeModel.price : (item.price || 0);
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImgIdx((prev) => (prev > 0 ? prev - 1 : displayImages.length - 1));
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImgIdx((prev) => (prev < displayImages.length - 1 ? prev + 1 : 0));
+  };
+
+  const handleSelectModel = (e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    setSelectedModelIdx(idx);
+  };
+
+  const handleCardClick = () => {
+    onSelectProductDetail({
+      ...item,
+      selectedModelIndex: selectedModelIdx,
+      selectedModel: activeModel,
+      activePrice,
+    });
+  };
+
+  const handleAddToCart = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (activeModel) {
+      onAddToCart(
+        {
+          ...item,
+          price: activeModel.price,
+          selectedModel: activeModel,
+          name: `${item.name} (${activeModel.model})`,
+        },
+        'events'
+      );
+    } else {
+      onAddToCart(item, 'events');
+    }
+  };
+
+  // Format rating nicely (e.g. 4.9 instead of 4.899999999999999)
+  const rawRating = item.rating !== undefined ? Number(item.rating) : 4.9;
+  const formattedRating = !isNaN(rawRating) && rawRating > 0 ? rawRating.toFixed(1) : '4.9';
+
   return (
-    <div className="product-card">
+    <div className={`product-card ${machineModels ? 'machine-card' : ''}`}>
       {/* Shortlist heart overlay */}
       <button
-        onClick={() => onToggleShortlist(item.id, item.name)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleShortlist(item.id, item.name);
+        }}
         className="card-heart"
         aria-label="Add to shortlist"
       >
@@ -42,21 +128,71 @@ export default function ProductCard({
       {/* Tag badge */}
       {item.tag && <div className="card-top-tag">{item.tag}</div>}
 
-      {/* Image Box with High Performance Lazy Loading & Dynamic Sizing */}
-      <div className="card-image" onClick={() => onSelectProductDetail(item)}>
+      {/* ── IMAGE CAROUSEL BOX ── */}
+      <div className="card-image machine-image-stage" onClick={handleCardClick}>
         <img
-          src={optimizeImageUrl(item.image || (item.images && item.images[0]?.url), 480)}
-          alt={item.name}
+          src={optimizeImageUrl(displayImages[currentImgIdx] || item.image, 600)}
+          alt={`${item.name} - View ${currentImgIdx + 1}`}
           loading="lazy"
           decoding="async"
           onError={handleImageError}
+          className="machine-hero-photo"
         />
-        <div className="image-hover-action">
-          <span>Quick Specifications</span>
-        </div>
+
+        {/* Carousel Navigation Arrows if multiple pictures */}
+        {displayImages.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={handlePrevImage}
+              className="carousel-nav-btn prev-btn"
+              aria-label="Previous photo"
+              title="Previous Photo"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={handleNextImage}
+              className="carousel-nav-btn next-btn"
+              aria-label="Next photo"
+              title="Next Photo"
+            >
+              <ChevronRight size={16} />
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="carousel-dots-bar" onClick={(e) => e.stopPropagation()}>
+              {displayImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImgIdx(idx);
+                  }}
+                  className={`carousel-dot-indicator ${idx === currentImgIdx ? 'active' : ''}`}
+                  aria-label={`Slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Photo Counter Badge */}
+            <div className="carousel-photo-badge">
+              <span>HD • {currentImgIdx + 1}/{displayImages.length} Views</span>
+            </div>
+          </>
+        )}
+
+        {/* Clean View Details Indicator (doesn't obstruct carousel) */}
+        {!machineModels && (
+          <div className="image-hover-action">
+            <span>Quick Specifications</span>
+          </div>
+        )}
       </div>
 
-      {/* Product Info */}
+      {/* ── PRODUCT CONTENT ── */}
       <div className="card-content">
         {/* Category & Subcategory Breadcrumb Pill */}
         <div className="card-category-crumb">
@@ -72,7 +208,7 @@ export default function ProductCard({
               style={{
                 marginLeft: 'auto',
                 background: 'rgba(245, 158, 11, 0.15)',
-                color: '#fbbf24',
+                color: '#b45309',
                 border: '1px solid rgba(245, 158, 11, 0.3)',
                 padding: '2px 7px',
                 borderRadius: '999px',
@@ -86,7 +222,7 @@ export default function ProductCard({
           )}
         </div>
 
-        <h3 onClick={() => onSelectProductDetail(item)} className="card-title">
+        <h3 onClick={handleCardClick} className="card-title">
           {item.name}
         </h3>
 
@@ -94,19 +230,117 @@ export default function ProductCard({
         <div className="card-rating-row">
           <div className="card-rating">
             <span className="stars">
-              <Star className="icon" style={{ fill: '#f59e0b', color: '#f59e0b' }} />
+              <Star className="icon" style={{ fill: '#d4af37', color: '#d4af37' }} />
             </span>
-            <span className="rating-number">{item.rating || 4.9}</span>
-            <span className="review-count">({item.reviews || 12})</span>
+            <span className="rating-number">{formattedRating}</span>
+            <span className="review-count">({item.reviews || 18} Verified)</span>
           </div>
           {item.style && <span className="card-style-badge">{item.style}</span>}
         </div>
 
-        {/* Snippet */}
+        {/* Snippet Description */}
         <p className="card-description">{item.description}</p>
 
-        {/* Allowed Preset Sizes Snippet */}
-        {item.pricingUnit === 'PER_SQFT' && Array.isArray(item.presetSizes) && item.presetSizes.length > 0 && (
+        {/* ── MACHINE MODEL NUMBERS & SPECIFICATIONS OVERVIEW ── */}
+        {machineModels && machineModels.length > 0 && (
+          <div className="machine-overview-panel" onClick={(e) => e.stopPropagation()}>
+            {/* Model Selector Bar (Only show if multiple models exist) */}
+            {machineModels.length > 1 && (
+              <div className="machine-models-bar">
+                <div className="models-bar-header">
+                  <div className="models-header-left">
+                    <Layers size={12} className="models-icon" />
+                    <span className="models-title">Select Model ({machineModels.length})</span>
+                  </div>
+                  <span className="active-model-indicator">{activeModel?.model}</span>
+                </div>
+
+                <div className="models-pills-row">
+                  {machineModels.map((m, idx) => {
+                    const isSelected = idx === selectedModelIdx;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={(e) => handleSelectModel(e, idx)}
+                        className={`model-pill-btn ${isSelected ? 'active' : ''}`}
+                        title={`Select ${m.model} - ₹${m.price.toLocaleString()}`}
+                      >
+                        <span className="pill-name">{m.model}</span>
+                        <span className="pill-price">₹{m.price.toLocaleString()}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Specifications Grid */}
+            {activeModel && (
+              <div className="machine-specs-box">
+                <div className="specs-box-header">
+                  <span className="specs-tag">⚡ Quick Specifications</span>
+                  {machineModels.length === 1 && (
+                    <span className="specs-model-name">{activeModel.model}</span>
+                  )}
+                </div>
+
+                <div className="specs-features-grid">
+                  {activeModel.motor && (
+                    <div className="spec-feature-cell">
+                      <div className="cell-icon-wrap motor">
+                        <Zap size={11} />
+                      </div>
+                      <div className="cell-info">
+                        <span className="cell-title">Motor</span>
+                        <span className="cell-value" title={activeModel.motor}>{activeModel.motor}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeModel.capacity && (
+                    <div className="spec-feature-cell">
+                      <div className="cell-icon-wrap capacity">
+                        <Gauge size={11} />
+                      </div>
+                      <div className="cell-info">
+                        <span className="cell-title">Capacity</span>
+                        <span className="cell-value" title={activeModel.capacity}>{activeModel.capacity}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeModel.size && (
+                    <div className="spec-feature-cell">
+                      <div className="cell-icon-wrap size">
+                        <Maximize2 size={11} />
+                      </div>
+                      <div className="cell-info">
+                        <span className="cell-title">Dimensions</span>
+                        <span className="cell-value" title={activeModel.size}>{activeModel.size}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeModel.weight && (
+                    <div className="spec-feature-cell">
+                      <div className="cell-icon-wrap weight">
+                        <Scale size={11} />
+                      </div>
+                      <div className="cell-info">
+                        <span className="cell-title">Weight</span>
+                        <span className="cell-value" title={activeModel.weight}>{activeModel.weight}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Allowed Preset Sizes Snippet (For Per-SqFt products like Mandaps) */}
+        {item.pricingUnit === 'PER_SQFT' && Array.isArray(item.presetSizes) && item.presetSizes.length > 0 && typeof item.presetSizes[0] !== 'object' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', margin: '4px 0 6px' }}>
             <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Sizes:</span>
             {item.presetSizes.slice(0, 4).map((sz: number) => (
@@ -114,9 +348,9 @@ export default function ProductCard({
                 key={sz}
                 style={{
                   fontSize: '0.68rem',
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid #334155',
-                  color: '#cbd5e1',
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#334155',
                   padding: '1px 6px',
                   borderRadius: '4px',
                   fontWeight: 600,
@@ -126,22 +360,14 @@ export default function ProductCard({
               </span>
             ))}
             {item.presetSizes.length > 4 && (
-              <span style={{ fontSize: '0.68rem', color: '#f59e0b', fontWeight: 600 }}>
+              <span style={{ fontSize: '0.68rem', color: '#b45309', fontWeight: 600 }}>
                 +{item.presetSizes.length - 4} more
               </span>
             )}
           </div>
         )}
 
-        {/* Key features pill row */}
-        {item.features && item.features.length > 0 && (
-          <div className="card-feature-snippet">
-            <CheckCircle2 className="feat-icon" />
-            <span>{item.features[0]}</span>
-          </div>
-        )}
-
-        {/* Pricing and Action */}
+        {/* ── CARD FOOTER & PRICING ── */}
         <div className="card-footer">
           {item.pricingUnit === 'PER_SQFT' ? (
             (() => {
@@ -158,10 +384,10 @@ export default function ProductCard({
                       <span className="currency">₹</span>
                       {item.price?.toLocaleString()}
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>/ sq.ft</span>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>/ sq.ft</span>
                   </div>
                   {presetSizes.length > 0 && (
-                    <span className="price-label" style={{ fontSize: '0.7rem', color: '#fbbf24', marginTop: '1px' }}>
+                    <span className="price-label" style={{ fontSize: '0.7rem', color: '#b45309', marginTop: '1px' }}>
                       Starts at ₹{startingCost.toLocaleString()} ({minPreset} sq.ft)
                     </span>
                   )}
@@ -170,32 +396,39 @@ export default function ProductCard({
             })()
           ) : (
             <div className="price-section">
-              <span className="price-label">Starts at</span>
-              <span className="price">
+              <span className="price-label">
+                {machineModels && machineModels.length > 1
+                  ? 'Selected Model Rate'
+                  : 'Starting Price'}
+              </span>
+              <span className="price machine-price-highlight">
                 <span className="currency">₹</span>
-                {item.price?.toLocaleString()}
+                {activePrice?.toLocaleString()}
               </span>
             </div>
           )}
 
           {item.pricingUnit === 'PER_SQFT' ? (
             <button
-              onClick={() => onSelectProductDetail(item)}
+              onClick={handleCardClick}
               className="action-btn book-btn"
               aria-label={`Select size for ${item.name}`}
               style={{
-                background: 'linear-gradient(135deg, #d97706, #b45309)',
-                border: '1px solid rgba(251, 191, 36, 0.4)',
+                background: 'linear-gradient(135deg, #1a4d4d, #0f2f2f)',
+                border: '1px solid #d4af37',
               }}
             >
               <span>Select Size</span>
               <ArrowRight className="icon" />
             </button>
           ) : cartQuantity > 0 ? (
-            <div className="card-qty-control">
+            <div className="card-qty-control" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
-                onClick={() => onDecrementCart(item.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDecrementCart(item.id);
+                }}
                 className="qty-btn minus"
                 aria-label="Decrease quantity"
               >
@@ -206,7 +439,7 @@ export default function ProductCard({
               </span>
               <button
                 type="button"
-                onClick={() => onAddToCart(item, 'events')}
+                onClick={handleAddToCart}
                 className="qty-btn plus"
                 aria-label="Increase quantity"
               >
@@ -215,8 +448,8 @@ export default function ProductCard({
             </div>
           ) : (
             <button
-              onClick={() => onAddToCart(item, 'events')}
-              className="action-btn book-btn"
+              onClick={handleAddToCart}
+              className="action-btn book-btn machine-book-btn"
               aria-label={`Book ${item.name}`}
             >
               <span>Book</span>

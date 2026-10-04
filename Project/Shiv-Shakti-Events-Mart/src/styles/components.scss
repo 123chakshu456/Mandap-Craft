@@ -1002,22 +1002,132 @@
       }
     }
 
+    &.machine-card {
+      border: 1px solid rgba($color-accent-base, 0.25);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      transition: all $transition-base ease;
+
+      &:hover {
+        border-color: rgba($color-accent-base, 0.6);
+        box-shadow: 0 8px 30px rgba(26, 77, 77, 0.1);
+      }
+    }
+
     .card-image {
       aspect-ratio: 1;
-      background-color: $color-very-light;
+      background: radial-gradient(circle at center, #ffffff 50%, #fbf9f5 100%);
       overflow: hidden;
       cursor: pointer;
       position: relative;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform $transition-base ease;
+      &.machine-image-stage {
+        padding: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img.machine-hero-photo {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.07));
+          transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        &:hover img.machine-hero-photo {
+          transform: scale(1.05);
+        }
       }
 
-      &:hover img {
-        transform: scale(1.1);
+      /* Luxury Carousel Controls */
+      .carousel-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        color: $color-primary-base;
+        border: 1px solid rgba($color-accent-base, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: all 0.2s ease;
+        z-index: 5;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(4px);
+
+        &:hover {
+          background: $color-primary-base;
+          color: #ffffff;
+          border-color: $color-primary-base;
+          transform: translateY(-50%) scale(1.1);
+        }
+
+        &.prev-btn {
+          left: 8px;
+        }
+
+        &.next-btn {
+          right: 8px;
+        }
+      }
+
+      &:hover .carousel-nav-btn {
+        opacity: 1;
+      }
+
+      .carousel-dots-bar {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        z-index: 5;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 3px 8px;
+        border-radius: 99px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+
+        .carousel-dot-indicator {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          border: none;
+          background: #cbd5e1;
+          cursor: pointer;
+          padding: 0;
+          transition: all 0.2s ease;
+
+          &.active {
+            background: $color-accent-base;
+            width: 14px;
+            border-radius: 99px;
+          }
+        }
+      }
+
+      .carousel-photo-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: rgba(26, 77, 77, 0.9);
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        color: #f5e6a1;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 99px;
+        z-index: 5;
+        letter-spacing: 0.3px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       }
     }
 
@@ -1029,14 +1139,26 @@
 
       .card-title {
         @include heading-serif;
-        font-size: $font-size-base;
-        color: $color-dark;
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: #1e293b;
         cursor: pointer;
+        line-height: 1.35;
+        min-height: 2.7em;
+        @include line-clamp(2);
         transition: color $transition-base ease;
 
         &:hover {
           color: $color-primary-base;
         }
+      }
+
+      .card-rating-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        flex-wrap: wrap;
       }
 
       .card-rating {
@@ -1071,6 +1193,222 @@
         @include line-clamp(2);
       }
 
+      /* ── MACHINE SPECIFICATIONS & MODELS OVERVIEW ── */
+      .machine-overview-panel {
+        background: #faf8f5;
+        border: 1px solid #ebd9b4;
+        border-radius: 10px;
+        padding: 9px 11px;
+        margin: 6px 0 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        /* Model Selector Bar */
+        .machine-models-bar {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+
+          .models-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .models-header-left {
+              display: flex;
+              align-items: center;
+              gap: 5px;
+
+              .models-icon {
+                color: $color-accent-base;
+              }
+
+              .models-title {
+                font-size: 9.5px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: $color-primary-base;
+              }
+            }
+
+            .active-model-indicator {
+              font-size: 9.5px;
+              font-weight: 700;
+              color: #92400e;
+              background: #fef3c7;
+              border: 1px solid #fde68a;
+              padding: 1px 6px;
+              border-radius: 4px;
+              max-width: 140px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+          }
+
+          .models-pills-row {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+
+            &::-webkit-scrollbar {
+              display: none;
+            }
+
+            .model-pill-btn {
+              flex-shrink: 0;
+              display: inline-flex;
+              align-items: center;
+              gap: 5px;
+              padding: 4px 8px;
+              border-radius: 6px;
+              border: 1px solid #dfd6c8;
+              background: #ffffff;
+              color: #374151;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.15s ease;
+              white-space: nowrap;
+
+              .pill-name {
+                font-weight: 600;
+              }
+
+              .pill-price {
+                font-size: 9.5px;
+                color: #6b7280;
+                font-weight: 600;
+              }
+
+              &:hover {
+                border-color: $color-accent-base;
+                color: $color-primary-base;
+                background: #faf7f2;
+              }
+
+              &.active {
+                background: linear-gradient(135deg, $color-primary-base, $color-primary-dark);
+                border-color: $color-primary-base;
+                color: #ffffff;
+                box-shadow: 0 2px 6px rgba(26, 77, 77, 0.25);
+
+                .pill-name {
+                  color: #ffffff;
+                }
+
+                .pill-price {
+                  color: #fde68a;
+                  font-weight: 700;
+                }
+              }
+            }
+          }
+        }
+
+        /* Clean Quick Specifications Grid */
+        .machine-specs-box {
+          .specs-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed rgba(212, 175, 55, 0.35);
+
+            .specs-tag {
+              font-size: 9.5px;
+              font-weight: 800;
+              color: $color-primary-base;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .specs-model-name {
+              font-size: 9.5px;
+              color: #b45309;
+              font-weight: 700;
+            }
+          }
+
+          .specs-features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px 8px;
+
+            .spec-feature-cell {
+              display: flex;
+              align-items: center;
+              gap: 7px;
+              background: #ffffff;
+              padding: 5px 7px;
+              border-radius: 6px;
+              border: 1px solid #ebd9b4;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+              min-width: 0;
+
+              .cell-icon-wrap {
+                width: 22px;
+                height: 22px;
+                border-radius: 5px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+
+                &.motor {
+                  background: #fef3c7;
+                  color: #d97706;
+                }
+                &.capacity {
+                  background: #d1fae5;
+                  color: #059669;
+                }
+                &.size {
+                  background: #e0f2fe;
+                  color: #2563eb;
+                }
+                &.weight {
+                  background: #ede9fe;
+                  color: #7c3aed;
+                }
+              }
+
+              .cell-info {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                overflow: hidden;
+
+                .cell-title {
+                  font-size: 8.5px;
+                  color: #8c734b;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                  line-height: 1.1;
+                }
+
+                .cell-value {
+                  font-size: 11px;
+                  font-weight: 700;
+                  color: #1a4d4d;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  line-height: 1.25;
+                }
+              }
+            }
+          }
+        }
+      }
+
       .card-footer {
         border-top: 1px solid #f1f5f9;
         padding-top: $spacing-4;
@@ -1089,9 +1427,9 @@
           .price-label,
           h4 {
             font-size: 10px;
-            color: #94a3b8;
+            color: #78644e;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.05em;
             font-weight: 700;
             display: block;
             margin: 0;
@@ -1099,7 +1437,7 @@
           }
 
           .price {
-            font-size: 1.25rem;
+            font-size: 1.28rem;
             font-family: $font-serif;
             font-weight: 800;
             color: $color-primary-dark;
@@ -1111,7 +1449,11 @@
               font-family: $font-sans;
               font-size: 1.05rem;
               margin-right: 2px;
-              font-weight: 700;
+              font-weight: 800;
+              color: $color-accent-base;
+            }
+
+            &.machine-price-highlight {
               color: $color-primary-base;
             }
           }
@@ -1838,5 +2180,133 @@
   }
 }
 
+// =========================================================
+// RESPONSIVE SEARCH BAR FOR TABLET & MOBILE (<1024px)
+// =========================================================
+.header-responsive-search {
+  display: block;
+  background-color: $color-white;
+  border-top: 1px solid rgba($color-lighter, 0.6);
+  border-bottom: 1px solid rgba($color-lighter, 0.4);
+  padding: $spacing-2 $spacing-4;
+  position: relative;
+  z-index: 38;
 
-// Continue in next file...
+  @include lg {
+    display: none !important; // Hidden on desktop screens (1024px and wider)
+  }
+
+  .responsive-search-inner {
+    @include container;
+    padding: 0;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .responsive-search-form {
+    position: relative;
+    width: 100%;
+  }
+
+  .responsive-search-box {
+    display: flex;
+    align-items: center;
+    background-color: $color-very-light;
+    border: 1.5px solid $color-lighter;
+    border-radius: $radius-full;
+    padding: $spacing-1-5 $spacing-3-5;
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    transition: all $transition-base ease;
+
+    &:focus-within {
+      border-color: $color-primary-base;
+      background-color: $color-white;
+      box-shadow: 0 0 0 3px rgba($color-primary-base, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .search-icon {
+      width: 18px;
+      height: 18px;
+      color: $color-light-gray;
+      margin-right: $spacing-2-5;
+      flex-shrink: 0;
+      transition: color $transition-fast ease;
+    }
+
+    &:focus-within .search-icon {
+      color: $color-primary-base;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      background-color: transparent;
+      border: none;
+      outline: none;
+      font-size: 15px; // Minimum 15-16px prevents iOS Safari auto-zoom
+      color: $color-dark;
+      font-family: inherit;
+
+      &::placeholder {
+        color: $color-light-gray;
+        font-size: 13.5px;
+      }
+    }
+
+    .search-controls {
+      display: flex;
+      align-items: center;
+      margin-left: $spacing-2;
+      flex-shrink: 0;
+
+      .clear-btn {
+        background: rgba($color-light-gray, 0.25);
+        border: none;
+        border-radius: $radius-full;
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        color: $color-dark;
+        @include flex-center;
+        padding: 0;
+        transition: all $transition-fast ease;
+
+        &:hover {
+          background-color: rgba($color-dark, 0.15);
+          color: $color-dark;
+        }
+
+        .icon {
+          width: 13px;
+          height: 13px;
+        }
+      }
+    }
+  }
+
+  .responsive-search-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-color: rgba($color-white, 0.98);
+    border: 1px solid $color-lighter;
+    border-radius: $radius-lg;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(10px);
+    max-height: 380px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    z-index: 1000;
+    padding: $spacing-2;
+    box-sizing: border-box;
+
+    @media (max-width: 640px) {
+      max-height: 300px;
+    }
+  }
+}

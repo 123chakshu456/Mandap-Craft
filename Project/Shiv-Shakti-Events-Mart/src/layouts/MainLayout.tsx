@@ -74,6 +74,7 @@ export default function MainLayout() {
 
   const desktopSearchRef = useRef<HTMLFormElement>(null);
   const mobileSearchRef = useRef<HTMLFormElement>(null);
+  const responsiveSearchRef = useRef<HTMLFormElement>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
     try {
@@ -196,17 +197,20 @@ export default function MainLayout() {
 
   // Handle click outside to close suggestion lists
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node;
       const clickedDesktop = desktopSearchRef.current?.contains(target);
       const clickedMobile = mobileSearchRef.current?.contains(target);
-      if (!clickedDesktop && !clickedMobile) {
+      const clickedResponsive = responsiveSearchRef.current?.contains(target);
+      if (!clickedDesktop && !clickedMobile && !clickedResponsive) {
         setShowSuggestions(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
 
@@ -249,6 +253,8 @@ export default function MainLayout() {
       navigate('/');
     }
 
+    setIsMobileMenuOpen(false);
+
     setTimeout(() => {
       const catalogEl = document.getElementById('catalog');
       if (catalogEl) {
@@ -260,6 +266,7 @@ export default function MainLayout() {
   const handleSelectProduct = (product: any) => {
     setSelectedProductDetail(product);
     setShowSuggestions(false);
+    setIsMobileMenuOpen(false);
     setSearchQuery('');
   };
 
@@ -513,6 +520,11 @@ export default function MainLayout() {
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-label="Search wedding and event infrastructure"
                 />
                 {(searchQuery || isSearching) && (
                   <div className="search-controls" style={{ display: 'flex', alignItems: 'center' }}>
@@ -594,6 +606,53 @@ export default function MainLayout() {
               </Link>
             )}
 
+          </div>
+        </div>
+
+        {/* ==========================================
+            RESPONSIVE SEARCH BAR FOR TABLET & MOBILE
+           ========================================== */}
+        <div className="header-responsive-search" id="header-responsive-search-bar">
+          <div className="responsive-search-inner">
+            <form onSubmit={handleSearchSubmit} className="responsive-search-form" ref={responsiveSearchRef}>
+              <div className="responsive-search-box">
+                <Search className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search mandaps, chairs, tents, crockery..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onFocus={() => setShowSuggestions(true)}
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-label="Search wedding and event infrastructure"
+                />
+                {(searchQuery || isSearching) && (
+                  <div className="search-controls">
+                    {isSearching ? (
+                      <span className="search-spinner" />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleSearchChange('')}
+                        className="clear-btn"
+                        aria-label="Clear search query"
+                      >
+                        <X className="icon" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* Responsive Dropdown Suggestions */}
+              {showSuggestions && searchQuery.trim() !== '' && (
+                <div className="search-suggestions-dropdown responsive-search-dropdown">
+                  {renderSuggestions()}
+                </div>
+              )}
+            </form>
           </div>
         </div>
 

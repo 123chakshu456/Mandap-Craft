@@ -94,18 +94,32 @@ export const dataManagementController = {
   },
 
   /**
-   * Export All Products to Excel (.xlsx)
+   * Export All Products to Excel (.xlsx) - Category & Subcategory Wise
    */
   async exportProductsExcel(req, res) {
     try {
-      const { categoryId, subcategoryId, status } = req.query;
-      const buffer = await dataManagementService.exportProductsExcel({ categoryId, subcategoryId, status });
+      const { categoryId, subcategoryId, subSubcategoryId, status } = req.query;
+      const buffer = await dataManagementService.exportProductsExcel({
+        categoryId,
+        subcategoryId,
+        subSubcategoryId,
+        status,
+      });
 
       const dateStr = new Date().toISOString().slice(0, 10);
-      const filename = `shiv-shakti-products-${dateStr}.xlsx`;
+      let filename = `shiv-shakti-products-${dateStr}.xlsx`;
+
+      if (subcategoryId && subcategoryId !== 'all') {
+        filename = `products-${categoryId ? `${categoryId}-` : ''}${subcategoryId}-${dateStr}.xlsx`;
+      } else if (categoryId && categoryId !== 'all') {
+        filename = `products-${categoryId}-${dateStr}.xlsx`;
+      } else {
+        filename = `products-all-categories-${dateStr}.xlsx`;
+      }
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
       return res.status(200).send(buffer);
     } catch (err) {
       console.error('Excel export error:', err);

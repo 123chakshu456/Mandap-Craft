@@ -46,6 +46,7 @@ Thumbs.db
 **/public/chairs/
 **/public/Mats/
 **/public/catalogue/
+**/public/machines/
 **/catalogue/
 **/Catalogues/
 Catalogues/
@@ -59,4 +60,9 @@ Catalogues/
 # Backups and database snapshots
 **/backups/
 backups/
+
+# Data analysis dumps
+**/full_catalog_analysis.txt
+**/pdf_pages.json
+
 

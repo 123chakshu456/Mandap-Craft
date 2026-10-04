@@ -2,6 +2,44 @@ import prisma from '../../shared/config/prisma.js';
 import * as xlsx from 'xlsx';
 import { slugify } from '../../shared/utils/slugify.js';
 
+// Helper to sanitize sheet names for Excel (max 31 chars, no invalid chars, unique)
+function sanitizeSheetName(name, existingNames = new Set()) {
+  let clean = String(name || 'Sheet')
+    .replace(/[\\/?*[\]:]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!clean) clean = 'Sheet';
+  if (clean.length > 31) clean = clean.substring(0, 31).trim();
+
+  let uniqueName = clean;
+  let counter = 1;
+  while (existingNames.has(uniqueName.toLowerCase())) {
+    const suffix = ` (${counter})`;
+    const maxBaseLen = 31 - suffix.length;
+    uniqueName = `${clean.substring(0, maxBaseLen).trim()}${suffix}`;
+    counter++;
+  }
+  existingNames.add(uniqueName.toLowerCase());
+  return uniqueName;
+}
+
+// Helper to auto-fit column widths
+function autoFitColumns(rows) {
+  if (!rows || rows.length === 0) return [];
+  const keys = Object.keys(rows[0]);
+  return keys.map((key) => {
+    let maxLen = key.length;
+    for (const r of rows.slice(0, 60)) {
+      const val = r[key];
+      if (val !== null && val !== undefined) {
+        const str = String(val);
+        if (str.length > maxLen) maxLen = Math.min(str.length, 50);
+      }
+    }
+    return { wch: Math.max(maxLen + 3, 10) };
+  });
+}
+
 export const dataManagementService = {
   /**
    * 1. FULL DATABASE JSON SNAPSHOT EXPORT
@@ -353,16 +391,58 @@ export const dataManagementService = {
     }
 
     const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
-    const firstSheetName = workbook.SheetNames[0];
-    if (!firstSheetName) {
+    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
       throw new Error('Workbook contains no sheets.');
     }
 
-    const worksheet = workbook.Sheets[firstSheetName];
-    const rawRows = xlsx.utils.sheet_to_json(worksheet, { defval: '' });
+    // Helper to find column case-insensitively & stripping symbols like (₹)
+    const getCol = (row, ...keys) => {
+      const rowKeys = Object.keys(row);
+      for (const k of keys) {
+        const normalized = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const foundKey = rowKeys.find(
+          (rk) => rk.toLowerCase().replace(/[^a-z0-9]/g, '') === normalized
+        );
+        if (foundKey && row[foundKey] !== undefined && row[foundKey] !== '') {
+          return row[foundKey];
+        }
+      }
+      return '';
+    };
 
-    if (rawRows.length === 0) {
-      throw new Error('Excel file contains no product rows.');
+    // Extract product rows across sheets (skipping metadata/summary sheets)
+    const rawRows = [];
+    const skuRowMap = new Map();
+
+    for (const sheetName of workbook.SheetNames) {
+      if (sheetName.toLowerCase().includes('summary')) continue;
+      const worksheet = workbook.Sheets[sheetName];
+      if (!worksheet) continue;
+      const sheetRows = xlsx.utils.sheet_to_json(worksheet, { defval: '' });
+
+      for (const row of sheetRows) {
+        const skuVal = String(getCol(row, 'sku', 'skucode', 'itemcode', 'productcode')).trim();
+        const nameVal = String(getCol(row, 'name', 'productname', 'title', 'itemname')).trim();
+
+        if (skuVal || nameVal) {
+          if (skuVal) {
+            // Later category sheets override master sheet rows if duplicated
+            skuRowMap.set(skuVal, { ...row, _sheetName: sheetName });
+          } else {
+            rawRows.push({ ...row, _sheetName: sheetName });
+          }
+        }
+      }
+    }
+
+    const allProductRows = [...skuRowMap.values(), ...rawRows];
+    if (allProductRows.length === 0) {
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const fallbackRows = firstSheet ? xlsx.utils.sheet_to_json(firstSheet, { defval: '' }) : [];
+      if (fallbackRows.length === 0) {
+        throw new Error('Excel file contains no product rows.');
+      }
+      allProductRows.push(...fallbackRows);
     }
 
     const {
@@ -378,68 +458,94 @@ export const dataManagementService = {
     let updatedCount = 0;
     const errors = [];
 
-    // Helper to find column case-insensitively
-    const getCol = (row, ...keys) => {
-      const rowKeys = Object.keys(row);
-      for (const k of keys) {
-        const normalized = k.toLowerCase().replace(/[\s\-_]/g, '');
-        const foundKey = rowKeys.find(
-          (rk) => rk.toLowerCase().replace(/[\s\-_]/g, '') === normalized
-        );
-        if (foundKey && row[foundKey] !== undefined && row[foundKey] !== '') {
-          return row[foundKey];
-        }
-      }
-      return '';
-    };
-
-    for (let i = 0; i < rawRows.length; i++) {
-      const row = rawRows[i];
+    for (let i = 0; i < allProductRows.length; i++) {
+      const row = allProductRows[i];
       const rowNum = i + 2; // Excel row numbering (1 is header)
 
       try {
         const name = String(getCol(row, 'name', 'product name', 'title', 'item name')).trim();
-        if (!name) {
-          errors.push({ row: rowNum, error: 'Product name is required. Row skipped.' });
+        let sku = String(getCol(row, 'sku', 'skucode', 'itemcode', 'productcode')).trim();
+        const rowId = String(getCol(row, 'id', 'productid')).trim();
+
+        // 1. Look up existing product by SKU or by ID
+        let existingProduct = null;
+        if (sku) {
+          existingProduct = await prisma.product.findUnique({
+            where: { sku },
+          });
+        }
+        if (!existingProduct && rowId) {
+          existingProduct = await prisma.product.findUnique({
+            where: { id: rowId },
+          });
+        }
+
+        if (!name && !existingProduct) {
+          errors.push({ row: rowNum, error: 'Product name is required for new items. Row skipped.' });
           continue;
         }
 
-        // Category & Subcategory resolution (Row overrides destination route; if row is empty, uses specified route)
+        const finalName = name || existingProduct.name;
+
+        // 2. Category & Subcategory resolution
         const rowCategory = String(getCol(row, 'category', 'categoryid', 'vertical')).trim();
         const rowSubcategory = String(getCol(row, 'subcategory', 'subcategoryid', 'sub category')).trim();
         const rowSubSubcategory = String(getCol(row, 'subsubcategory', 'subsubcategoryid')).trim();
 
-        const categoryId = rowCategory || routeCategory || 'wedding';
-        const subcategoryId = rowSubcategory || routeSubcategory || null;
-        const subSubcategoryId = rowSubSubcategory || routeSubSubcategory || null;
-
-        // Pricing
+        // 3. Pricing resolution (accurately parses 'Price (₹)' and 'Compare Price (₹)')
         const rawPrice = getCol(row, 'price', 'rate', 'cost', 'mrp', 'rental price');
-        const price = parseFloat(String(rawPrice).replace(/[^\d.]/g, '')) || 0;
+        let price;
+        if (rawPrice !== '' && rawPrice !== null && rawPrice !== undefined) {
+          price = parseFloat(String(rawPrice).replace(/[^\d.]/g, ''));
+          if (isNaN(price)) price = existingProduct ? existingProduct.price : 0;
+        } else if (existingProduct) {
+          price = existingProduct.price;
+        } else {
+          price = 0;
+        }
 
         const rawCompare = getCol(row, 'compareatprice', 'compare price', 'original price', 'regular price');
-        const compareAtPrice = rawCompare ? parseFloat(String(rawCompare).replace(/[^\d.]/g, '')) : null;
-
-        // SKU resolution
-        let sku = String(getCol(row, 'sku', 'skucode', 'itemcode', 'productcode')).trim();
-        if (!sku) {
-          const catPrefix = categoryId.substring(0, 3).toUpperCase();
-          sku = `SKU-${catPrefix}-${Date.now().toString().slice(-4)}${i}`;
+        let compareAtPrice = null;
+        if (rawCompare !== '' && rawCompare !== null && rawCompare !== undefined) {
+          compareAtPrice = parseFloat(String(rawCompare).replace(/[^\d.]/g, ''));
+          if (isNaN(compareAtPrice)) compareAtPrice = null;
+        } else if (existingProduct) {
+          compareAtPrice = existingProduct.compareAtPrice;
         }
 
-        // Slug resolution
+        // 4. SKU resolution
+        if (!sku) {
+          if (existingProduct?.sku) {
+            sku = existingProduct.sku;
+          } else {
+            const catPrefix = (rowCategory || routeCategory || 'SKU').substring(0, 3).toUpperCase();
+            sku = `SKU-${catPrefix}-${Date.now().toString().slice(-4)}${i}`;
+          }
+        }
+
+        // 5. Slug resolution
         let slug = String(getCol(row, 'slug')).trim();
         if (!slug) {
-          slug = `${slugify(name)}-${Date.now().toString().slice(-4)}${i}`;
+          slug = existingProduct ? existingProduct.slug : `${slugify(finalName)}-${Date.now().toString().slice(-4)}${i}`;
         }
 
-        const style = String(getCol(row, 'style', 'design style', 'theme')).trim() || defaultStyle;
-        const description = String(getCol(row, 'description', 'desc', 'details', 'product description')).trim() || `${name} - Premium event staging rental crafted with excellence.`;
-        const image = String(getCol(row, 'image', 'image url', 'photo', 'picture', 'thumbnail')).trim() || '/ceilings/traditional_ceiling_decor.jpg';
-        const tag = String(getCol(row, 'tag', 'badge', 'label')).trim() || null;
-        const status = String(getCol(row, 'status', 'product status')).trim().toUpperCase() || defaultStatus;
+        // 6. Attributes & Descriptions
+        const rowStyle = String(getCol(row, 'style', 'design style', 'theme')).trim();
+        const style = rowStyle || (existingProduct ? existingProduct.style : defaultStyle);
 
-        // Features parsing (supports comma, pipe, semicolon, or newline separated)
+        const rowDesc = String(getCol(row, 'description', 'desc', 'details', 'product description')).trim();
+        const description = rowDesc || (existingProduct ? existingProduct.description : `${finalName} - Premium event staging rental crafted with excellence.`);
+
+        const rowImage = String(getCol(row, 'image', 'image url', 'photo', 'picture', 'thumbnail')).trim();
+        const image = rowImage || (existingProduct ? existingProduct.image : '/ceilings/traditional_ceiling_decor.jpg');
+
+        const rowTag = String(getCol(row, 'tag', 'badge', 'label')).trim();
+        const tag = rowTag !== '' ? rowTag : (existingProduct ? existingProduct.tag : null);
+
+        const rowStatus = String(getCol(row, 'status', 'product status')).trim().toUpperCase();
+        const status = rowStatus || (existingProduct ? existingProduct.status : defaultStatus);
+
+        // 7. Features parsing
         const rawFeatures = getCol(row, 'features', 'specifications', 'specs', 'highlights');
         let features = [];
         if (Array.isArray(rawFeatures)) {
@@ -453,24 +559,26 @@ export const dataManagementService = {
             features = rawFeatures.split(',').map((s) => s.trim()).filter(Boolean);
           }
         }
-        if (features.length === 0) {
-          features = ['Handcrafted luxury finish', 'Engineered for rapid event setup', 'High-grade durable event materials'];
+        const finalFeatures = features.length > 0 ? features : (existingProduct ? existingProduct.features : ['Handcrafted luxury finish', 'Engineered for rapid event setup', 'High-grade durable event materials']);
+
+        // 8. In Stock parsing
+        const rawStock = getCol(row, 'instock', 'stock', 'available');
+        let inStock = existingProduct ? existingProduct.inStock : true;
+        if (rawStock !== '' && rawStock !== null && rawStock !== undefined) {
+          const s = String(rawStock).toLowerCase().trim();
+          inStock = !(s === 'false' || s === 'no' || s === '0' || s === 'out' || s === 'outofstock');
         }
 
-        // In Stock parsing
-        const rawStock = String(getCol(row, 'instock', 'stock', 'available')).toLowerCase().trim();
-        const inStock = rawStock === 'false' || rawStock === 'no' || rawStock === '0' ? false : true;
-
-        // Check if SKU exists
-        const existingProduct = await prisma.product.findUnique({
-          where: { sku },
-        });
-
+        // 9. Execute Update or Create
         if (existingProduct) {
+          const categoryId = rowCategory || existingProduct.categoryId || routeCategory || 'wedding';
+          const subcategoryId = rowSubcategory || (rowCategory ? null : existingProduct.subcategoryId) || routeSubcategory || null;
+          const subSubcategoryId = rowSubSubcategory || (rowSubcategory ? null : existingProduct.subSubcategoryId) || routeSubSubcategory || null;
+
           await prisma.product.update({
             where: { id: existingProduct.id },
             data: {
-              name,
+              name: finalName,
               categoryId,
               subcategoryId,
               subSubcategoryId,
@@ -478,7 +586,7 @@ export const dataManagementService = {
               price,
               compareAtPrice,
               description,
-              features,
+              features: finalFeatures,
               image,
               tag,
               status,
@@ -487,17 +595,20 @@ export const dataManagementService = {
           });
           updatedCount++;
         } else {
-          // Check if slug is unique
+          const categoryId = rowCategory || routeCategory || 'wedding';
+          const subcategoryId = rowSubcategory || routeSubcategory || null;
+          const subSubcategoryId = rowSubSubcategory || routeSubSubcategory || null;
+
           let finalSlug = slug;
           const slugExists = await prisma.product.findUnique({ where: { slug: finalSlug } });
           if (slugExists) {
             finalSlug = `${finalSlug}-${Date.now().toString().slice(-4)}`;
           }
 
-          const created = await prisma.product.create({
+          await prisma.product.create({
             data: {
               sku,
-              name,
+              name: finalName,
               slug: finalSlug,
               categoryId,
               subcategoryId,
@@ -506,7 +617,7 @@ export const dataManagementService = {
               price,
               compareAtPrice,
               description,
-              features,
+              features: finalFeatures,
               image,
               tag,
               status,
@@ -541,7 +652,7 @@ export const dataManagementService = {
           action: 'IMPORT_EXCEL_PRODUCTS',
           entity: 'Product',
           details: {
-            totalRows: rawRows.length,
+            totalRows: allProductRows.length,
             importedCount,
             updatedCount,
             destinationRoute,
@@ -554,7 +665,7 @@ export const dataManagementService = {
     }
 
     return {
-      totalRows: rawRows.length,
+      totalRows: allProductRows.length,
       importedCount,
       updatedCount,
       errors,
@@ -562,41 +673,193 @@ export const dataManagementService = {
   },
 
   /**
-   * 4. EXPORT ALL PRODUCTS TO EXCEL
+   * 4. EXPORT PRODUCTS TO EXCEL (Categorized Multi-Sheet & Filtered)
    */
   async exportProductsExcel(filters = {}) {
     const where = {};
-    if (filters.categoryId) where.categoryId = filters.categoryId;
-    if (filters.subcategoryId) where.subcategoryId = filters.subcategoryId;
-    if (filters.status) where.status = filters.status;
+
+    const resolveCategoryMatch = async (value) => {
+      if (!value || value === 'all') return null;
+      const cats = await prisma.category.findMany({
+        where: {
+          OR: [{ id: value }, { slug: value }],
+        },
+        select: { id: true, slug: true },
+      });
+      if (cats.length > 0) {
+        const set = new Set();
+        cats.forEach((c) => {
+          if (c.id) set.add(c.id);
+          if (c.slug) set.add(c.slug);
+        });
+        return Array.from(set);
+      }
+      return [value];
+    };
+
+    if (filters.categoryId && filters.categoryId !== 'all') {
+      const matches = await resolveCategoryMatch(filters.categoryId);
+      where.categoryId = matches.length === 1 ? matches[0] : { in: matches };
+    }
+    if (filters.subcategoryId && filters.subcategoryId !== 'all') {
+      const matches = await resolveCategoryMatch(filters.subcategoryId);
+      where.subcategoryId = matches.length === 1 ? matches[0] : { in: matches };
+    }
+    if (filters.subSubcategoryId && filters.subSubcategoryId !== 'all') {
+      const matches = await resolveCategoryMatch(filters.subSubcategoryId);
+      where.subSubcategoryId = matches.length === 1 ? matches[0] : { in: matches };
+    }
+    if (filters.status && filters.status !== 'all') {
+      where.status = filters.status;
+    }
+
+    // Load category lookup map for human-friendly names
+    const allCategories = await prisma.category.findMany({
+      select: { id: true, name: true, slug: true, shortTitle: true, level: true, parentId: true },
+    });
+    const catLookup = {};
+    for (const c of allCategories) {
+      const label = c.name || c.shortTitle || c.slug;
+      catLookup[c.id] = label;
+      catLookup[c.slug] = label;
+    }
 
     const products = await prisma.product.findMany({
       where,
-      orderBy: [{ categoryId: 'asc' }, { name: 'asc' }],
+      orderBy: [
+        { categoryId: 'asc' },
+        { subcategoryId: 'asc' },
+        { subSubcategoryId: 'asc' },
+        { name: 'asc' },
+      ],
     });
 
-    const exportRows = products.map((p) => ({
-      'SKU': p.sku,
-      'Product Name': p.name,
-      'Category': p.categoryId,
-      'Subcategory': p.subcategoryId || '',
-      'Sub-Subcategory': p.subSubcategoryId || '',
-      'Style': p.style,
-      'Price (₹)': p.price,
-      'Compare Price (₹)': p.compareAtPrice || '',
-      'Status': p.status,
-      'In Stock': p.inStock ? 'YES' : 'NO',
-      'Image URL': p.image,
-      'Description': p.description,
-      'Features': Array.isArray(p.features) ? p.features.join(' | ') : '',
-      'Tag': p.tag || '',
-      'Rating': p.rating,
-      'Reviews': p.reviews,
-    }));
+    const formatRows = (items) =>
+      items.map((p) => {
+        const catName = catLookup[p.categoryId] || p.categoryId || 'Uncategorized';
+        const subName = catLookup[p.subcategoryId] || p.subcategoryId || '';
+        const subSubName = catLookup[p.subSubcategoryId] || p.subSubcategoryId || '';
 
-    const worksheet = xlsx.utils.json_to_sheet(exportRows);
+        return {
+          'SKU': p.sku || '',
+          'Product Name': p.name || '',
+          'Category Name': catName,
+          'Category': p.categoryId || '',
+          'Subcategory Name': subName,
+          'Subcategory': p.subcategoryId || '',
+          'Sub-Subcategory Name': subSubName,
+          'Sub-Subcategory': p.subSubcategoryId || '',
+          'Style': p.style || '',
+          'Price (₹)': p.price ?? 0,
+          'Compare Price (₹)': p.compareAtPrice || '',
+          'Status': p.status || 'PUBLISHED',
+          'In Stock': p.inStock ? 'YES' : 'NO',
+          'Image URL': p.image || '',
+          'Description': p.description || '',
+          'Features': Array.isArray(p.features) ? p.features.join(' | ') : '',
+          'Tag': p.tag || '',
+          'Rating': p.rating ?? 4.5,
+          'Reviews': p.reviews ?? 0,
+        };
+      });
+
     const workbook = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(workbook, worksheet, 'Products');
+    const sheetNames = new Set();
+
+    const isSubcategoryExport = Boolean(filters.subcategoryId && filters.subcategoryId !== 'all');
+    const isCategoryExport = Boolean(filters.categoryId && filters.categoryId !== 'all');
+
+    if (isSubcategoryExport) {
+      // Subcategory-specific export
+      const subName = catLookup[filters.subcategoryId] || filters.subcategoryId;
+      const subRows = formatRows(products);
+      const mainSheet = xlsx.utils.json_to_sheet(subRows);
+      mainSheet['!cols'] = autoFitColumns(subRows);
+      xlsx.utils.book_append_sheet(workbook, mainSheet, sanitizeSheetName(`${subName} - All`, sheetNames));
+
+      // Separate sheets by sub-subcategory if multiple exist
+      const subSubGroups = {};
+      for (const p of products) {
+        const subSubKey = p.subSubcategoryId || 'General';
+        if (!subSubGroups[subSubKey]) subSubGroups[subSubKey] = [];
+        subSubGroups[subSubKey].push(p);
+      }
+      if (Object.keys(subSubGroups).length > 1) {
+        for (const [subSubKey, items] of Object.entries(subSubGroups)) {
+          const subSubName = catLookup[subSubKey] || subSubKey;
+          const groupRows = formatRows(items);
+          const groupSheet = xlsx.utils.json_to_sheet(groupRows);
+          groupSheet['!cols'] = autoFitColumns(groupRows);
+          xlsx.utils.book_append_sheet(workbook, groupSheet, sanitizeSheetName(subSubName, sheetNames));
+        }
+      }
+    } else if (isCategoryExport) {
+      // Category-specific export
+      const catName = catLookup[filters.categoryId] || filters.categoryId;
+      const catRows = formatRows(products);
+      const mainSheet = xlsx.utils.json_to_sheet(catRows);
+      mainSheet['!cols'] = autoFitColumns(catRows);
+      xlsx.utils.book_append_sheet(workbook, mainSheet, sanitizeSheetName(`${catName} - All`, sheetNames));
+
+      // Separate sheets by Subcategory
+      const subGroups = {};
+      for (const p of products) {
+        const subKey = p.subcategoryId || 'Uncategorized';
+        if (!subGroups[subKey]) subGroups[subKey] = [];
+        subGroups[subKey].push(p);
+      }
+      if (Object.keys(subGroups).length > 1) {
+        for (const [subKey, items] of Object.entries(subGroups)) {
+          const subName = catLookup[subKey] || subKey;
+          const groupRows = formatRows(items);
+          const groupSheet = xlsx.utils.json_to_sheet(groupRows);
+          groupSheet['!cols'] = autoFitColumns(groupRows);
+          xlsx.utils.book_append_sheet(workbook, groupSheet, sanitizeSheetName(subName, sheetNames));
+        }
+      }
+    } else {
+      // All Categories export: Multi-Sheet Workbook
+      // 1. Master sheet: All Products
+      const allRows = formatRows(products);
+      const masterSheet = xlsx.utils.json_to_sheet(allRows);
+      masterSheet['!cols'] = autoFitColumns(allRows);
+      xlsx.utils.book_append_sheet(workbook, masterSheet, sanitizeSheetName('All Products', sheetNames));
+
+      // 2. Summary Sheet
+      const catGroups = {};
+      for (const p of products) {
+        const cat = p.categoryId || 'Uncategorized';
+        if (!catGroups[cat]) catGroups[cat] = [];
+        catGroups[cat].push(p);
+      }
+
+      const summaryRows = Object.entries(catGroups).map(([catKey, items]) => {
+        const catName = catLookup[catKey] || catKey;
+        const subcatSet = new Set(items.map((i) => i.subcategoryId).filter(Boolean));
+        const inStockCount = items.filter((i) => i.inStock).length;
+        return {
+          'Category Name': catName,
+          'Category Code': catKey,
+          'Total Products': items.length,
+          'In Stock': inStockCount,
+          'Out of Stock': items.length - inStockCount,
+          'Total Subcategories': subcatSet.size,
+        };
+      });
+      const summarySheet = xlsx.utils.json_to_sheet(summaryRows);
+      summarySheet['!cols'] = autoFitColumns(summaryRows);
+      xlsx.utils.book_append_sheet(workbook, summarySheet, sanitizeSheetName('Category Summary', sheetNames));
+
+      // 3. Dedicated Sheet for each Category
+      for (const [catKey, items] of Object.entries(catGroups)) {
+        const catName = catLookup[catKey] || catKey;
+        const catRows = formatRows(items);
+        const catSheet = xlsx.utils.json_to_sheet(catRows);
+        catSheet['!cols'] = autoFitColumns(catRows);
+        const sheetName = sanitizeSheetName(catName, sheetNames);
+        xlsx.utils.book_append_sheet(workbook, catSheet, sheetName);
+      }
+    }
 
     return xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   },

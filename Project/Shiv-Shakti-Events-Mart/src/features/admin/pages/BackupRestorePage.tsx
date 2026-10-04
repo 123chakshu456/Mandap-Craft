@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Database,
   Upload,
@@ -12,6 +12,7 @@ import {
   Info,
   Check,
   FileCode,
+  Filter,
 } from 'lucide-react';
 import { categoryApi } from '../../categories/services/categoryApi';
 import { dataApi, type ExcelImportResult, type RestoreResult } from '../services/dataApi';
@@ -45,6 +46,13 @@ export const BackupRestorePage: React.FC = () => {
   const [isDownloadingBackup, setIsDownloadingBackup] = useState<boolean>(false);
   const [isDownloadingExcel, setIsDownloadingExcel] = useState<boolean>(false);
   const [isDownloadingTemplate, setIsDownloadingTemplate] = useState<boolean>(false);
+
+  // Excel Export Filter States
+  const [exportCategoryId, setExportCategoryId] = useState<string>('all');
+  const [exportSubcategoryId, setExportSubcategoryId] = useState<string>('all');
+  const [exportSubSubcategoryId, setExportSubSubcategoryId] = useState<string>('all');
+  const [exportStatus, setExportStatus] = useState<string>('all');
+  const [downloadingCategoryMap, setDownloadingCategoryMap] = useState<Record<string, boolean>>({});
 
   // Restore states
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
@@ -120,6 +128,36 @@ export const BackupRestorePage: React.FC = () => {
     }
   };
 
+  // Export category & subcategory selection resolution
+  const selectedExportCategory = useMemo(() => {
+    if (exportCategoryId === 'all') return null;
+    return categories.find((c) => c.id === exportCategoryId || c.slug === exportCategoryId) || null;
+  }, [categories, exportCategoryId]);
+
+  const exportSubcategories = useMemo(() => {
+    return selectedExportCategory?.children || [];
+  }, [selectedExportCategory]);
+
+  const selectedExportSubcategory = useMemo(() => {
+    if (exportSubcategoryId === 'all') return null;
+    return exportSubcategories.find((s) => s.id === exportSubcategoryId || s.slug === exportSubcategoryId) || null;
+  }, [exportSubcategories, exportSubcategoryId]);
+
+  const exportSubSubcategories = useMemo(() => {
+    return selectedExportSubcategory?.children || [];
+  }, [selectedExportSubcategory]);
+
+  const handleExportCategoryChange = (val: string) => {
+    setExportCategoryId(val);
+    setExportSubcategoryId('all');
+    setExportSubSubcategoryId('all');
+  };
+
+  const handleExportSubcategoryChange = (val: string) => {
+    setExportSubcategoryId(val);
+    setExportSubSubcategoryId('all');
+  };
+
   // 1. Handle Excel Import
   const handleExcelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,14 +200,30 @@ export const BackupRestorePage: React.FC = () => {
     }
   };
 
-  const handleDownloadExcelExport = async () => {
+  const handleDownloadExcelExport = async (overrideParams?: {
+    categoryId?: string;
+    subcategoryId?: string;
+    subSubcategoryId?: string;
+    status?: string;
+  }) => {
+    const params = overrideParams || {
+      categoryId: exportCategoryId !== 'all' ? exportCategoryId : undefined,
+      subcategoryId: exportSubcategoryId !== 'all' ? exportSubcategoryId : undefined,
+      subSubcategoryId: exportSubSubcategoryId !== 'all' ? exportSubSubcategoryId : undefined,
+      status: exportStatus !== 'all' ? exportStatus : undefined,
+    };
+
+    const downloadKey = overrideParams?.categoryId || (exportCategoryId !== 'all' ? exportCategoryId : 'all');
     setIsDownloadingExcel(true);
+    setDownloadingCategoryMap((prev) => ({ ...prev, [downloadKey]: true }));
+
     try {
-      await dataApi.downloadExcelExport();
+      await dataApi.downloadExcelExport(params);
     } catch (err: any) {
       alert(`Excel export error: ${err.message}`);
     } finally {
       setIsDownloadingExcel(false);
+      setDownloadingCategoryMap((prev) => ({ ...prev, [downloadKey]: false }));
     }
   };
 
@@ -366,27 +420,62 @@ export const BackupRestorePage: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleDownloadTemplate}
-                disabled={isDownloadingTemplate}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 12px',
-                  borderRadius: '6px',
-                  background: 'rgba(99, 102, 241, 0.12)',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                  color: '#a5b4fc',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                <Download size={14} />
-                <span>{isDownloadingTemplate ? 'Downloading...' : 'Get Excel Template'}</span>
-              </button>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDownloadExcelExport({
+                      categoryId: selectedVerticalId,
+                      subcategoryId: selectedSubcategoryId || undefined,
+                      subSubcategoryId: selectedSubSubcategoryId || undefined,
+                    })
+                  }
+                  disabled={isDownloadingExcel}
+                  title="Export current category route products to Excel (.xlsx)"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 12px',
+                    borderRadius: '6px',
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    color: '#6ee7b7',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: isDownloadingExcel ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isDownloadingExcel && downloadingCategoryMap[selectedVerticalId] ? (
+                    <RefreshCw size={14} className="spin" />
+                  ) : (
+                    <Download size={14} />
+                  )}
+                  <span>Export Route SKUs</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  disabled={isDownloadingTemplate}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 12px',
+                    borderRadius: '6px',
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    color: '#a5b4fc',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Download size={14} />
+                  <span>{isDownloadingTemplate ? 'Downloading...' : 'Get Excel Template'}</span>
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleExcelSubmit}>
@@ -891,63 +980,215 @@ export const BackupRestorePage: React.FC = () => {
               borderRadius: '14px',
               padding: '24px',
               boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-              <div
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#34d399',
+                  }}
+                >
+                  <FileSpreadsheet size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+                    Export Products to Excel (.xlsx)
+                  </h3>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Category & Sub-Category Organized Spreadsheets</span>
+                </div>
+              </div>
+
+              <span
                 style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '10px',
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  fontSize: '0.75rem',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  background: 'rgba(16, 185, 129, 0.12)',
                   color: '#34d399',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  fontWeight: 600,
                 }}
               >
-                <FileSpreadsheet size={22} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
-                  Export Products to Excel (.xlsx)
-                </h3>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Spreadsheet for offline inventory editing</span>
-              </div>
+                Multi-Sheet Enabled
+              </span>
             </div>
 
-            <p style={{ color: '#cbd5e1', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '20px' }}>
-              Exports your active catalog of SKUs into a clean, formatted Microsoft Excel workbook. Includes SKU, product names, categories, pricing, stock statuses, descriptions, and features.
+            <p style={{ color: '#cbd5e1', fontSize: '0.84rem', lineHeight: '1.5', marginBottom: '16px' }}>
+              Export your active catalog by specific category or subcategory, or download the full catalog. Spreadsheets feature individual category tabs and human-readable names for seamless offline inventory editing.
             </p>
 
+            {/* Category & Subcategory Filter Control Section */}
             <div
               style={{
-                background: 'rgba(15, 23, 42, 0.6)',
+                background: 'rgba(15, 23, 42, 0.65)',
                 border: '1px solid #1e293b',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                marginBottom: '20px',
-                fontSize: '0.78rem',
-                color: '#94a3b8',
+                borderRadius: '10px',
+                padding: '16px',
+                marginBottom: '18px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#cbd5e1', fontWeight: 600 }}>
-                <Check size={14} color="#34d399" />
-                <span>Compatible with Microsoft Excel, Google Sheets, LibreOffice</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <Filter size={15} color="#34d399" />
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.02em' }}>
+                  Select Scope for Excel Export
+                </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#cbd5e1', fontWeight: 600 }}>
-                <Check size={14} color="#34d399" />
-                <span>Easily edit prices or descriptions offline & re-upload</span>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                {/* Category Dropdown */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    Category Vertical
+                  </label>
+                  <select
+                    value={exportCategoryId}
+                    onChange={(e) => handleExportCategoryChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      background: '#1e293b',
+                      border: '1px solid #334155',
+                      color: '#f8fafc',
+                      fontSize: '0.84rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="all">🌟 All Categories (Multi-Sheet Workbook)</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} {c.productCount !== undefined ? `(${c.productCount} items)` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory Dropdown */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    Subcategory
+                  </label>
+                  <select
+                    value={exportSubcategoryId}
+                    onChange={(e) => handleExportSubcategoryChange(e.target.value)}
+                    disabled={exportCategoryId === 'all'}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      background: exportCategoryId === 'all' ? '#0f172a' : '#1e293b',
+                      border: '1px solid #334155',
+                      color: exportCategoryId === 'all' ? '#64748b' : '#f8fafc',
+                      fontSize: '0.84rem',
+                      cursor: exportCategoryId === 'all' ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    <option value="all">
+                      {exportCategoryId === 'all' ? '— Select a category first —' : 'All Subcategories (Separate Sheets)'}
+                    </option>
+                    {exportSubcategories.map((sc) => (
+                      <option key={sc.id} value={sc.id}>
+                        {sc.name} {sc.productCount !== undefined ? `(${sc.productCount} items)` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sub-Subcategory Dropdown (if available) */}
+                {exportSubSubcategories.length > 0 && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Sub-Subcategory
+                    </label>
+                    <select
+                      value={exportSubSubcategoryId}
+                      onChange={(e) => setExportSubSubcategoryId(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        background: '#1e293b',
+                        border: '1px solid #334155',
+                        color: '#f8fafc',
+                        fontSize: '0.84rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <option value="all">All Sub-Subcategories</option>
+                      {exportSubSubcategories.map((ssc) => (
+                        <option key={ssc.id} value={ssc.id}>
+                          {ssc.name} {ssc.productCount !== undefined ? `(${ssc.productCount} items)` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Status Filter */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    Status
+                  </label>
+                  <select
+                    value={exportStatus}
+                    onChange={(e) => setExportStatus(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      background: '#1e293b',
+                      border: '1px solid #334155',
+                      color: '#f8fafc',
+                      fontSize: '0.84rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="PUBLISHED">Published Only</option>
+                    <option value="DRAFT">Draft Only</option>
+                  </select>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', fontWeight: 600 }}>
+
+              {/* Export Scope Info Banner */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  fontSize: '0.78rem',
+                  color: '#6ee7b7',
+                }}
+              >
                 <Check size={14} color="#34d399" />
-                <span>Maintains proper column headers for instant re-import</span>
+                <span>
+                  {exportCategoryId === 'all'
+                    ? 'Will export all categories: includes "All Products" master sheet + "Category Summary" + individual sheet per Category.'
+                    : exportSubcategoryId === 'all'
+                    ? `Will export "${selectedExportCategory?.name || exportCategoryId}": includes overview sheet + separate sheet for each Subcategory.`
+                    : `Will export "${selectedExportCategory?.name}" > "${selectedExportSubcategory?.name}".`}
+                </span>
               </div>
             </div>
 
+            {/* Main Download Button */}
             <button
-              onClick={handleDownloadExcelExport}
+              onClick={() => handleDownloadExcelExport()}
               disabled={isDownloadingExcel}
               style={{
                 width: '100%',
@@ -964,20 +1205,80 @@ export const BackupRestorePage: React.FC = () => {
                 justifyContent: 'center',
                 gap: '8px',
                 boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+                marginBottom: '20px',
               }}
             >
-              {isDownloadingExcel ? (
+              {isDownloadingExcel && downloadingCategoryMap[exportCategoryId === 'all' ? 'all' : exportCategoryId] ? (
                 <>
                   <RefreshCw size={17} className="spin" />
-                  <span>Generating Excel File...</span>
+                  <span>Generating Excel Workbook...</span>
                 </>
               ) : (
                 <>
                   <Download size={17} />
-                  <span>Download Catalog as Excel (.xlsx)</span>
+                  <span>
+                    {exportCategoryId === 'all'
+                      ? 'Download Full Catalog (Multi-Sheet .xlsx)'
+                      : exportSubcategoryId === 'all'
+                      ? `Download "${selectedExportCategory?.name || 'Category'}" Excel (.xlsx)`
+                      : `Download "${selectedExportSubcategory?.name || 'Subcategory'}" Excel (.xlsx)`}
+                  </span>
                 </>
               )}
             </button>
+
+            {/* ⚡ Quick 1-Click Category Downloads */}
+            <div style={{ borderTop: '1px solid #1e293b', paddingTop: '16px', marginTop: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#cbd5e1' }}>
+                  ⚡ Direct 1-Click Category Downloads:
+                </span>
+                <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                  Instant single category export
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '8px' }}>
+                {categories.map((cat) => {
+                  const isThisDownloading = Boolean(downloadingCategoryMap[cat.id]);
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleDownloadExcelExport({ categoryId: cat.id })}
+                      disabled={isDownloadingExcel}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        background: '#1e293b',
+                        border: '1px solid #334155',
+                        color: '#e2e8f0',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: isDownloadingExcel ? 'not-allowed' : 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '6px' }}>
+                        <div style={{ color: '#f1f5f9', fontWeight: 600 }}>{cat.name}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                          {cat.productCount !== undefined ? `${cat.productCount} items` : 'Category'}
+                        </div>
+                      </div>
+                      {isThisDownloading ? (
+                        <RefreshCw size={14} className="spin" color="#34d399" />
+                      ) : (
+                        <Download size={14} color="#34d399" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -19,10 +19,12 @@ import {
   X,
   AlertCircle,
   Clock,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { productApi } from '../../products/services/productApi';
 import { categoryApi } from '../../categories/services/categoryApi';
 import { badgeApi } from '../../badges/services/badgeApi';
+import { dataApi } from '../services/dataApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { CommonLoader, CommonError } from '../../../shared/components/CommonLoader';
@@ -128,6 +130,7 @@ export const ProductListPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionSuccess, setActionSuccess] = useState('');
   const [actionError, setActionError] = useState('');
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
 
   // Debounce search input (300ms)
   useEffect(() => {
@@ -664,6 +667,24 @@ export const ProductListPage: React.FC = () => {
     showToast(`Exported ${listToExport.length} product(s) to CSV.`);
   };
 
+  // Category-wise Excel Export (.xlsx)
+  const handleExportExcel = async () => {
+    setIsExportingExcel(true);
+    try {
+      await dataApi.downloadExcelExport({
+        categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
+        subcategoryId: selectedSubcategory !== 'all' ? selectedSubcategory : undefined,
+        subSubcategoryId: selectedSubSubcategory !== 'all' ? selectedSubSubcategory : undefined,
+        status: selectedStatus !== 'all' ? selectedStatus : undefined,
+      });
+      showToast('Exported products to Excel successfully.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to export products to Excel.');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const showToast = (msg: string) => {
     setActionSuccess(msg);
     setTimeout(() => setActionSuccess(''), 3500);
@@ -774,6 +795,31 @@ export const ProductListPage: React.FC = () => {
           >
             <Download size={15} />
             <span>Export CSV {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}</span>
+          </button>
+
+          <button
+            onClick={handleExportExcel}
+            disabled={isExportingExcel}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '9px 16px',
+              borderRadius: '8px',
+              background: 'rgba(16, 185, 129, 0.12)',
+              color: '#34d399',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              cursor: isExportingExcel ? 'not-allowed' : 'pointer',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              transition: 'all 0.15s',
+            }}
+            title="Download category/subcategory filtered products as formatted Excel (.xlsx)"
+          >
+            {isExportingExcel ? <RefreshCw size={15} className="spin" /> : <FileSpreadsheet size={15} />}
+            <span>
+              Export Excel {selectedCategory !== 'all' ? `(${getCategoryLabel(selectedCategory)})` : ''}
+            </span>
           </button>
 
           <button

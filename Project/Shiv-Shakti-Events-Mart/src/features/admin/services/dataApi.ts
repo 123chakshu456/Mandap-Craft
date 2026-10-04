@@ -143,14 +143,20 @@ export const dataApi = {
   },
 
   /**
-   * 5. Download Products Export as Excel (.xlsx)
+   * 5. Download Products Export as Excel (.xlsx) - Category & Subcategory Wise
    */
-  async downloadExcelExport(params: { categoryId?: string; subcategoryId?: string; status?: string } = {}): Promise<void> {
+  async downloadExcelExport(params: {
+    categoryId?: string;
+    subcategoryId?: string;
+    subSubcategoryId?: string;
+    status?: string;
+  } = {}): Promise<void> {
     const token = getAuthToken();
     const query = new URLSearchParams();
-    if (params.categoryId) query.set('categoryId', params.categoryId);
-    if (params.subcategoryId) query.set('subcategoryId', params.subcategoryId);
-    if (params.status) query.set('status', params.status);
+    if (params.categoryId && params.categoryId !== 'all') query.set('categoryId', params.categoryId);
+    if (params.subcategoryId && params.subcategoryId !== 'all') query.set('subcategoryId', params.subcategoryId);
+    if (params.subSubcategoryId && params.subSubcategoryId !== 'all') query.set('subSubcategoryId', params.subSubcategoryId);
+    if (params.status && params.status !== 'all') query.set('status', params.status);
 
     const url = `${getBaseUrl()}/admin/data/export-excel${query.toString() ? `?${query.toString()}` : ''}`;
     const response = await fetch(url, {
@@ -166,12 +172,32 @@ export const dataApi = {
       throw new Error(errJson.message || 'Failed to export products.');
     }
 
+    // Try extracting filename from Content-Disposition header
+    let filename = '';
+    const disposition = response.headers.get('content-disposition');
+    if (disposition && disposition.includes('filename=')) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        filename = match[1].replace(/['"]/g, '').trim();
+      }
+    }
+
+    if (!filename) {
+      const dateStr = new Date().toISOString().slice(0, 10);
+      if (params.subcategoryId && params.subcategoryId !== 'all') {
+        filename = `shiv-shakti-products-${params.categoryId ? `${params.categoryId}-` : ''}${params.subcategoryId}-${dateStr}.xlsx`;
+      } else if (params.categoryId && params.categoryId !== 'all') {
+        filename = `shiv-shakti-products-${params.categoryId}-${dateStr}.xlsx`;
+      } else {
+        filename = `shiv-shakti-products-all-categories-${dateStr}.xlsx`;
+      }
+    }
+
     const blob = await response.blob();
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    const dateStr = new Date().toISOString().slice(0, 10);
     link.href = downloadUrl;
-    link.download = `shiv-shakti-products-${dateStr}.xlsx`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
