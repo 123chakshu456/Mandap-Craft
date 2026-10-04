@@ -120,9 +120,13 @@
       font-size: clamp(1rem, 1.9vw, 1.4rem);
       letter-spacing: 0.05em;
       white-space: nowrap;
-      color: $color-dark;
       font-weight: 900;
       -webkit-text-stroke: 0.35px currentColor;
+      background: linear-gradient(90deg, #0f2f2f 0%, #164646 45%, #b3861b 72%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: #0f2f2f;
+      filter: drop-shadow(0 1px 1px rgba(15, 47, 47, 0.12));
 
       .logo-dot {
         color: $color-accent-base;

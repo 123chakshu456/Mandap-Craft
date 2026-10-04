@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
@@ -10,6 +10,8 @@ import {
   User,
   Filter,
   Download,
+  Loader2,
+  ArrowUp,
 } from 'lucide-react';
 
 import {
@@ -85,13 +87,10 @@ export default function HomePage() {
   // FAQ State
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  // Batch rendering pagination state for high-performance catalog rendering
+  // Batch rendering pagination state with automatic infinite scroll
   const [visibleCount, setVisibleCount] = useState<number>(24);
-
-  // Reset pagination batch count when any filter or search query changes
-  useEffect(() => {
-    setVisibleCount(24);
-  }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Filtered Products from API
   const displayedItems = useMemo(() => {
@@ -125,6 +124,73 @@ export default function HomePage() {
   const visibleItems = useMemo(() => {
     return displayedItems.slice(0, visibleCount);
   }, [displayedItems, visibleCount]);
+
+  // Load next batch helper (called on scroll or click)
+  const handleLoadNextBatch = useCallback(() => {
+    if (isLoadingMore) return;
+    setVisibleCount((currentVisible) => {
+      if (currentVisible >= displayedItems.length) return currentVisible;
+      setIsLoadingMore(true);
+      setTimeout(() => {
+        setIsLoadingMore(false);
+      }, 250);
+      return Math.min(currentVisible + 24, displayedItems.length);
+    });
+  }, [displayedItems.length, isLoadingMore]);
+
+  // Reset pagination batch count when any filter or search query changes
+  useEffect(() => {
+    setVisibleCount(24);
+    setIsLoadingMore(false);
+  }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
+
+  // Primary Infinite Scroll Observer (triggers pre-load before user hits the bottom)
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting) {
+          if (visibleCount < displayedItems.length && !isLoadingMore) {
+            handleLoadNextBatch();
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: '600px',
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadNextBatch, visibleCount, displayedItems.length, isLoadingMore]);
+
+  // Window Scroll Listener Fallback (ensures infinite scroll triggers across all mobile/tablet views)
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (visibleCount < displayedItems.length && !isLoadingMore) {
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const threshold = document.documentElement.scrollHeight - 750;
+            if (scrollPosition >= threshold) {
+              handleLoadNextBatch();
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleLoadNextBatch, visibleCount, displayedItems.length, isLoadingMore]);
 
   // Active category object for subcategory chips in Catalog
   const activeCategoryObj = useMemo(() => {
@@ -385,46 +451,64 @@ export default function HomePage() {
                   })}
                 </div>
 
-                {/* Incremental Load More Progress Control */}
-                {displayedItems.length > visibleCount && (
-                  <div className="catalog-load-more-box" style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ fontSize: '14px', color: '#555', fontWeight: 600 }}>
-                      Showing <strong style={{ color: '#1a4d4d' }}>{visibleItems.length}</strong> of <strong style={{ color: '#1a4d4d' }}>{displayedItems.length}</strong> Products
+                {/* Infinite Scroll Sentinel element */}
+                <div ref={loadMoreSentinelRef} className="catalog-scroll-sentinel" />
+
+                {/* Incremental Infinite Scroll Progress Control */}
+                {displayedItems.length > visibleCount ? (
+                  <div className="catalog-infinite-loader">
+                    {isLoadingMore ? (
+                      <div className="infinite-loading-pill">
+                        <Loader2 className="spinner" />
+                        <span>Loading more royal catalogue items...</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleLoadNextBatch}
+                        className="catalog-load-more-btn"
+                        aria-label="Load more products"
+                      >
+                        <span>✨ Scroll to Load More or Click ({displayedItems.length - visibleItems.length} Remaining)</span>
+                      </button>
+                    )}
+
+                    <div className="progress-stats">
+                      Showing <strong>{visibleItems.length}</strong> of <strong>{displayedItems.length}</strong> Products
                     </div>
-                    <div style={{ width: '240px', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+
+                    <div className="progress-track">
                       <div 
+                        className="progress-fill"
                         style={{ 
                           width: `${Math.min(100, (visibleItems.length / displayedItems.length) * 100)}%`, 
-                          height: '100%', 
-                          background: 'linear-gradient(90deg, #1a4d4d, #d4af37)',
-                          borderRadius: '4px',
-                          transition: 'width 0.3s ease'
                         }}
                       />
                     </div>
+                  </div>
+                ) : displayedItems.length > 0 ? (
+                  <div className="catalog-all-loaded-box">
+                    <div className="all-loaded-pill">
+                      <span className="crown-icon">👑</span>
+                      <span>You have explored all {displayedItems.length} items in this collection</span>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setVisibleCount(prev => prev + 24)}
-                      style={{
-                        padding: '14px 38px',
-                        borderRadius: '30px',
-                        backgroundColor: '#1a4d4d',
-                        color: '#ffffff',
-                        border: 'none',
-                        fontWeight: 'bold',
-                        fontSize: '15px',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 16px rgba(26, 77, 77, 0.25)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'transform 0.2s ease'
+                      onClick={() => {
+                        const catEl = document.getElementById('catalog');
+                        if (catEl) {
+                          catEl.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
                       }}
+                      className="back-to-top-btn"
                     >
-                      <span>✨ Load More Products ({displayedItems.length - visibleItems.length} Remaining)</span>
+                      <ArrowUp className="icon" />
+                      <span>Back to Top of Catalogue</span>
                     </button>
                   </div>
-                )}
+                ) : null}
               </>
             ) : (
               <div className="no-results">

@@ -402,7 +402,12 @@
           @include heading-serif;
           font-weight: 900;
           -webkit-text-stroke: 0.35px currentColor;
-          color: $color-white;
+          letter-spacing: 0.05em;
+          background: linear-gradient(135deg, #fff6e5 0%, #f5e6a1 35%, #d4af37 70%, #ffffff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          color: $color-accent-lighter;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
         }
 
         .logo-tagline {
