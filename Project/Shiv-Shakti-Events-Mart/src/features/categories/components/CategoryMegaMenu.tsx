@@ -1,4 +1,5 @@
-import { ChevronDown, ChevronRight, ArrowRight, Download } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronRight, ArrowRight, Download, X } from 'lucide-react';
 import type { CategoryData } from '../../../constants/categories';
 
 export interface CategoryMegaMenuProps {
@@ -26,17 +27,79 @@ export default function CategoryMegaMenu({
   onSubcategoryClick,
   onOpenDownloadCatalogue,
 }: CategoryMegaMenuProps) {
+  const navRef = useRef<HTMLElement>(null);
+
+  // Responsive state: screen width < 1024px represents mobile/tablet view
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 1024;
+  });
+
+  // Track which category's subsections dropdown is open via click on mobile/tablet
+  const [mobileOpenCategory, setMobileOpenCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth < 1024;
+      setIsMobileOrTablet(isMobile);
+      if (!isMobile) {
+        setMobileOpenCategory(null);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close mobile dropdown on outside click or Escape key
+  useEffect(() => {
+    if (!mobileOpenCategory) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setMobileOpenCategory(null);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpenCategory(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileOpenCategory]);
+
   const activeCategoryData = categories.find((c) => c.id === hoveredCategory);
+  const activeMobileCategoryData = categories.find((c) => c.id === mobileOpenCategory);
 
   return (
-    <nav className="category-navbar">
+    <nav className="category-navbar" ref={navRef}>
       <div className="category-navbar-container">
-        <ul className="category-nav-list" onMouseLeave={onCategoryMouseLeave}>
+        <ul
+          className="category-nav-list"
+          onMouseLeave={() => {
+            if (!isMobileOrTablet) {
+              onCategoryMouseLeave();
+            }
+          }}
+        >
           {/* All Categories Link */}
           <li className="category-nav-item">
             <button
               type="button"
-              onClick={() => onCategoryClick('all')}
+              onClick={() => {
+                if (isMobileOrTablet) {
+                  setMobileOpenCategory(null);
+                }
+                onCategoryClick('all');
+              }}
               className={`category-nav-link ${selectedCategory === 'all' ? 'active' : ''}`}
             >
               <span className="cat-icon">✨</span>
@@ -46,23 +109,38 @@ export default function CategoryMegaMenu({
 
           {/* Primary Category Tabs */}
           {categories.map((category) => {
-            const isHovered = hoveredCategory === category.id;
+            const isHovered = !isMobileOrTablet && hoveredCategory === category.id;
             const isSelected = selectedCategory === category.id;
+            const isMobileOpen = isMobileOrTablet && mobileOpenCategory === category.id;
+            const isExpanded = isMobileOrTablet ? isMobileOpen : isHovered;
 
             return (
               <li
                 key={category.id}
                 className="category-nav-item"
-                onMouseEnter={() => onCategoryMouseEnter(category.id)}
+                onMouseEnter={() => {
+                  if (!isMobileOrTablet) {
+                    onCategoryMouseEnter(category.id);
+                  }
+                }}
               >
                 <button
                   type="button"
-                  onClick={() => onCategoryClick(category.id)}
-                  className={`category-nav-link ${isSelected ? 'active' : ''} ${isHovered ? 'hovered' : ''}`}
+                  onClick={() => {
+                    if (isMobileOrTablet) {
+                      // On mobile/tablet, toggle subsections dropdown on click
+                      setMobileOpenCategory((prev) => (prev === category.id ? null : category.id));
+                    } else {
+                      onCategoryClick(category.id);
+                    }
+                  }}
+                  className={`category-nav-link ${isSelected ? 'active' : ''} ${isHovered ? 'hovered' : ''} ${isMobileOpen ? 'open' : ''}`}
+                  aria-expanded={isExpanded}
+                  aria-haspopup="true"
                 >
                   <span className="cat-icon">{category.icon}</span>
                   <span className="cat-label">{category.title}</span>
-                  <ChevronDown className={`cat-chevron ${isHovered ? 'rotate' : ''}`} />
+                  <ChevronDown className={`cat-chevron ${isExpanded ? 'rotate' : ''}`} />
                   {category.badge && (
                     <span className="nav-pill-badge">{category.badge}</span>
                   )}
@@ -76,7 +154,12 @@ export default function CategoryMegaMenu({
             <li className="category-nav-item download-nav-item">
               <button
                 type="button"
-                onClick={() => onOpenDownloadCatalogue('all')}
+                onClick={() => {
+                  if (isMobileOrTablet) {
+                    setMobileOpenCategory(null);
+                  }
+                  onOpenDownloadCatalogue('all');
+                }}
                 className="category-nav-link download-brochure-nav-btn"
                 title="Download Category Specification Catalogue (PDF)"
               >
@@ -88,8 +171,133 @@ export default function CategoryMegaMenu({
         </ul>
       </div>
 
-      {/* MEGA-MENU FLYOUT PANEL (Multi-Tier Cascading Hover) */}
-      {hoveredCategory && activeCategoryData && (() => {
+      {/* MOBILE / TABLET CLICK-ACTIVATED SUBSECTIONS DROPDOWN */}
+      {isMobileOrTablet && mobileOpenCategory && activeMobileCategoryData && (
+        <>
+          <div
+            className="mobile-subsections-dropdown-backdrop"
+            onClick={() => setMobileOpenCategory(null)}
+            aria-hidden="true"
+          />
+          <div
+            className="mobile-subsections-dropdown"
+            id="mobile-category-subsections-dropdown"
+            role="region"
+            aria-label={`${activeMobileCategoryData.title} Subsections`}
+          >
+            <div className="mobile-dropdown-inner">
+              {/* Dropdown Header */}
+              <div className="mobile-dropdown-header">
+                <div className="header-category-info">
+                  <span className="cat-icon-badge">{activeMobileCategoryData.icon}</span>
+                  <div className="header-titles">
+                    <div className="header-title-row">
+                      <h3 className="category-heading">{activeMobileCategoryData.title}</h3>
+                      {activeMobileCategoryData.badge && (
+                        <span className="cat-pill-badge">{activeMobileCategoryData.badge}</span>
+                      )}
+                    </div>
+                    <p className="category-tagline">{activeMobileCategoryData.tagline}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="mobile-dropdown-close-btn"
+                  onClick={() => setMobileOpenCategory(null)}
+                  aria-label="Close subsections menu"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Action Row: View All & Catalogue Download */}
+              <div className="mobile-dropdown-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpenCategory(null);
+                    onCategoryClick(activeMobileCategoryData.id);
+                  }}
+                  className="mobile-view-all-category-btn"
+                >
+                  <span>Explore All in {activeMobileCategoryData.shortTitle}</span>
+                  <ArrowRight size={14} />
+                </button>
+
+                {onOpenDownloadCatalogue && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpenCategory(null);
+                      onOpenDownloadCatalogue(activeMobileCategoryData.id);
+                    }}
+                    className="mobile-download-catalogue-btn"
+                    title={`Download ${activeMobileCategoryData.title} PDF Catalogue`}
+                  >
+                    <Download size={14} />
+                    <span>PDF Catalogue</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Subsections Grid / List */}
+              <div className="mobile-subsections-container">
+                <div className="subsections-section-title">
+                  <span>Browse Subsections ({activeMobileCategoryData.subsections.length})</span>
+                </div>
+
+                <div className="mobile-subsections-grid">
+                  {activeMobileCategoryData.subsections.map((sub) => {
+                    const isSubSelected =
+                      selectedCategory === activeMobileCategoryData.id &&
+                      hoveredSubcategory === sub.id;
+
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setMobileOpenCategory(null);
+                          onSubcategoryClick(activeMobileCategoryData.id, sub.id);
+                        }}
+                        className={`mobile-subsection-card ${isSubSelected ? 'active' : ''}`}
+                      >
+                        <div className="card-top">
+                          <div className="card-text">
+                            <span className="sub-title">{sub.title}</span>
+                            {sub.description && (
+                              <p className="sub-description">{sub.description}</p>
+                            )}
+                          </div>
+                          <ChevronRight size={16} className="sub-chevron" />
+                        </div>
+
+                        {sub.popularItems && sub.popularItems.length > 0 && (
+                          <div className="popular-items-chips">
+                            {sub.popularItems.slice(0, 3).map((item, idx) => (
+                              <span key={idx} className="popular-item-chip">
+                                {item}
+                              </span>
+                            ))}
+                            {sub.popularItems.length > 3 && (
+                              <span className="popular-item-chip more">
+                                +{sub.popularItems.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* DESKTOP MEGA-MENU FLYOUT PANEL (Multi-Tier Cascading Hover) */}
+      {!isMobileOrTablet && hoveredCategory && activeCategoryData && (() => {
         const activeSubcategory =
           activeCategoryData.subsections.find(
             (s) => s.id === (hoveredSubcategory || activeCategoryData.subsections[0]?.id)

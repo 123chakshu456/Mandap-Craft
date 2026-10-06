@@ -402,6 +402,7 @@ export default function MainLayout() {
 
   // Handle Mega-Menu Hover interactions
   const handleCategoryMouseEnter = (catId: string) => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
     if (menuLeaveTimeoutRef.current) {
       clearTimeout(menuLeaveTimeoutRef.current);
       menuLeaveTimeoutRef.current = null;
