@@ -52,7 +52,7 @@
 .promo-banner {
   background-color: $color-primary-dark;
   color: $color-accent-light;
-  padding: $spacing-3 $spacing-4;
+  padding: $spacing-2 $spacing-4;
   font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
   text-align: center;
@@ -60,14 +60,21 @@
   gap: $spacing-2;
   border-bottom: 1px solid rgba($color-accent-base, 0.1);
   letter-spacing: 0.05em;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 
   @include sm {
     font-size: $font-size-sm;
-    padding: $spacing-4;
+    padding: $spacing-3 $spacing-4;
   }
 
   .banner-text {
     font-size: $font-size-xs;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.35;
+    word-break: break-word;
 
     @include sm {
       font-size: $font-size-sm;
@@ -78,6 +85,7 @@
     width: 16px;
     height: 16px;
     animation: spin 8s linear infinite;
+    flex-shrink: 0;
   }
 
   .banner-code {
@@ -88,6 +96,7 @@
     font-size: $font-size-xs;
     font-weight: $font-weight-extrabold;
     margin-left: $spacing-2;
+    white-space: nowrap;
   }
 }
 
@@ -100,6 +109,8 @@
   z-index: 40;
   background-color: $color-white;
   border-bottom: 1px solid $color-lighter;
+  width: 100%;
+  max-width: 100%;
 
   .header-container {
     @include container;
@@ -107,18 +118,28 @@
     height: 72px;
     gap: $spacing-4;
     flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+
+    @media (max-width: 640px) {
+      height: 60px;
+      gap: $spacing-2;
+      padding-left: 12px;
+      padding-right: 12px;
+    }
   }
 
   .logo {
     @include flex-col;
     cursor: pointer;
     user-select: none;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
 
     .logo-text {
       @include heading-serif;
-      font-size: clamp(1rem, 1.9vw, 1.4rem);
-      letter-spacing: 0.05em;
+      font-size: clamp(0.78rem, 3.2vw, 1.4rem);
+      letter-spacing: 0.02em;
       white-space: nowrap;
       font-weight: 900;
       -webkit-text-stroke: 0.35px currentColor;
@@ -128,9 +149,33 @@
       color: #0f2f2f;
       filter: drop-shadow(0 1px 1px rgba(15, 47, 47, 0.12));
 
+      @media (max-width: 480px) {
+        font-size: 0.72rem;
+        letter-spacing: 0.01em;
+      }
+
+      @media (max-width: 360px) {
+        font-size: 0.65rem;
+      }
+
       .logo-dot {
         color: $color-accent-base;
         font-weight: $font-weight-light;
+      }
+    }
+
+    .header-subtitle {
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: $color-accent-base;
+      font-weight: 700;
+      white-space: nowrap;
+      text-transform: uppercase;
+      margin-top: 1px;
+
+      @media (max-width: 480px) {
+        font-size: 7px;
+        letter-spacing: 0.05em;
       }
     }
   }
@@ -173,6 +218,11 @@
   .actions {
     @include flex-center;
     gap: $spacing-4;
+    flex-shrink: 0;
+
+    @media (max-width: 640px) {
+      gap: 6px;
+    }
 
     .search-box-container {
       position: relative;
@@ -272,6 +322,15 @@
       cursor: pointer;
       position: relative;
       transition: background-color $transition-base ease;
+      flex-shrink: 0;
+
+      @media (max-width: 640px) {
+        padding: 6px;
+        .icon {
+          width: 18px;
+          height: 18px;
+        }
+      }
 
       &:hover {
         background-color: $color-very-light;
@@ -307,6 +366,17 @@
       gap: $spacing-1-5;
       box-shadow: 0 4px 6px rgba($color-primary-dark, 0.1);
       @include flex-center;
+      flex-shrink: 0;
+
+      @media (max-width: 640px) {
+        padding: 6px 9px;
+        border-radius: $radius-md;
+        gap: 4px;
+        .icon {
+          width: 15px;
+          height: 15px;
+        }
+      }
 
       &:hover {
         background-color: $color-primary-base;

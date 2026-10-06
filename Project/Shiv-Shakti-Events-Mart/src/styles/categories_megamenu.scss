@@ -36,12 +36,13 @@
   }
 
   .logo {
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
     .logo-text {
       @include heading-serif;
-      font-size: clamp(1rem, 1.9vw, 1.4rem);
+      font-size: clamp(0.72rem, 3.2vw, 1.4rem);
       white-space: nowrap;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
       font-weight: 900;
       -webkit-text-stroke: 0.35px currentColor;
       background: linear-gradient(90deg, #0f2f2f 0%, #164646 45%, #b3861b 72%, #d4af37 100%);
@@ -49,15 +50,29 @@
       -webkit-text-fill-color: transparent;
       color: #0f2f2f;
       filter: drop-shadow(0 1px 1px rgba(15, 47, 47, 0.12));
+
+      @media (max-width: 480px) {
+        font-size: 0.72rem;
+        letter-spacing: 0.01em;
+      }
+
+      @media (max-width: 360px) {
+        font-size: 0.65rem;
+      }
     }
     .logo-subtext {
       display: block;
-      font-size: 9px;
-      letter-spacing: 0.12em;
+      font-size: 8px;
+      letter-spacing: 0.08em;
       color: $color-accent-base;
       font-weight: $font-weight-bold;
       white-space: nowrap;
       margin-top: 1px;
+
+      @media (max-width: 480px) {
+        font-size: 7.5px;
+        letter-spacing: 0.05em;
+      }
     }
   }
 
@@ -73,6 +88,15 @@
     font-size: $font-size-sm;
     font-weight: $font-weight-semibold;
     transition: all $transition-base ease;
+    flex-shrink: 0;
+
+    @media (max-width: 640px) {
+      padding: 6px 8px;
+      border-radius: $radius-md;
+      .btn-text {
+        display: none;
+      }
+    }
 
     .icon {
       width: 16px;
@@ -143,10 +167,16 @@
   border-bottom: 1px solid $color-lighter;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   z-index: 35;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 
   .category-navbar-container {
     @include container;
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none; // Firefox
     &::-webkit-scrollbar {
       display: none; // Chrome/Safari
@@ -1096,6 +1126,15 @@
 // ==========================================
 // 3. MOBILE CATEGORY DRAWER
 // ==========================================
+@keyframes drawerSlideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .mobile-category-drawer {
   position: fixed;
   top: 0;
@@ -1106,13 +1145,16 @@
   background: $color-white;
   box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
   z-index: 60;
-  display: flex;
+  display: none;
   flex-direction: column;
   transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
 
   &.open {
+    display: flex;
     transform: translateX(0);
+    pointer-events: auto;
+    animation: drawerSlideInLeft 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .drawer-header {
