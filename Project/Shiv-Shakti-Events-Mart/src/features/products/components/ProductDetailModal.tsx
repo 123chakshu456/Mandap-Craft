@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Ruler, Check, Calculator, ChevronLeft, ChevronRight, Zap, Gauge, Maximize2, Scale } from 'lucide-react';
 import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
+import { formatModelLabel } from '../../../shared/utils/formatters';
 
 export interface MachineModelVariant {
   model: string;
@@ -174,7 +175,7 @@ export default function ProductDetailModal({
         ...product,
         price: activeModel.price,
         selectedModel: activeModel,
-        name: `${product.name} (${activeModel.model})`,
+        name: `${product.name} (${formatModelLabel(activeModel.model)})`,
       });
       onClose();
     } else {
@@ -395,45 +396,43 @@ export default function ProductDetailModal({
                   margin: '12px 0',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1a4d4d', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1a4d4d', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     Select Model Number & Capacity:
                   </span>
-                  <span style={{ fontSize: '0.74rem', color: '#8c734b', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.72rem', color: '#8c734b', fontWeight: 600 }}>
                     {machineModels.length} models available
                   </span>
                 </div>
 
                 {/* Model Pill Buttons */}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
                   {machineModels.map((m, idx) => {
                     const isSelected = idx === selectedModelIdx;
+                    const formattedModel = formatModelLabel(m.model);
                     return (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => setSelectedModelIdx(idx)}
                         style={{
-                          padding: '7px 12px',
-                          borderRadius: '8px',
+                          padding: '5px 10px',
+                          borderRadius: '6px',
                           border: isSelected ? '1.5px solid #1a4d4d' : '1px solid #dfd6c8',
                           background: isSelected ? '#1a4d4d' : '#ffffff',
                           color: isSelected ? '#ffffff' : '#334155',
                           fontWeight: isSelected ? 700 : 600,
-                          fontSize: '0.82rem',
+                          fontSize: '0.76rem',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
+                          gap: '5px',
                           transition: 'all 0.15s ease',
-                          boxShadow: isSelected ? '0 2px 8px rgba(26, 77, 77, 0.25)' : 'none',
+                          boxShadow: isSelected ? '0 2px 6px rgba(26, 77, 77, 0.2)' : 'none',
                         }}
                       >
-                        <span>{m.model}</span>
-                        <span style={{ color: isSelected ? '#fde68a' : '#059669', fontSize: '0.76rem', fontWeight: 700 }}>
-                          ₹{m.price.toLocaleString()}
-                        </span>
-                        {isSelected && <Check size={13} color="#fde68a" strokeWidth={3} />}
+                        <span>{formattedModel}</span>
+                        {isSelected && <Check size={12} color="#fde68a" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -538,7 +537,7 @@ export default function ProductDetailModal({
                           >
                             <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>
                               {isRowSelected && <span style={{ color: '#d4af37', marginRight: '6px' }}>●</span>}
-                              {m.model}
+                              {formatModelLabel(m.model)}
                             </td>
                             <td style={{ padding: '8px 12px' }}>{m.motor || '-'}</td>
                             <td style={{ padding: '8px 12px' }}>{m.size || '-'}</td>

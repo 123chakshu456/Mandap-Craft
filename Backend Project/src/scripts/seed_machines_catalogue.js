@@ -1553,12 +1553,12 @@ const machinesData = [
       'Storage capacities from 20 Liters up to 200 Liters'
     ],
     models: [
-      { model: '20SP1 (20 Ltr Storage)', motor: 'Compressor', size: '14 x 14 x 39', weight: '35 Kg', capacity: '20 Ltr / Hr Cooling', price: 25400 },
-      { model: '40SP2+ (40 Ltr Storage)', motor: 'Compressor', size: '15 x 15 x 48', weight: '45 Kg', capacity: '40 Ltr / Hr Cooling', price: 30900 },
-      { model: '60SP2+ (60 Ltr Storage)', motor: 'Compressor', size: '18 x 17 x 50', weight: '55 Kg', capacity: '60 Ltr / Hr Cooling', price: 39600 },
-      { model: '80SP2+ (80 Ltr Storage)', motor: 'Compressor', size: '22 x 18 x 51', weight: '70 Kg', capacity: '80 Ltr / Hr Cooling', price: 48500 },
-      { model: '100SP2+ (100 Ltr Storage)', motor: 'Compressor', size: '25 x 18 x 52', weight: '85 Kg', capacity: '100 Ltr / Hr Cooling', price: 52900 },
-      { model: '200SP3+ (200 Ltr Storage)', motor: 'Compressor', size: '33 x 20 x 64', weight: '120 Kg', capacity: '200 Ltr / Hr Cooling', price: 88000 }
+      { model: '20SP1 (20L)', motor: 'Compressor', size: '14 x 14 x 39', weight: '35 Kg', capacity: '20 Ltr / Hr Cooling', price: 25400 },
+      { model: '40SP2+ (40L)', motor: 'Compressor', size: '15 x 15 x 48', weight: '45 Kg', capacity: '40 Ltr / Hr Cooling', price: 30900 },
+      { model: '60SP2+ (60L)', motor: 'Compressor', size: '18 x 17 x 50', weight: '55 Kg', capacity: '60 Ltr / Hr Cooling', price: 39600 },
+      { model: '80SP2+ (80L)', motor: 'Compressor', size: '22 x 18 x 51', weight: '70 Kg', capacity: '80 Ltr / Hr Cooling', price: 48500 },
+      { model: '100SP2+ (100L)', motor: 'Compressor', size: '25 x 18 x 52', weight: '85 Kg', capacity: '100 Ltr / Hr Cooling', price: 52900 },
+      { model: '200SP3+ (200L)', motor: 'Compressor', size: '33 x 20 x 64', weight: '120 Kg', capacity: '200 Ltr / Hr Cooling', price: 88000 }
     ]
   }
 ];

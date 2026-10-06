@@ -3,6 +3,7 @@ import { Heart, Star, ArrowRight, ChevronLeft, ChevronRight, Zap, Gauge, Maximiz
 import { getCategoryById } from '../../../constants';
 import type { Product } from '../../../shared/types/models.types';
 import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
+import { formatModelLabel } from '../../../shared/utils/formatters';
 
 export interface MachineModelVariant {
   model: string;
@@ -95,7 +96,7 @@ export default function ProductCard({
           ...item,
           price: activeModel.price,
           selectedModel: activeModel,
-          name: `${item.name} (${activeModel.model})`,
+          name: `${item.name} (${formatModelLabel(activeModel.model)})`,
         },
         'events'
       );
@@ -252,22 +253,22 @@ export default function ProductCard({
                     <Layers size={12} className="models-icon" />
                     <span className="models-title">Select Model ({machineModels.length})</span>
                   </div>
-                  <span className="active-model-indicator">{activeModel?.model}</span>
+                  <span className="active-model-indicator">{formatModelLabel(activeModel?.model)}</span>
                 </div>
 
                 <div className="models-pills-row">
                   {machineModels.map((m, idx) => {
                     const isSelected = idx === selectedModelIdx;
+                    const formattedModel = formatModelLabel(m.model);
                     return (
                       <button
                         key={idx}
                         type="button"
                         onClick={(e) => handleSelectModel(e, idx)}
                         className={`model-pill-btn ${isSelected ? 'active' : ''}`}
-                        title={`Select ${m.model} - ₹${m.price.toLocaleString()}`}
+                        title={`Select ${formattedModel}`}
                       >
-                        <span className="pill-name">{m.model}</span>
-                        <span className="pill-price">₹{m.price.toLocaleString()}</span>
+                        <span className="pill-name">{formattedModel}</span>
                       </button>
                     );
                   })}
@@ -281,7 +282,7 @@ export default function ProductCard({
                 <div className="specs-box-header">
                   <span className="specs-tag">⚡ Quick Specifications</span>
                   {machineModels.length === 1 && (
-                    <span className="specs-model-name">{activeModel.model}</span>
+                    <span className="specs-model-name">{formatModelLabel(activeModel.model)}</span>
                   )}
                 </div>
 
