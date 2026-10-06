@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Heart, Star, ArrowRight, ChevronLeft, ChevronRight, Zap, Gauge, Maximize2, Scale, Layers } from 'lucide-react';
 import { getCategoryById } from '../../../constants';
 import type { Product } from '../../../shared/types/models.types';
@@ -64,6 +64,77 @@ export default function ProductCard({
   // Active price: selected model price if present, else base price
   const activePrice = activeModel ? activeModel.price : (item.price || 0);
 
+  // Horizontal scroll & drag controls for model selection pills on desktop
+  const pillsRowRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+
+  const updateScrollState = () => {
+    const el = pillsRowRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  };
+
+  useEffect(() => {
+    updateScrollState();
+    const el = pillsRowRef.current;
+    if (el) {
+      el.addEventListener('scroll', updateScrollState, { passive: true });
+      window.addEventListener('resize', updateScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateScrollState);
+        window.removeEventListener('resize', updateScrollState);
+      };
+    }
+  }, [machineModels]);
+
+  const handleScrollPills = (direction: 'left' | 'right') => {
+    const el = pillsRowRef.current;
+    if (!el) return;
+    const scrollAmount = 140;
+    el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  };
+
+  const handlePillsWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = pillsRowRef.current;
+    if (!el) return;
+    if (el.scrollWidth > el.clientWidth) {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        el.scrollLeft += e.deltaY;
+      }
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = pillsRowRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+    const el = pillsRowRef.current;
+    if (!el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.2;
+    if (Math.abs(walk) > 4) {
+      hasDraggedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+  };
+
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentImgIdx((prev) => (prev > 0 ? prev - 1 : displayImages.length - 1));
@@ -76,6 +147,10 @@ export default function ProductCard({
 
   const handleSelectModel = (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
+    if (hasDraggedRef.current) {
+      hasDraggedRef.current = false;
+      return;
+    }
     setSelectedModelIdx(idx);
   };
 
@@ -253,10 +328,48 @@ export default function ProductCard({
                     <Layers size={12} className="models-icon" />
                     <span className="models-title">Select Model ({machineModels.length})</span>
                   </div>
-                  <span className="active-model-indicator">{formatModelLabel(activeModel?.model)}</span>
+                  <div className="models-header-right">
+                    <span className="active-model-indicator">{formatModelLabel(activeModel?.model)}</span>
+                    <div className="models-scroll-arrows">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleScrollPills('left');
+                        }}
+                        disabled={!canScrollLeft}
+                        className={`pill-nav-arrow left ${canScrollLeft ? 'enabled' : 'disabled'}`}
+                        aria-label="Scroll models left"
+                        title="Scroll models left"
+                      >
+                        <ChevronLeft size={11} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleScrollPills('right');
+                        }}
+                        disabled={!canScrollRight}
+                        className={`pill-nav-arrow right ${canScrollRight ? 'enabled' : 'disabled'}`}
+                        aria-label="Scroll models right"
+                        title="Scroll models right"
+                      >
+                        <ChevronRight size={11} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="models-pills-row">
+                <div
+                  className="models-pills-row"
+                  ref={pillsRowRef}
+                  onWheel={handlePillsWheel}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                >
                   {machineModels.map((m, idx) => {
                     const isSelected = idx === selectedModelIdx;
                     const formattedModel = formatModelLabel(m.model);
