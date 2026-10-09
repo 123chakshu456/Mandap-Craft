@@ -134,8 +134,8 @@ export const CATEGORIES: CategoryData[] = [
         id: 'plastic-chairs',
         title: 'Plastic Chairs',
         description: 'Heavy-Duty Molded Plastic Armchairs & Stackable Ceremonial Seating',
-        image: '/chairs/orlando_plastic_chair.jpg',
-        popularItems: ['Orlando Yellow Armchair (₹1,700)', 'Windsor Brown Armchair (₹1,400)', 'Seagull Red Chair (₹780)'],
+        image: 'https://res.cloudinary.com/owbjdijm/image/upload/v1791578629/shiv-shakti-products/sse-pc-s01_supreme_plastic_chair_with_arms.jpg',
+        popularItems: ['Plastic Chair SSE-PC-S01 (₹850)', 'Plastic Chair SSE-PC-S02 (₹680)', 'Plastic Chair SSE-PC-H01 (₹820)', 'Plastic Chair SSE-PC-H02 (₹650)'],
       },
       {
         id: 'tables',

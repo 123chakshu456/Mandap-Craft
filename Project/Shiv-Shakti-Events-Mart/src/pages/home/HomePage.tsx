@@ -101,7 +101,8 @@ export default function HomePage() {
       // Subcategory filter
       const matchesSubcategory = selectedSubcategory === 'all' ||
         item.subcategoryId === selectedSubcategory ||
-        (selectedSubcategory === 'chairs' && (item.subcategoryId === 'designer-chairs' || item.subcategoryId === 'plastic-chairs'));
+        (selectedSubcategory === 'chairs' && (item.subcategoryId === 'designer-chairs' || item.subcategoryId === 'plastic-chairs' || item.subSubcategoryId === 'plastic-chairs')) ||
+        (selectedSubcategory === 'plastic-chairs' && (item.subcategoryId === 'plastic-chairs' || item.subSubcategoryId === 'plastic-chairs'));
 
       // Style filter
       const matchesStyle = selectedStyleFilter === 'All' || item.style === selectedStyleFilter;
