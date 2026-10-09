@@ -299,6 +299,74 @@ export default function MainLayout() {
     setShowSuggestions(false);
   };
 
+  const popularKeywords = [
+    { label: 'Plastic Chairs', emoji: '🪑' },
+    { label: 'Chafing Dishes', emoji: '🍲' },
+    { label: 'Mandaps', emoji: '🎪' },
+    { label: 'Bhatti Stoves', emoji: '🔥' },
+    { label: 'Desert Coolers', emoji: '❄️' },
+    { label: 'VIP Carpets', emoji: '🌟' },
+  ];
+
+  const handleQuickKeywordClick = (keyword: string) => {
+    handleSearchChange(keyword);
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
+    setShowSuggestions(false);
+    setTimeout(() => {
+      const catalogEl = document.getElementById('catalog');
+      if (catalogEl) {
+        catalogEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 120);
+  };
+
+  const renderQuickSuggestions = () => (
+    <div style={{ padding: '14px 16px', background: '#ffffff', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#8c734b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+        <Sparkles size={13} color="#d4af37" />
+        <span>Popular Searches &amp; Quick Filters</span>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {popularKeywords.map((item) => (
+          <button
+            key={item.label}
+            type="button"
+            onClick={() => handleQuickKeywordClick(item.label)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '20px',
+              color: '#1e293b',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#fef3c7';
+              e.currentTarget.style.borderColor = '#d4af37';
+              e.currentTarget.style.color = '#92400e';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#f8fafc';
+              e.currentTarget.style.borderColor = '#e2e8f0';
+              e.currentTarget.style.color = '#1e293b';
+            }}
+          >
+            <span>{item.emoji}</span>
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderSuggestions = () => {
     const hasProducts = localProductResults.length > 0;
     const hasOrders = searchResults.orders && searchResults.orders.length > 0;
@@ -549,9 +617,9 @@ export default function MainLayout() {
                 )}
               </div>
               {/* Dropdown Suggestions */}
-              {showSuggestions && searchQuery.trim() !== '' && (
+              {showSuggestions && (
                 <div className="search-suggestions-dropdown">
-                  {renderSuggestions()}
+                  {searchQuery.trim() !== '' ? renderSuggestions() : renderQuickSuggestions()}
                 </div>
               )}
             </form>
@@ -657,9 +725,9 @@ export default function MainLayout() {
                 )}
               </div>
               {/* Responsive Dropdown Suggestions */}
-              {showSuggestions && searchQuery.trim() !== '' && (
+              {showSuggestions && (
                 <div className="search-suggestions-dropdown responsive-search-dropdown">
-                  {renderSuggestions()}
+                  {searchQuery.trim() !== '' ? renderSuggestions() : renderQuickSuggestions()}
                 </div>
               )}
             </form>

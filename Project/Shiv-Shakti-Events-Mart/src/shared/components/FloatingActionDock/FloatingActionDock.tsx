@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { quoteApi } from '../../../features/quotes/services/quoteApi';
 import type { Product } from '../../../shared/types/models.types';
+import { ENABLE_WHATSAPP_CHAT } from '../../utils/whatsapp';
 
 export interface FloatingActionDockProps {
   cart: { id: string; name: string; price: number; image: string; quantity: number }[];
@@ -388,21 +389,23 @@ ${enquiryQuestion.trim() || 'Please share detailed quotation, availability, and 
                 </a>
 
                 {/* 2. Direct WhatsApp */}
-                <a
-                  href={`https://wa.me/${contactPerson.whatsapp}?text=${encodeURIComponent(`Hello ${contactPerson.name}, I am reaching out from Shiv Shakti Events Mart to discuss event infrastructure and bookings.`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="person-action-tile whatsapp-tile"
-                >
-                  <div className="tile-icon">
-                    <MessageCircle className="icon" />
-                  </div>
-                  <div className="tile-info">
-                    <span className="tile-title">WhatsApp with Person</span>
-                    <span className="tile-value">+91 {contactPerson.whatsapp.slice(-10)}</span>
-                    <span className="tile-sub">⚡ Typical reply in 2 mins</span>
-                  </div>
-                </a>
+                {ENABLE_WHATSAPP_CHAT && (
+                  <a
+                    href={`https://wa.me/${contactPerson.whatsapp}?text=${encodeURIComponent(`Hello ${contactPerson.name}, I am reaching out from Shiv Shakti Events Mart to discuss event infrastructure and bookings.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="person-action-tile whatsapp-tile"
+                  >
+                    <div className="tile-icon">
+                      <MessageCircle className="icon" />
+                    </div>
+                    <div className="tile-info">
+                      <span className="tile-title">WhatsApp with Person</span>
+                      <span className="tile-value">+91 {contactPerson.whatsapp.slice(-10)}</span>
+                      <span className="tile-sub">⚡ Typical reply in 2 mins</span>
+                    </div>
+                  </a>
+                )}
 
                 {/* 3. Direct Email */}
                 <a
@@ -718,14 +721,16 @@ ${enquiryQuestion.trim() || 'Please share detailed quotation, availability, and 
                       <span>{isSubmittingEnquiry ? 'Submitting Enquiry...' : 'Submit Product Enquiry'}</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={handleEnquiryWhatsApp}
-                      className="whatsapp-product-enquiry-btn"
-                    >
-                      <MessageCircle className="icon" />
-                      <span>Enquire on WhatsApp</span>
-                    </button>
+                    {ENABLE_WHATSAPP_CHAT && (
+                      <button
+                        type="button"
+                        onClick={handleEnquiryWhatsApp}
+                        className="whatsapp-product-enquiry-btn"
+                      >
+                        <MessageCircle className="icon" />
+                        <span>Enquire on WhatsApp</span>
+                      </button>
+                    )}
                   </div>
                 </form>
               )}

@@ -9,6 +9,7 @@ import {
 import type { Product } from '../../types/models.types';
 import type { CategoryData } from '../../../constants/categories';
 import { triggerCataloguePdfDownload } from '../../utils/cataloguePdfGenerator';
+import { ENABLE_WHATSAPP_CHAT } from '../../utils/whatsapp';
 
 export interface CatalogueDownloadModalProps {
   isOpen: boolean;
@@ -219,7 +220,7 @@ Hello Mr. Chakshu Goyal, I would like to request the official PDF catalogue and 
           </div>
 
           {/* ACTION BUTTONS */}
-          <div className="download-actions-grid">
+          <div className="download-actions-grid" style={!ENABLE_WHATSAPP_CHAT ? { gridTemplateColumns: '1fr' } : undefined}>
             <button
               type="button"
               onClick={handleDownload}
@@ -234,14 +235,16 @@ Hello Mr. Chakshu Goyal, I would like to request the official PDF catalogue and 
               </span>
             </button>
 
-            <button
-              type="button"
-              onClick={handleWhatsAppShare}
-              className="whatsapp-share-btn"
-            >
-              <MessageCircle className="icon" />
-              <span>Request on WhatsApp</span>
-            </button>
+            {ENABLE_WHATSAPP_CHAT && (
+              <button
+                type="button"
+                onClick={handleWhatsAppShare}
+                className="whatsapp-share-btn"
+              >
+                <MessageCircle className="icon" />
+                <span>Request on WhatsApp</span>
+              </button>
+            )}
           </div>
 
           {/* INSTRUCTIONS */}

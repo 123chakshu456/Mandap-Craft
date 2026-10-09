@@ -1049,18 +1049,23 @@
       top: $spacing-3;
       right: $spacing-3;
       z-index: 10;
-      background-color: rgba($color-white, 0.95);
-      padding: $spacing-2;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
       border-radius: $radius-full;
       box-shadow: $shadow-md;
       border: 1px solid $color-lighter;
-      background-color: $color-white;
+      background-color: rgba($color-white, 0.95);
       cursor: pointer;
       transition: all $transition-base ease;
 
       &:hover {
         background-color: $color-white;
         color: $color-ruby;
+        transform: scale(1.08);
       }
 
       .icon {
@@ -1073,6 +1078,40 @@
           fill: $color-ruby;
           color: $color-ruby;
         }
+      }
+    }
+
+    .card-share {
+      position: absolute;
+      top: calc(#{$spacing-3} + 40px);
+      right: $spacing-3;
+      z-index: 10;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: $radius-full;
+      box-shadow: $shadow-md;
+      border: 1px solid $color-lighter;
+      background-color: rgba($color-white, 0.95);
+      color: $color-dark;
+      cursor: pointer;
+      transition: all $transition-base ease;
+
+      &:hover {
+        background-color: $color-white;
+        color: #25D366;
+        border-color: rgba(37, 211, 102, 0.5);
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+      }
+
+      .icon {
+        width: 16px;
+        height: 16px;
+        transition: all $transition-base ease;
       }
     }
 

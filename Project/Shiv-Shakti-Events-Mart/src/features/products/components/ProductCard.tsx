@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Heart, Star, ArrowRight, ChevronLeft, ChevronRight, Zap, Gauge, Maximize2, Scale, Layers } from 'lucide-react';
+import { Heart, Star, ArrowRight, ChevronLeft, ChevronRight, Zap, Gauge, Maximize2, Scale, Layers, Share2 } from 'lucide-react';
 import { getCategoryById } from '../../../constants';
 import type { Product } from '../../../shared/types/models.types';
 import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
 import { formatModelLabel } from '../../../shared/utils/formatters';
+import WhatsAppIcon from '../../../shared/components/icons/WhatsAppIcon';
+import { getProductWhatsAppUrl, shareProductToWhatsApp, ENABLE_WHATSAPP_CHAT } from '../../../shared/utils/whatsapp';
 
 export interface MachineModelVariant {
   model: string;
@@ -163,6 +165,31 @@ export default function ProductCard({
     });
   };
 
+  const handleWhatsAppInquiry = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = getProductWhatsAppUrl({
+      name: item.name,
+      sku: item.sku,
+      price: activePrice,
+      activeModel: activeModel?.model,
+      categoryTitle: categoryData?.title,
+    });
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareToWhatsApp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    shareProductToWhatsApp({
+      id: item.id,
+      sku: item.sku,
+      name: item.name,
+      price: activePrice,
+      pricingUnit: item.pricingUnit,
+      categoryTitle: categoryData?.title,
+      activeModel: activeModel?.model,
+    });
+  };
+
   const handleAddToCart = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (activeModel) {
@@ -188,17 +215,30 @@ export default function ProductCard({
     <div className={`product-card ${machineModels ? 'machine-card' : ''}`}>
       {/* Shortlist heart overlay */}
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation();
           onToggleShortlist(item.id, item.name);
         }}
         className="card-heart"
         aria-label="Add to shortlist"
+        title={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
       >
         <Heart
           className={`icon ${isFavorite ? 'liked' : ''}`}
           style={{ fill: isFavorite ? '#991b1b' : 'none' }}
         />
+      </button>
+
+      {/* Share to WhatsApp overlay button (directly under wishlist heart) */}
+      <button
+        type="button"
+        onClick={handleShareToWhatsApp}
+        className="card-share"
+        aria-label={`Share ${item.name} to WhatsApp`}
+        title={`Share ${item.name} to WhatsApp`}
+      >
+        <Share2 className="icon" size={16} />
       </button>
 
       {/* Tag badge */}
@@ -522,54 +562,83 @@ export default function ProductCard({
             </div>
           )}
 
-          {item.pricingUnit === 'PER_SQFT' ? (
-            <button
-              onClick={handleCardClick}
-              className="action-btn book-btn"
-              aria-label={`Select size for ${item.name}`}
-              style={{
-                background: 'linear-gradient(135deg, #1a4d4d, #0f2f2f)',
-                border: '1px solid #d4af37',
-              }}
-            >
-              <span>Select Size</span>
-              <ArrowRight className="icon" />
-            </button>
-          ) : cartQuantity > 0 ? (
-            <div className="card-qty-control" onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            {ENABLE_WHATSAPP_CHAT && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDecrementCart(item.id);
+                onClick={handleWhatsAppInquiry}
+                className="card-whatsapp-btn"
+                title="Direct WhatsApp Merchant Inquiry"
+                aria-label={`Inquire about ${item.name} on WhatsApp`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #128C7E 0%, #075E54 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  boxShadow: '0 2px 6px rgba(18, 140, 126, 0.3)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                  flexShrink: 0,
+                  padding: 0,
                 }}
-                className="qty-btn minus"
-                aria-label="Decrease quantity"
               >
-                -
+                <WhatsAppIcon size={18} color="#ffffff" />
               </button>
-              <span className="qty-value">
-                {cartQuantity}
-              </span>
+            )}
+
+            {item.pricingUnit === 'PER_SQFT' ? (
               <button
-                type="button"
-                onClick={handleAddToCart}
-                className="qty-btn plus"
-                aria-label="Increase quantity"
+                onClick={handleCardClick}
+                className="action-btn book-btn"
+                aria-label={`Select size for ${item.name}`}
+                style={{
+                  background: 'linear-gradient(135deg, #1a4d4d, #0f2f2f)',
+                  border: '1px solid #d4af37',
+                }}
               >
-                +
+                <span>Select Size</span>
+                <ArrowRight className="icon" />
               </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAddToCart}
-              className="action-btn book-btn machine-book-btn"
-              aria-label={`Book ${item.name}`}
-            >
-              <span>Book</span>
-              <ArrowRight className="icon" />
-            </button>
-          )}
+            ) : cartQuantity > 0 ? (
+              <div className="card-qty-control" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecrementCart(item.id);
+                  }}
+                  className="qty-btn minus"
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
+                <span className="qty-value">
+                  {cartQuantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="qty-btn plus"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="action-btn book-btn machine-book-btn"
+                aria-label={`Book ${item.name}`}
+              >
+                <span>Book</span>
+                <ArrowRight className="icon" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

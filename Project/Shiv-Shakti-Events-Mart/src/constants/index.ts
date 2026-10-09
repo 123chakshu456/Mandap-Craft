@@ -6,3 +6,4 @@
 export * from './categories';
 export * from './mockData';
 export * from './colors';
+export * from './featureFlags';

@@ -1,6 +1,9 @@
-import { X, ShoppingBag } from 'lucide-react';
+import { X, ShoppingBag, Printer, Share2 } from 'lucide-react';
 import type { CartItem } from '../hooks/useCart';
 import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
+import WhatsAppIcon from '../../../shared/components/icons/WhatsAppIcon';
+import { getCartWhatsAppUrl, getCartWhatsAppShareUrl, ENABLE_WHATSAPP_CHAT } from '../../../shared/utils/whatsapp';
+import { printQuotation } from '../../../shared/utils/quotationPrint';
 
 export interface CartDrawerProps {
   isOpen: boolean;
@@ -23,6 +26,39 @@ export default function CartDrawer({
 }: CartDrawerProps) {
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleSendWhatsAppQuote = () => {
+    if (cart.length === 0) return;
+    const url = getCartWhatsAppUrl(
+      cart.map((i) => ({
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price,
+        dimensionsNote: i.dimensionsNote,
+      })),
+      totalPrice
+    );
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareCartToWhatsApp = () => {
+    if (cart.length === 0) return;
+    const url = getCartWhatsAppShareUrl(
+      cart.map((i) => ({
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price,
+        dimensionsNote: i.dimensionsNote,
+      })),
+      totalPrice
+    );
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handlePrintQuote = () => {
+    if (cart.length === 0) return;
+    printQuotation(cart, totalPrice);
+  };
 
   return (
     <>
@@ -99,6 +135,100 @@ export default function CartDrawer({
               <div className="total-value">
                 ₹{totalPrice.toLocaleString()}
               </div>
+
+              {/* B2B Quotation Actions: WhatsApp & Print PDF */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '14px 0 10px' }}>
+                <button
+                  type="button"
+                  onClick={handleShareCartToWhatsApp}
+                  className="cart-action-quote-btn whatsapp"
+                  title="Share this cart selection to WhatsApp friends & clients"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '10px 8px',
+                    borderRadius: '8px',
+                    background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(37, 211, 102, 0.25)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                >
+                  <Share2 size={16} color="#ffffff" />
+                  <span>Share Cart (WA)</span>
+                </button>
+
+                {ENABLE_WHATSAPP_CHAT && (
+                  <button
+                    type="button"
+                    onClick={handleSendWhatsAppQuote}
+                    className="cart-action-quote-btn merchant-quote"
+                    title="Send Formal Quotation Request to Merchant"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '10px 8px',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, #128C7E 0%, #075E54 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(18, 140, 126, 0.25)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <WhatsAppIcon size={16} color="#ffffff" />
+                    <span>Inquire Merchant</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handlePrintQuote}
+                  className="cart-action-quote-btn print"
+                  title="Print or Save Formal Estimate PDF"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '10px 8px',
+                    borderRadius: '8px',
+                    background: '#f8fafc',
+                    color: '#0f172a',
+                    border: '1px solid #cbd5e1',
+                    fontWeight: 700,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#e2e8f0';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <Printer size={15} color="#475569" />
+                  <span>Print Estimate (PDF)</span>
+                </button>
+              </div>
+
               <button
                 onClick={() => {
                   onClose();

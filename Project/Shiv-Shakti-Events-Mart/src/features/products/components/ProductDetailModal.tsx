@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Ruler, Check, Calculator, ChevronLeft, ChevronRight, Zap, Gauge, Maximize2, Scale } from 'lucide-react';
+import { X, Ruler, Check, Calculator, ChevronLeft, ChevronRight, Zap, Gauge, Maximize2, Scale, Share2 } from 'lucide-react';
 import { handleImageError, optimizeImageUrl } from '../../../shared/utils/imageFallback';
 import { formatModelLabel } from '../../../shared/utils/formatters';
+import WhatsAppIcon from '../../../shared/components/icons/WhatsAppIcon';
+import { getProductWhatsAppUrl, shareProductToWhatsApp, ENABLE_WHATSAPP_CHAT } from '../../../shared/utils/whatsapp';
+import { addRecentlyViewed } from '../../../shared/utils/recentlyViewed';
 
 export interface MachineModelVariant {
   model: string;
@@ -184,13 +187,109 @@ export default function ProductDetailModal({
     }
   };
 
+  // Recently viewed registration
+  useEffect(() => {
+    if (product?.id) {
+      addRecentlyViewed({
+        id: product.id,
+        name: product.name,
+        price: effectivePrice || product.price,
+        image: product.image || displayImages[0],
+        categoryId: (product as any).categoryId,
+        subcategoryId: (product as any).subcategoryId,
+        subSubcategoryId: (product as any).subSubcategoryId,
+        sku: (product as any).sku,
+      });
+    }
+  }, [product?.id, effectivePrice]);
+
+  // Close modal and cleanly remove ?product= from browser URL if present
+  const handleCloseModal = () => {
+    try {
+      if (typeof window !== 'undefined' && window.location.search.includes('product=')) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('product');
+        window.history.replaceState(null, '', url.pathname + (url.search ? url.search : '') + url.hash);
+      }
+    } catch {}
+    onClose();
+  };
+
+  // Keyboard navigation & accessibility (Escape to close, Arrows to cycle images)
+  useEffect(() => {
+    if (!product) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCloseModal();
+      } else if (e.key === 'ArrowLeft') {
+        if (displayImages.length > 1) {
+          setActiveImgIdx((prev) => (prev > 0 ? prev - 1 : displayImages.length - 1));
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (displayImages.length > 1) {
+          setActiveImgIdx((prev) => (prev < displayImages.length - 1 ? prev + 1 : 0));
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [product, displayImages.length, onClose]);
+
+  // WhatsApp Inquiry handler
+  const handleWhatsAppInquiry = () => {
+    if (!product) return;
+    const url = getProductWhatsAppUrl({
+      name: product.name,
+      sku: (product as any).sku,
+      price: effectivePrice,
+      activeModel: activeModel?.model,
+      selectedSize: isPerSqFt ? dimensionsNote || `${effectiveSqFt} sq.ft` : undefined,
+    });
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // WhatsApp Viral Share handler (shares website link to any WhatsApp contact/group)
+  const handleShareToWhatsApp = () => {
+    if (!product) return;
+    shareProductToWhatsApp({
+      id: product.id,
+      sku: (product as any).sku,
+      name: product.name,
+      price: effectivePrice || product.price,
+      pricingUnit: product.pricingUnit,
+      activeModel: activeModel?.model,
+      dimensionsNote: isPerSqFt ? dimensionsNote || `${effectiveSqFt} sq.ft` : undefined,
+      categoryTitle: (product as any).categoryId,
+    });
+  };
+
   return (
     <div className="product-modal">
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="modal-overlay" onClick={handleCloseModal} />
       <div className="modal-inner" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="close-btn" aria-label="Close modal">
-          <X className="icon" />
-        </button>
+        <div className="modal-top-actions">
+          {/* Share to WhatsApp with Share2 icon */}
+          <button
+            type="button"
+            onClick={handleShareToWhatsApp}
+            className="modal-action-icon-btn"
+            title="Share this product with link to WhatsApp"
+            aria-label="Share product to WhatsApp"
+          >
+            <Share2 className="icon" size={17} />
+          </button>
+          <button
+            type="button"
+            onClick={handleCloseModal}
+            className="close-btn"
+            aria-label="Close modal"
+            title="Close"
+          >
+            <X className="icon" size={18} />
+          </button>
+        </div>
 
         <div className="product-grid" style={{ alignItems: 'flex-start' }}>
           {/* ── LEFT: IMAGE GALLERY & CAROUSEL ── */}
@@ -788,7 +887,7 @@ export default function ProductDetailModal({
             )}
 
             {/* ── FOOTER & ACTION ── */}
-            <div className="footer" style={{ borderTop: '1px solid #ebd9b4', paddingTop: '16px', marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="footer" style={{ borderTop: '1px solid #ebd9b4', paddingTop: '16px', marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div className="price">
                 <span className="label" style={{ fontSize: '0.72rem', color: '#8c734b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
                   {isMachine && activeModel
@@ -803,60 +902,99 @@ export default function ProductDetailModal({
                 </span>
               </div>
 
-              {isPerSqFt ? (
-                <button
-                  type="button"
-                  onClick={handleConfirmAddToCart}
-                  className="add-btn"
-                  style={{
-                    background: 'linear-gradient(135deg, #1a4d4d, #0d3333)',
-                    border: '1px solid #d4af37',
-                    color: '#fff',
-                    fontWeight: 700,
-                    padding: '12px 24px',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 14px rgba(26, 77, 77, 0.25)',
-                  }}
-                >
-                  Book {effectiveSqFt} sq.ft (₹{effectivePrice.toLocaleString()})
-                </button>
-              ) : cartQuantity > 0 ? (
-                <div className="modal-qty-control">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+
+                {ENABLE_WHATSAPP_CHAT && (
                   <button
                     type="button"
-                    onClick={() => onDecrementCart(product.id)}
-                    className="qty-btn minus"
-                    aria-label="Decrease quantity"
+                    onClick={handleWhatsAppInquiry}
+                    className="modal-whatsapp-btn"
+                    title="Direct WhatsApp Inquiry with Sales Director"
+                    aria-label="Direct WhatsApp Inquiry"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: 'linear-gradient(135deg, #128C7E 0%, #075E54 100%)',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      padding: '12px 18px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 4px 14px rgba(18, 140, 126, 0.3)',
+                      cursor: 'pointer',
+                      fontSize: '0.88rem',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.03)';
+                      e.currentTarget.style.boxShadow = '0 6px 18px rgba(18, 140, 126, 0.45)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 14px rgba(18, 140, 126, 0.3)';
+                    }}
                   >
-                    -
+                    <WhatsAppIcon size={20} color="#ffffff" />
+                    <span>Inquire with Merchant</span>
                   </button>
-                  <span className="qty-value">{cartQuantity}</span>
+                )}
+
+                {isPerSqFt ? (
                   <button
                     type="button"
                     onClick={handleConfirmAddToCart}
-                    className="qty-btn plus"
-                    aria-label="Increase quantity"
+                    className="add-btn"
+                    style={{
+                      background: 'linear-gradient(135deg, #1a4d4d, #0d3333)',
+                      border: '1px solid #d4af37',
+                      color: '#fff',
+                      fontWeight: 700,
+                      padding: '12px 24px',
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 14px rgba(26, 77, 77, 0.25)',
+                    }}
                   >
-                    +
+                    Book {effectiveSqFt} sq.ft (₹{effectivePrice.toLocaleString()})
                   </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleConfirmAddToCart}
-                  className="add-btn"
-                  style={{
-                    background: 'linear-gradient(135deg, #1a4d4d, #0d3333)',
-                    border: '1px solid #d4af37',
-                    color: '#fff',
-                    fontWeight: 700,
-                    padding: '12px 24px',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 14px rgba(26, 77, 77, 0.25)',
-                  }}
-                >
-                  {isMachine && activeModel ? `Book ${activeModel.model}` : 'Book / Add to Order'}
-                </button>
-              )}
+                ) : cartQuantity > 0 ? (
+                  <div className="modal-qty-control">
+                    <button
+                      type="button"
+                      onClick={() => onDecrementCart(product.id)}
+                      className="qty-btn minus"
+                      aria-label="Decrease quantity"
+                    >
+                      -
+                    </button>
+                    <span className="qty-value">{cartQuantity}</span>
+                    <button
+                      type="button"
+                      onClick={handleConfirmAddToCart}
+                      className="qty-btn plus"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleConfirmAddToCart}
+                    className="add-btn"
+                    style={{
+                      background: 'linear-gradient(135deg, #1a4d4d, #0d3333)',
+                      border: '1px solid #d4af37',
+                      color: '#fff',
+                      fontWeight: 700,
+                      padding: '12px 24px',
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 14px rgba(26, 77, 77, 0.25)',
+                    }}
+                  >
+                    {isMachine && activeModel ? `Book ${activeModel.model}` : 'Book / Add to Order'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

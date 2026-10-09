@@ -18,7 +18,7 @@ import {
   CATEGORIES,
   getCategoryById,
 } from '../../constants';
-import { ProductCard } from '../../features/products';
+import { ProductCard, RecentlyViewedBar } from '../../features/products';
 import { HomeCarousel } from '../../features/carousel';
 import { CommonLoader, CommonError } from '../../shared/components/CommonLoader';
 import type { Product } from '../../shared/types/models.types';
@@ -75,6 +75,30 @@ export default function HomePage() {
   // Active filter transition state for immediate visual feedback
   const [isFiltering, setIsFiltering] = useState(false);
 
+  // Catalog sorting state
+  const [sortBy, setSortBy] = useState<'featured' | 'price-low' | 'price-high' | 'name-asc' | 'name-desc'>('featured');
+
+  // Deep-linking: auto-open product modal if URL has ?product=ID_OR_SKU
+  useEffect(() => {
+    if (!products || products.length === 0) return;
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const targetParam = searchParams.get('product');
+      if (targetParam) {
+        const queryClean = targetParam.trim().toLowerCase();
+        const found = products.find(
+          (p) =>
+            (p.id && p.id.toLowerCase() === queryClean) ||
+            ((p as any)._id && String((p as any)._id).toLowerCase() === queryClean) ||
+            (p.sku && p.sku.toLowerCase() === queryClean)
+        );
+        if (found) {
+          setSelectedProductDetail(found);
+        }
+      }
+    } catch {}
+  }, [products, setSelectedProductDetail]);
+
   // Trigger smooth feedback whenever filter criteria change
   useEffect(() => {
     setIsFiltering(true);
@@ -82,7 +106,7 @@ export default function HomePage() {
       setIsFiltering(false);
     }, 280);
     return () => clearTimeout(timer);
-  }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
+  }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery, sortBy]);
 
   // FAQ State
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -92,9 +116,9 @@ export default function HomePage() {
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // Filtered Products from API
+  // Filtered & Sorted Products from API
   const displayedItems = useMemo(() => {
-    return products.filter((item: Product) => {
+    const filtered = products.filter((item: Product) => {
       // Category filter
       const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
 
@@ -119,7 +143,21 @@ export default function HomePage() {
 
       return matchesCategory && matchesSubcategory && matchesStyle && matchesSearch;
     });
-  }, [products, selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
+
+    if (sortBy === 'price-low') {
+      return [...filtered].sort((a, b) => (a.price || 0) - (b.price || 0));
+    }
+    if (sortBy === 'price-high') {
+      return [...filtered].sort((a, b) => (b.price || 0) - (a.price || 0));
+    }
+    if (sortBy === 'name-asc') {
+      return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    if (sortBy === 'name-desc') {
+      return [...filtered].sort((a, b) => b.name.localeCompare(a.name));
+    }
+    return filtered;
+  }, [products, selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery, sortBy]);
 
   // Paginated visible items batch for 60fps fast DOM performance
   const visibleItems = useMemo(() => {
@@ -143,7 +181,7 @@ export default function HomePage() {
   useEffect(() => {
     setVisibleCount(24);
     setIsLoadingMore(false);
-  }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery]);
+  }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery, sortBy]);
 
   // Primary Infinite Scroll Observer (triggers pre-load before user hits the bottom)
   useEffect(() => {
@@ -203,6 +241,7 @@ export default function HomePage() {
     setSelectedCategory('all');
     setSelectedSubcategory('all');
     setSelectedStyleFilter('All');
+    setSortBy('featured');
     setSearchQuery('');
     showToast("Filters reset. Showing all products.");
   };
@@ -302,6 +341,37 @@ export default function HomePage() {
                   {filter}
                 </button>
               ))}
+
+              {/* Sorting Dropdown */}
+              <div className="catalog-sort-select-box" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
+                <span style={{ fontSize: '0.74rem', color: '#78644e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Sort:
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  aria-label="Sort products catalog"
+                  style={{
+                    padding: '7px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #dfd6c8',
+                    background: '#ffffff',
+                    color: '#1e293b',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <option value="featured">✨ Featured Collection</option>
+                  <option value="price-low">💰 Price: Low to High</option>
+                  <option value="price-high">💎 Price: High to Low</option>
+                  <option value="name-asc">🔤 Name: A to Z</option>
+                  <option value="name-desc">🔤 Name: Z to A</option>
+                </select>
+              </div>
+
               {(isFiltering || isLoadingProducts) && (
                 <CommonLoader variant="inline" message="Updating..." theme="light" />
               )}
@@ -528,6 +598,11 @@ export default function HomePage() {
 
         </div>
       </section>
+
+      {/* ==========================================
+          RECENTLY VIEWED ITEMS STRIP
+         ========================================== */}
+      <RecentlyViewedBar onSelectProduct={setSelectedProductDetail} />
 
 
 
