@@ -19,7 +19,7 @@ import type { CategoryData } from '../constants/categories';
 import { useCart } from '../features/orders/hooks/useCart';
 import CartDrawer from '../features/orders/components/CartDrawer';
 import { useToast, useDebounce } from '../shared/hooks';
-import { useProducts, ProductDetailModal, ShortlistDrawer } from '../features/products';
+import { useProducts, ProductDetailModal, ShortlistDrawer, RecentlyViewedPill } from '../features/products';
 import { CategoryMegaMenu, useCategories } from '../features/categories';
 import { authApi } from '../features/auth';
 import { searchApi, type SearchResults } from '../features/search';
@@ -1105,6 +1105,11 @@ export default function MainLayout() {
         categories={menuCategories}
         products={products}
         showToast={showToast}
+      />
+
+      {/* 6. FLOATING RECENTLY VIEWED HISTORY PILL & QUICK ACCESS DRAWER (Bottom-Left) */}
+      <RecentlyViewedPill
+        onSelectProduct={handleSelectProductDetail}
       />
 
     </div>

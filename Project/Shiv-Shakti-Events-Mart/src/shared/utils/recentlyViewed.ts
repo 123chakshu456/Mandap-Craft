@@ -74,6 +74,18 @@ export function addRecentlyViewed(product: {
   }
 }
 
+export function removeRecentlyViewedItem(id: string): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const current = getRecentlyViewed();
+    const updated = current.filter((item) => item.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('recently_viewed_updated'));
+  } catch {
+    // Ignore
+  }
+}
+
 export function clearRecentlyViewed(): void {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -84,3 +96,4 @@ export function clearRecentlyViewed(): void {
     // Ignore
   }
 }
+
