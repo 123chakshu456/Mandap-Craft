@@ -87,12 +87,36 @@ const renderMarkdown = (md: string) => {
   return rendered.join('\n');
 };
 
+// HTML escaper to defeat XSS injections in live preview
+const escapeHtml = (str: string) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// URL sanitizer to prevent javascript: or data: URIs
+const sanitizeUrl = (url: string) => {
+  const trimmed = (url || '').trim();
+  if (/^(?:https?:|\/|#|mailto:)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return '#blocked-unsafe-url';
+};
+
 const parseInline = (text: string) => {
-  return text
+  const safeText = escapeHtml(text);
+  return safeText
     // Images: ![alt](url)
-    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:12px 0;box-shadow:0 4px 12px rgba(0,0,0,0.5);" />')
+    .replace(/!\[(.*?)\]\((.*?)\)/g, (_, alt, src) =>
+      `<img src="${sanitizeUrl(src)}" alt="${alt}" style="max-width:100%;border-radius:8px;margin:12px 0;box-shadow:0 4px 12px rgba(0,0,0,0.5);" />`
+    )
     // Links: [text](url)
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#818cf8;text-decoration:underline;">$1</a>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, (_, label, href) =>
+      `<a href="${sanitizeUrl(href)}" target="_blank" rel="noopener noreferrer" style="color:#818cf8;text-decoration:underline;">${label}</a>`
+    )
     // Bold: **text**
     .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#f8fafc;">$1</strong>')
     // Italic: *text*

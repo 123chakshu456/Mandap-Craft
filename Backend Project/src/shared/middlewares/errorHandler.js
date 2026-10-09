@@ -57,9 +57,15 @@ export const errorHandler = (err, req, res, next) => {
     }
   }
 
+  // In production, mask unhandled 500 internal errors to prevent info leakage
+  const safeMessage =
+    statusCode >= 500 && process.env.NODE_ENV === 'production'
+      ? 'An unexpected error occurred. Please contact support or try again later.'
+      : message;
+
   res.status(statusCode).json({
     success: false,
-    message,
+    message: safeMessage,
     ...(errors && { errors }),
     ...(process.env.NODE_ENV === 'development' && {
       code: err.code,

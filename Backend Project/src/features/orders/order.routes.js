@@ -7,9 +7,12 @@ import {
   deleteOrder,
 } from './order.controller.js';
 import { authenticate, optionalAuth, authorize } from '../../shared/middlewares/authMiddleware.js';
-import { rateLimit } from '../../shared/middlewares/securityMiddleware.js';
+import { rateLimit, noCacheSensitive } from '../../shared/middlewares/securityMiddleware.js';
 
 const router = express.Router();
+
+// Never cache order information
+router.use(noCacheSensitive);
 
 // Order creation anti-bot rate limiter
 const orderLimiter = rateLimit({

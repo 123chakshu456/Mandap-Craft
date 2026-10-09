@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Dispatch, SetStateAction, FormEvent } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User as UserIcon, Loader2, AlertCircle } from 'lucide-react';
@@ -25,65 +25,11 @@ export default function LoginPage() {
   // Default to true so that `#google-btn-slot` is rendered in DOM initially
   const [isGoogleConfigured, setIsGoogleConfigured] = useState(true);
 
-  // Initialize Google Identity Services
-  useEffect(() => {
-    let checkInterval: ReturnType<typeof setInterval>;
+  // References for cached client ID and Google button DOM slot
+  const clientIdRef = useRef<string>('');
+  const googleBtnRef = useRef<HTMLDivElement>(null);
 
-    const initGoogleGSI = async () => {
-      try {
-        const clientId = await authApi.getGoogleClientId();
-        if (!clientId || clientId === 'your_google_client_id_here') {
-          console.warn('Google Client ID is not configured.');
-          setIsGoogleConfigured(false);
-          return;
-        }
-
-        setIsGoogleConfigured(true);
-
-        const google = (window as any).google;
-        if (google?.accounts?.id) {
-          google.accounts.id.initialize({
-            client_id: clientId,
-            callback: handleGoogleCredentialResponse,
-          });
-
-          // Render the official Google Sign-In button in slot
-          google.accounts.id.renderButton(
-            document.getElementById('google-btn-slot'),
-            { 
-              theme: 'outline', 
-              size: 'large', 
-              width: 400, 
-              text: 'continue_with',
-              shape: 'pill'
-            }
-          );
-        }
-      } catch (err) {
-        console.error('Failed to load Google GSI:', err);
-        setIsGoogleConfigured(false);
-      }
-    };
-
-    const google = (window as any).google;
-    if (google?.accounts?.id) {
-      initGoogleGSI();
-    } else {
-      checkInterval = setInterval(() => {
-        const google = (window as any).google;
-        if (google?.accounts?.id) {
-          clearInterval(checkInterval);
-          initGoogleGSI();
-        }
-      }, 100);
-    }
-
-    return () => {
-      if (checkInterval) clearInterval(checkInterval);
-    };
-  }, []);
-
-  const handleGoogleCredentialResponse = async (response: any) => {
+  const handleGoogleCredentialResponse = useCallback(async (response: any) => {
     setIsLoading(true);
     try {
       const res = await authApi.googleLogin(response.credential);
@@ -99,7 +45,75 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate, setCurrentUser, showToast]);
+
+  const renderGoogleButton = useCallback(() => {
+    const google = (window as any).google;
+    const slot = googleBtnRef.current || document.getElementById('google-btn-slot');
+    if (!slot || !google?.accounts?.id || !clientIdRef.current) return;
+
+    try {
+      google.accounts.id.initialize({
+        client_id: clientIdRef.current,
+        callback: handleGoogleCredentialResponse,
+      });
+
+      slot.innerHTML = '';
+      google.accounts.id.renderButton(slot, {
+        theme: 'outline',
+        size: 'large',
+        width: 400,
+        text: 'continue_with',
+        shape: 'pill',
+      });
+    } catch (err) {
+      console.error('Failed to render Google Sign-In button:', err);
+    }
+  }, [handleGoogleCredentialResponse]);
+
+  // Initialize and Render Google Sign-In Button (runs on initial mount and whenever user logs out)
+  useEffect(() => {
+    let checkInterval: ReturnType<typeof setInterval>;
+
+    const initGoogleGSI = async () => {
+      try {
+        if (!clientIdRef.current) {
+          const clientId = await authApi.getGoogleClientId();
+          if (!clientId || clientId === 'your_google_client_id_here') {
+            console.warn('Google Client ID is not configured.');
+            setIsGoogleConfigured(false);
+            return;
+          }
+          clientIdRef.current = clientId;
+          setIsGoogleConfigured(true);
+        }
+
+        const google = (window as any).google;
+        if (google?.accounts?.id) {
+          setTimeout(renderGoogleButton, 0);
+        } else {
+          checkInterval = setInterval(() => {
+            const g = (window as any).google;
+            if (g?.accounts?.id) {
+              clearInterval(checkInterval);
+              renderGoogleButton();
+            }
+          }, 100);
+        }
+      } catch (err) {
+        console.error('Failed to load Google GSI:', err);
+        setIsGoogleConfigured(false);
+      }
+    };
+
+    if (!currentUser) {
+      initGoogleGSI();
+    }
+
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
+    };
+  }, [currentUser, renderGoogleButton]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -118,6 +132,7 @@ export default function LoginPage() {
       setIsLoading(true);
       try {
         const response = await authApi.register({ name, email, password });
+        setPassword('');
         setCurrentUser(response.user);
         showToast(`Welcome to Shiv Shakti Events Mart, ${response.user.name || name}! Your privilege account is ready. 🎉`);
         if (response.user?.role === 'ADMIN') {
@@ -126,6 +141,7 @@ export default function LoginPage() {
           navigate('/');
         }
       } catch (err: any) {
+        setPassword('');
         const msg = err.message || 'Registration failed. Please try again.';
         setErrorMessage(msg);
         showToast(`❌ ${msg}`);
@@ -141,6 +157,7 @@ export default function LoginPage() {
       setIsLoading(true);
       try {
         const response = await authApi.login({ email, password });
+        setPassword('');
         setCurrentUser(response.user);
         showToast(`Welcome back, ${response.user.name || response.user.email}! Signed in successfully. ✨`);
         if (response.user?.role === 'ADMIN') {
@@ -149,6 +166,7 @@ export default function LoginPage() {
           navigate('/');
         }
       } catch (err: any) {
+        setPassword('');
         const msg = err.message || 'Invalid email or password.';
         setErrorMessage(msg);
         showToast(`❌ ${msg}`);
@@ -159,6 +177,7 @@ export default function LoginPage() {
   };
 
   const handleLogout = async () => {
+    setPassword('');
     try {
       await authApi.logout();
     } catch {
@@ -286,6 +305,10 @@ export default function LoginPage() {
                   placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                 />
               </div>
             </div>
@@ -316,7 +339,7 @@ export default function LoginPage() {
           <div className="divider">OR</div>
 
           <div style={{ display: isGoogleConfigured ? 'flex' : 'none', justifyContent: 'center', width: '100%', margin: '12px 0 20px 0' }}>
-            <div id="google-btn-slot"></div>
+            <div id="google-btn-slot" ref={googleBtnRef}></div>
           </div>
           {!isGoogleConfigured && (
             <div className="google-btn-not-configured" style={{
@@ -336,7 +359,7 @@ export default function LoginPage() {
 
           <div className="switch-mode">
             <span>{isSignUp ? 'Already a Privilege Club member?' : 'New to Shiv Shakti Events Mart?'}</span>
-            <button type="button" onClick={() => { setIsSignUp(!isSignUp); setErrorMessage(null); }}>
+            <button type="button" onClick={() => { setIsSignUp(!isSignUp); setErrorMessage(null); setPassword(''); setTimeout(renderGoogleButton, 0); }}>
               {isSignUp ? 'Sign In' : 'Create Account'}
             </button>
           </div>

@@ -4,11 +4,35 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { pageApi } from '../services/pageApi';
 import type { Page } from '../../../shared/types/models.types';
 
-// Markdown parser helper for dynamic CMS content
+// HTML escaper to defeat stored XSS injections
+const escapeHtml = (str: string) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// URL sanitizer to prevent javascript: or data: URIs
+const sanitizeUrl = (url: string) => {
+  const trimmed = (url || '').trim();
+  if (/^(?:https?:|\/|#|mailto:)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return '#blocked-unsafe-url';
+};
+
+// Markdown parser helper for dynamic CMS content with full XSS defense
 const parseInline = (text: string) => {
-  return text
-    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:10px;margin:16px 0;box-shadow:0 6px 18px rgba(0,0,0,0.5);" />')
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#818cf8;text-decoration:underline;">$1</a>')
+  const safeText = escapeHtml(text);
+  return safeText
+    .replace(/!\[(.*?)\]\((.*?)\)/g, (_, alt, src) =>
+      `<img src="${sanitizeUrl(src)}" alt="${alt}" style="max-width:100%;border-radius:10px;margin:16px 0;box-shadow:0 6px 18px rgba(0,0,0,0.5);" />`
+    )
+    .replace(/\[(.*?)\]\((.*?)\)/g, (_, label, href) =>
+      `<a href="${sanitizeUrl(href)}" target="_blank" rel="noopener noreferrer" style="color:#818cf8;text-decoration:underline;">${label}</a>`
+    )
     .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#f8fafc;font-weight:700;">$1</strong>')
     .replace(/\*(.*?)\*/g, '<em style="color:#e2e8f0;">$1</em>')
     .replace(/`(.*?)`/g, '<code style="background:#1e293b;color:#a5b4fc;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.88em;">$1</code>');

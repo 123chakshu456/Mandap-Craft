@@ -1,4 +1,4 @@
-import { authService, authCookieOptions } from './auth.service.js';
+import { authService, authCookieOptions, generateToken } from './auth.service.js';
 import { successResponse } from '../../shared/utils/response.js';
 
 export const register = async (req, res, next) => {
@@ -29,6 +29,7 @@ export const signOut = async (req, res, next) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+      path: '/',
     });
     successResponse(res, null, 'Signed out successfully.');
   } catch (error) {
@@ -41,7 +42,9 @@ export const logout = signOut;
 export const getProfile = async (req, res, next) => {
   try {
     const user = await authService.getProfile(req.user.id);
-    successResponse(res, { user });
+    const token = generateToken(user.id);
+    res.cookie('token', token, authCookieOptions);
+    successResponse(res, { user, token });
   } catch (error) {
     next(error);
   }

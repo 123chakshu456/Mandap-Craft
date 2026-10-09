@@ -65,10 +65,20 @@ const upload = multer({
   },
 });
 
-// All media endpoints require Admin access
-router.get('/', authenticate, authorize('ADMIN'), getMediaAssets);
-router.post('/upload', authenticate, authorize('ADMIN'), upload.single('image'), uploadMedia);
-router.delete('/:id', authenticate, authorize('ADMIN'), deleteMediaAsset);
+import { rateLimit, noCacheSensitive } from '../../shared/middlewares/securityMiddleware.js';
+
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: 'Upload rate limit reached. Please wait before uploading more media.',
+  key: 'media-uploads',
+});
+
+// All media endpoints require Admin access and must not be cached
+router.use(authenticate, authorize('ADMIN'), noCacheSensitive);
+router.get('/', getMediaAssets);
+router.post('/upload', uploadLimiter, upload.single('image'), uploadMedia);
+router.delete('/:id', deleteMediaAsset);
 
 // Product-specific gallery management
 router.post('/products/:id/images', authenticate, authorize('ADMIN'), addImageToProduct);

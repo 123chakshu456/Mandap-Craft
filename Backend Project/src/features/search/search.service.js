@@ -6,7 +6,8 @@ export const searchService = {
       return { posts: [], orders: [], quotes: [], products: [] };
     }
 
-    const q = query.trim();
+    // Truncate query length to prevent ReDoS / excessive SQL memory allocation
+    const q = query.trim().slice(0, 100);
 
     // 1. Search products
     const productPromise = prisma.product.findMany({

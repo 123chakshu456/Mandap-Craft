@@ -1,6 +1,27 @@
 import prisma from '../config/prisma.js';
 
 /**
+ * Redacts any sensitive fields (passwords, tokens, cookies, secrets) from audit log details
+ */
+function redactSensitiveData(data, depth = 0) {
+  if (depth > 6 || !data) return data;
+  if (typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map((item) => redactSensitiveData(item, depth + 1));
+
+  const safe = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (/password|token|secret|authorization|credential|cookie|cardnumber|cvv/i.test(key)) {
+      safe[key] = '[REDACTED]';
+    } else if (value && typeof value === 'object') {
+      safe[key] = redactSensitiveData(value, depth + 1);
+    } else {
+      safe[key] = value;
+    }
+  }
+  return safe;
+}
+
+/**
  * Enterprise Audit Logging Service
  */
 export const auditService = {
@@ -12,6 +33,7 @@ export const auditService = {
       const userId = req?.user?.id || null;
       const userEmail = req?.user?.email || 'System / Anonymous';
       const ipAddress = req?.ip || req?.headers?.['x-forwarded-for'] || req?.socket?.remoteAddress || null;
+      const cleanDetails = details ? redactSensitiveData(details) : undefined;
 
       return await prisma.auditLog.create({
         data: {
@@ -20,7 +42,7 @@ export const auditService = {
           action,
           entity,
           entityId: entityId ? String(entityId) : null,
-          details: details ? details : undefined,
+          details: cleanDetails,
           ipAddress: ipAddress ? String(ipAddress) : null,
         },
       });

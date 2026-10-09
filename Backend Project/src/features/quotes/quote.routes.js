@@ -6,9 +6,12 @@ import {
   deleteQuote,
 } from './quote.controller.js';
 import { authenticate, optionalAuth, authorize } from '../../shared/middlewares/authMiddleware.js';
-import { rateLimit } from '../../shared/middlewares/securityMiddleware.js';
+import { rateLimit, noCacheSensitive } from '../../shared/middlewares/securityMiddleware.js';
 
 const router = express.Router();
+
+// Never cache quote submissions or quotes list
+router.use(noCacheSensitive);
 
 // Quote submission anti-spam rate limiter
 const quoteLimiter = rateLimit({

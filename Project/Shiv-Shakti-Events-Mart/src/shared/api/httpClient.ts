@@ -1,30 +1,47 @@
 // =========================================================
 // Shared HTTP Client - Base Request Service
+// Hardened against XSS attacks and session hijacking.
+// Authentication tokens are maintained securely in memory
+// and via HttpOnly cookies (unreadable by client-side scripts).
+// Sensitive tokens are NEVER stored in persistent localStorage.
 // =========================================================
 
-const TOKEN_STORAGE_KEY = 'shiv_shakti_auth_token';
+let inMemoryAuthToken: string | null = null;
+const LEGACY_STORAGE_KEY = 'shiv_shakti_auth_token';
+
+// Proactively purge any historical tokens that might have been stored in localStorage
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  }
+} catch {
+  // Ignore in SSR or restricted environments
+}
 
 export const getAuthToken = (): string | null => {
-  try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
+  return inMemoryAuthToken;
 };
 
 export const setAuthToken = (token: string): void => {
+  inMemoryAuthToken = token || null;
+  // Ensure persistent storage is wiped so no XSS script can exfiltrate it
   try {
-    localStorage.setItem(TOKEN_STORAGE_KEY, token);
-  } catch (err) {
-    console.error('Failed to save auth token:', err);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore
   }
 };
 
 export const removeAuthToken = (): void => {
+  inMemoryAuthToken = null;
   try {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-  } catch (err) {
-    console.error('Failed to remove auth token:', err);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore
   }
 };
 

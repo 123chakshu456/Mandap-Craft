@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma.js';
+import { getJwtSecret } from '../../features/auth/auth.service.js';
 
 export const authenticate = async (req, res, next) => {
   try {
@@ -18,7 +19,7 @@ export const authenticate = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -62,7 +63,7 @@ export const optionalAuth = async (req, res, next) => {
       return next();
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },

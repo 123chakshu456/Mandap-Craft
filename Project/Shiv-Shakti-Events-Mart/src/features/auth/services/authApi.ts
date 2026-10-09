@@ -44,9 +44,12 @@ export const authApi = {
 
   async getMe(): Promise<User | null> {
     try {
-      const res = await httpClient<{ user: User }>('/auth/me', {
+      const res = await httpClient<{ user: User; token?: string }>('/auth/me', {
         method: 'GET',
       });
+      if (res?.token) {
+        setAuthToken(res.token);
+      }
       return res?.user || null;
     } catch {
       removeAuthToken();

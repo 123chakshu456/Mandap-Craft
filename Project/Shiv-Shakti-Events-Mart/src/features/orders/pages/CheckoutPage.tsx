@@ -136,6 +136,9 @@ export default function CheckoutPage() {
       setIsSuccess(true);
       setShowOtpModal(false);
       setCart([]); // Empty user cart
+      setCardNumber('');
+      setCardCvv('');
+      setCardExpiry('');
       showToast('✨ Payment authenticated! Booking slots confirmed & sealed.');
     } catch (err: any) {
       showToast(`❌ Error recording order: ${err.message || 'Payment processing error'}`);
