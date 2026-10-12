@@ -66,4 +66,8 @@ backups/
 **/full_catalog_analysis.txt
 **/pdf_pages.json
 
-
+# Temporary scratch & one-off upload folders/scripts
+**/src/scripts/temp_*
+**/temp_*
+**/enhanced_*
+**/extracted_*

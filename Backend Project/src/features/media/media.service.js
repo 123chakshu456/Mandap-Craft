@@ -47,6 +47,7 @@ export const mediaService = {
     limit = 24,
     search = '',
     folder = '',
+    format = '',
     sortBy = 'createdAt',
     sortOrder = 'desc',
     startDate = null,
@@ -66,6 +67,13 @@ export const mediaService = {
     }
     if (folder && folder !== 'all') {
       where.folder = folder;
+    }
+    if (format && format !== 'all') {
+      if (format === 'image') {
+        where.format = { in: ['jpg', 'jpeg', 'png', 'webp', 'avif', 'svg'] };
+      } else {
+        where.format = { equals: format, mode: 'insensitive' };
+      }
     }
 
     if (startDate || endDate) {

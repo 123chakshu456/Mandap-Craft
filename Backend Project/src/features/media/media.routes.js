@@ -30,6 +30,7 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/avif',
   'image/heic',
   'image/heif',
+  'application/pdf',
 ]);
 
 const ALLOWED_EXTENSIONS = new Set([
@@ -44,13 +45,14 @@ const ALLOWED_EXTENSIONS = new Set([
   '.avif',
   '.heic',
   '.heif',
+  '.pdf',
 ]);
 
 // In-memory buffer storage for direct Cloudinary / local fallback streaming
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit
   fileFilter: (req, file, cb) => {
     const mime = (file.mimetype || '').toLowerCase();
     const ext = path.extname(file.originalname || '').toLowerCase();
@@ -58,7 +60,7 @@ const upload = multer({
     if (ALLOWED_MIME_TYPES.has(mime) || ALLOWED_EXTENSIONS.has(ext)) {
       cb(null, true);
     } else {
-      const err = new Error('Unsupported image format. Please upload a valid image file (JPG, PNG, WebP, AVIF, GIF, or SVG).');
+      const err = new Error('Unsupported format. Please upload a valid image (JPG, PNG, WebP, SVG) or PDF document.');
       err.statusCode = 400;
       cb(err);
     }

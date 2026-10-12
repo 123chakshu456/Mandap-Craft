@@ -16,11 +16,35 @@ import {
   Sparkles,
   Calendar,
   ArrowUpDown,
+  FileText,
+  Hash,
+  Download,
 } from 'lucide-react';
 import { mediaApi } from '../../media/services/mediaApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
 import { CommonLoader, CommonError } from '../../../shared/components/CommonLoader';
 import type { MediaAsset } from '../../../shared/types/models.types';
+
+const extractUniqueCode = (asset: MediaAsset): string | null => {
+  if (asset.tags && Array.isArray(asset.tags)) {
+    const skuTag = asset.tags.find(
+      (t) => t.startsWith('SKU-') || t.startsWith('CAT-PDF') || t.startsWith('GL-TC')
+    );
+    if (skuTag) return skuTag;
+  }
+  if (asset.publicId) {
+    if (asset.publicId.startsWith('catalogue_')) {
+      return asset.publicId.replace('catalogue_', '');
+    }
+    const match = asset.publicId.match(/(SKU-[A-Z0-9-]+|CAT-PDF-[A-Z0-9-]+|GL-TC-[0-9]+)/i);
+    if (match) return match[1].toUpperCase();
+  }
+  if (asset.altText) {
+    const match = asset.altText.match(/\((SKU-[A-Z0-9-]+|CAT-PDF-[A-Z0-9-]+|GL-TC-[0-9]+)\)/i);
+    if (match) return match[1].toUpperCase();
+  }
+  return null;
+};
 
 export const MediaLibraryPage: React.FC = () => {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
@@ -32,6 +56,7 @@ export const MediaLibraryPage: React.FC = () => {
   // Filters & Sorting
   const [search, setSearch] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('all');
+  const [selectedFormat, setSelectedFormat] = useState<'all' | 'pdf' | 'image'>('all');
   const [datePreset, setDatePreset] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -46,12 +71,19 @@ export const MediaLibraryPage: React.FC = () => {
 
   // UI Feedback
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<MediaAsset | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2500);
+  };
 
   // Load assets from backend
   const loadAssets = useCallback(async () => {
@@ -81,6 +113,7 @@ export const MediaLibraryPage: React.FC = () => {
         limit: 24,
         search: search.trim() || undefined,
         folder: selectedFolder !== 'all' ? selectedFolder : undefined,
+        format: selectedFormat !== 'all' ? selectedFormat : undefined,
         sortBy,
         sortOrder,
         startDate,
@@ -95,7 +128,7 @@ export const MediaLibraryPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search, selectedFolder, datePreset, sortBy, sortOrder]);
+  }, [page, search, selectedFolder, selectedFormat, datePreset, sortBy, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,7 +141,13 @@ export const MediaLibraryPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setSelectedUploadFile(file);
-    setUploadPreview(URL.createObjectURL(file));
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (isPdf) {
+      setUploadPreview('');
+      setTargetFolder('shiv-shakti-events/catalogues');
+    } else {
+      setUploadPreview(URL.createObjectURL(file));
+    }
     if (!altTextInput) {
       setAltTextInput(file.name.replace(/\.[^/.]+$/, ''));
     }
@@ -274,7 +313,7 @@ export const MediaLibraryPage: React.FC = () => {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,application/pdf"
             onChange={handleFileSelect}
             style={{ display: 'none' }}
           />
@@ -324,9 +363,17 @@ export const MediaLibraryPage: React.FC = () => {
                 overflow: 'hidden',
                 background: '#080d18',
                 border: '1px solid #1e293b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              {uploadPreview ? (
+              {selectedUploadFile?.name.toLowerCase().endsWith('.pdf') ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#f87171' }}>
+                  <FileText size={28} />
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, marginTop: '4px' }}>PDF File</span>
+                </div>
+              ) : uploadPreview ? (
                 <img src={uploadPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
@@ -376,6 +423,9 @@ export const MediaLibraryPage: React.FC = () => {
                   cursor: 'pointer',
                 }}
               >
+                <option value="shiv-shakti-events/catalogues">shiv-shakti-events/catalogues (PDFs)</option>
+                <option value="shiv-shakti-events/ceilings">shiv-shakti-events/ceilings</option>
+                <option value="shiv-shakti-events/table-covers">shiv-shakti-events/table-covers</option>
                 <option value="shiv-shakti-events/library">shiv-shakti-events/library</option>
                 <option value="shiv-shakti-events/products">shiv-shakti-events/products</option>
                 <option value="shiv-shakti-events/banners">shiv-shakti-events/banners</option>
@@ -475,11 +525,40 @@ export const MediaLibraryPage: React.FC = () => {
             }}
           >
             <option value="all">All CDN Folders</option>
-            <option value="shiv-shakti-events">General</option>
-            <option value="shiv-shakti-events/library">Library</option>
-            <option value="shiv-shakti-events/products">Products</option>
-            <option value="shiv-shakti-events/banners">Banners</option>
-            <option value="shiv-shakti-events/cms">CMS Pages</option>
+            <option value="shiv-shakti-events/catalogues">📚 Full Catalogues (PDFs)</option>
+            <option value="shiv-shakti-events/ceilings">✨ Grand Ceilings</option>
+            <option value="shiv-shakti-events/table-covers">🍽️ Wedding Table Covers</option>
+            <option value="shiv-shakti-events/products">📦 Products</option>
+            <option value="shiv-shakti-events/library">🖼️ Media Library</option>
+            <option value="shiv-shakti-events/banners">🚩 Banners</option>
+            <option value="shiv-shakti-events/cms">📄 CMS Pages</option>
+            <option value="shiv-shakti-events">🌐 General Assets</option>
+          </select>
+        </div>
+
+        {/* Format Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FileText size={15} color="#64748b" />
+          <select
+            value={selectedFormat}
+            onChange={(e) => {
+              setSelectedFormat(e.target.value as any);
+              setPage(1);
+            }}
+            style={{
+              padding: '9px 14px',
+              background: '#080d18',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              color: '#cbd5e1',
+              fontSize: '0.84rem',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="all">All Media Types</option>
+            <option value="pdf">📄 PDF Catalogues Only</option>
+            <option value="image">🖼️ Images Only</option>
           </select>
         </div>
 
@@ -599,167 +678,306 @@ export const MediaLibraryPage: React.FC = () => {
             gap: '20px',
           }}
         >
-          {assets.map((asset) => (
-            <div
-              key={asset.id}
-              style={{
-                background: '#0d1526',
-                border: '1px solid #1e293b',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.2)',
-                transition: 'border-color 0.15s',
-              }}
-            >
-              <div style={{ height: '180px', background: '#080d18', position: 'relative' }}>
-                <img
-                  src={asset.url}
-                  alt={asset.altText || asset.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  loading="lazy"
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '8px',
-                    left: '8px',
-                    display: 'flex',
-                    gap: '4px',
-                  }}
-                >
-                  {asset.format && (
+          {assets.map((asset) => {
+            const uniqueCode = extractUniqueCode(asset);
+            const isPdf = asset.format?.toLowerCase() === 'pdf' || asset.name.toLowerCase().endsWith('.pdf');
+
+            return (
+              <div
+                key={asset.id}
+                style={{
+                  background: '#0d1526',
+                  border: isPdf ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid #1e293b',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: isPdf ? '0 4px 14px rgba(239, 68, 68, 0.12)' : '0 4px 6px -1px rgba(0,0,0,0.2)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ height: '180px', background: '#080d18', position: 'relative', overflow: 'hidden' }}>
+                  {isPdf ? (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(135deg, #1e1b4b 0%, #2e1065 45%, #450a0a 100%)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '16px',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          right: '-15px',
+                          bottom: '-15px',
+                          opacity: 0.12,
+                          color: '#ef4444',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <FileText size={120} strokeWidth={1} />
+                      </div>
+
+                      <div
+                        style={{
+                          width: '54px',
+                          height: '54px',
+                          borderRadius: '14px',
+                          background: 'rgba(239, 68, 68, 0.2)',
+                          border: '1px solid rgba(239, 68, 68, 0.5)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#f87171',
+                          marginBottom: '8px',
+                          boxShadow: '0 6px 16px rgba(239, 68, 68, 0.25)',
+                        }}
+                      >
+                        <FileText size={28} />
+                      </div>
+                      <div
+                        style={{
+                          color: '#fecaca',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Official PDF Catalogue
+                      </div>
+                      <div
+                        style={{
+                          color: '#94a3b8',
+                          fontSize: '0.68rem',
+                          marginTop: '3px',
+                        }}
+                      >
+                        Cloudinary Raw Storage • {formatFileSize(asset.bytes)}
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={asset.url}
+                      alt={asset.altText || asset.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      loading="lazy"
+                    />
+                  )}
+
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '8px',
+                      left: '8px',
+                      display: 'flex',
+                      gap: '4px',
+                      zIndex: 2,
+                    }}
+                  >
                     <span
                       style={{
-                        background: 'rgba(3, 7, 18, 0.8)',
-                        color: '#60a5fa',
+                        background: isPdf ? 'rgba(220, 38, 38, 0.85)' : 'rgba(3, 7, 18, 0.8)',
+                        color: isPdf ? '#ffffff' : '#60a5fa',
                         fontSize: '0.65rem',
                         fontWeight: 700,
                         textTransform: 'uppercase',
-                        padding: '2px 6px',
+                        padding: '2px 7px',
                         borderRadius: '4px',
-                        border: '1px solid rgba(96, 165, 250, 0.2)',
+                        border: isPdf ? '1px solid rgba(254, 202, 202, 0.3)' : '1px solid rgba(96, 165, 250, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
                       }}
                     >
-                      {asset.format}
+                      {isPdf && <FileText size={10} />}
+                      {asset.format || 'file'}
                     </span>
-                  )}
-                  {asset.folder && (
-                    <span
+                    {asset.folder && (
+                      <span
+                        style={{
+                          background: 'rgba(3, 7, 18, 0.8)',
+                          color: '#94a3b8',
+                          fontSize: '0.65rem',
+                          fontWeight: 600,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {asset.folder.split('/').pop()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    padding: '14px',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                  }}
+                >
+                  <div>
+                    {/* Unique ID Code Badge with 1-click Copy */}
+                    {uniqueCode && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: 'rgba(245, 158, 11, 0.1)',
+                          border: '1px solid rgba(245, 158, 11, 0.3)',
+                          borderRadius: '6px',
+                          padding: '4px 8px',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: '#fbbf24',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          <Hash size={11} />
+                          <span>{uniqueCode}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(uniqueCode)}
+                          style={{
+                            background: copiedCode === uniqueCode ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+                            border: 'none',
+                            borderRadius: '4px',
+                            color: copiedCode === uniqueCode ? '#34d399' : '#cbd5e1',
+                            fontSize: '0.65rem',
+                            fontWeight: 600,
+                            padding: '2px 6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            transition: 'all 0.15s',
+                          }}
+                          title="Copy Unique Code"
+                        >
+                          {copiedCode === uniqueCode ? <Check size={10} /> : <Copy size={10} />}
+                          <span>{copiedCode === uniqueCode ? 'Copied' : 'Copy Code'}</span>
+                        </button>
+                      </div>
+                    )}
+
+                    <div
                       style={{
-                        background: 'rgba(3, 7, 18, 0.8)',
-                        color: '#94a3b8',
-                        fontSize: '0.65rem',
-                        fontWeight: 600,
-                        padding: '2px 6px',
-                        borderRadius: '4px',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        color: '#f1f5f9',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                      title={asset.name}
+                    >
+                      {asset.name}
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.72rem',
+                        color: '#64748b',
+                        marginTop: '4px',
                       }}
                     >
-                      {asset.folder.split('/').pop()}
-                    </span>
-                  )}
+                      <span>
+                        {isPdf
+                          ? 'PDF Document'
+                          : asset.width
+                          ? `${asset.width}×${asset.height} px`
+                          : 'Optimized'}
+                      </span>
+                      <span>{formatFileSize(asset.bytes)}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(asset.url)}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        padding: '7px 10px',
+                        background: copiedUrl === asset.url ? 'rgba(16, 185, 129, 0.2)' : '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '6px',
+                        color: copiedUrl === asset.url ? '#34d399' : '#cbd5e1',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {copiedUrl === asset.url ? <Check size={13} /> : <Copy size={13} />}
+                      <span>{copiedUrl === asset.url ? 'Copied CDN URL!' : isPdf ? 'Copy PDF URL' : 'Copy CDN URL'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => window.open(asset.url, '_blank')}
+                      style={{
+                        padding: '7px 10px',
+                        background: isPdf ? 'rgba(239, 68, 68, 0.15)' : '#1e293b',
+                        border: isPdf ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid #334155',
+                        borderRadius: '6px',
+                        color: isPdf ? '#f87171' : '#94a3b8',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                      title={isPdf ? 'Open Full PDF Catalogue in New Tab' : 'Open in Cloudinary CDN'}
+                    >
+                      <ExternalLink size={13} />
+                      {isPdf && <span style={{ fontSize: '0.72rem', fontWeight: 600 }}>Open PDF</span>}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(asset)}
+                      style={{
+                        padding: '7px 10px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        borderRadius: '6px',
+                        color: '#f87171',
+                        cursor: 'pointer',
+                      }}
+                      title="Delete Asset"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div
-                style={{
-                  padding: '14px',
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      color: '#f1f5f9',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                    title={asset.name}
-                  >
-                    {asset.name}
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '0.72rem',
-                      color: '#64748b',
-                      marginTop: '4px',
-                    }}
-                  >
-                    <span>{asset.width ? `${asset.width}×${asset.height} px` : 'Optimized'}</span>
-                    <span>{formatFileSize(asset.bytes)}</span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(asset.url)}
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      padding: '7px 10px',
-                      background: copiedUrl === asset.url ? 'rgba(16, 185, 129, 0.2)' : '#1e293b',
-                      border: '1px solid #334155',
-                      borderRadius: '6px',
-                      color: copiedUrl === asset.url ? '#34d399' : '#cbd5e1',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {copiedUrl === asset.url ? <Check size={13} /> : <Copy size={13} />}
-                    <span>{copiedUrl === asset.url ? 'Copied CDN URL!' : 'Copy CDN URL'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => window.open(asset.url, '_blank')}
-                    style={{
-                      padding: '7px 10px',
-                      background: '#1e293b',
-                      border: '1px solid #334155',
-                      borderRadius: '6px',
-                      color: '#94a3b8',
-                      cursor: 'pointer',
-                    }}
-                    title="Open in Cloudinary CDN"
-                  >
-                    <ExternalLink size={13} />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(asset)}
-                    style={{
-                      padding: '7px 10px',
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      border: '1px solid rgba(239, 68, 68, 0.25)',
-                      borderRadius: '6px',
-                      color: '#f87171',
-                      cursor: 'pointer',
-                    }}
-                    title="Delete Asset"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
       </div>

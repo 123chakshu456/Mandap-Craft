@@ -28,6 +28,7 @@ export const mediaApi = {
       limit?: number;
       search?: string;
       folder?: string;
+      format?: string;
       sortBy?: string;
       sortOrder?: 'asc' | 'desc';
       startDate?: string;
@@ -44,6 +45,7 @@ export const mediaApi = {
     if (query.limit) params.append('limit', String(query.limit));
     if (query.search) params.append('search', query.search);
     if (query.folder) params.append('folder', query.folder);
+    if (query.format) params.append('format', query.format);
     if (query.sortBy) params.append('sortBy', query.sortBy);
     if (query.sortOrder) params.append('sortOrder', query.sortOrder);
     if (query.startDate) params.append('startDate', query.startDate);

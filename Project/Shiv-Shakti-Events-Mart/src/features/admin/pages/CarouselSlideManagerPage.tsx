@@ -27,6 +27,22 @@ import type {
 
 const PRESET_IMAGES = [
   {
+    label: 'Royal Crimson Palace Pavilion Ceiling',
+    url: 'https://res.cloudinary.com/owbjdijm/image/upload/v1791837978/shiv-shakti-carousel/carousel_royal_crimson_palace_canopy.jpg',
+  },
+  {
+    label: 'Midnight Celestial Star-Lit Dome Ceiling',
+    url: 'https://res.cloudinary.com/owbjdijm/image/upload/v1791837979/shiv-shakti-carousel/carousel_midnight_navy_celestial_dome.jpg',
+  },
+  {
+    label: 'Sapphire & Silver Cascading Silk Canopy',
+    url: 'https://res.cloudinary.com/owbjdijm/image/upload/v1791837980/shiv-shakti-carousel/carousel_sapphire_silver_cascading_canopy.jpg',
+  },
+  {
+    label: 'Emerald Green Imperial Marquee Ceiling',
+    url: 'https://res.cloudinary.com/owbjdijm/image/upload/v1791837981/shiv-shakti-carousel/carousel_emerald_gold_imperial_marquee.jpg',
+  },
+  {
     label: 'Royal Mughal Mandap',
     url: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=85',
   },
@@ -37,14 +53,6 @@ const PRESET_IMAGES = [
   {
     label: 'Teakwood Banqueting Suite',
     url: 'https://images.unsplash.com/photo-1544077960-604201fe74bc?auto=format&fit=crop&w=1920&q=85',
-  },
-  {
-    label: 'Luxury Ambient Night Staging',
-    url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=85',
-  },
-  {
-    label: 'Grand Ballroom Illumination',
-    url: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=1920&q=85',
   },
 ];
 

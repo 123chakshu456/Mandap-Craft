@@ -69,11 +69,17 @@ export const uploadStreamToCloudinary = (buffer, folder = 'shiv-shakti-events', 
   }
 
   return new Promise((resolve) => {
+    const isPdf = Boolean(originalName && originalName.toLowerCase().endsWith('.pdf'));
+    const options = {
+      folder,
+      resource_type: isPdf ? 'raw' : 'auto',
+    };
+    if (!isPdf) {
+      options.transformation = [{ quality: 'auto', fetch_format: 'auto' }];
+    }
+
     const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder,
-        transformation: [{ quality: 'auto', fetch_format: 'auto' }],
-      },
+      options,
       (error, result) => {
         if (error || !result) {
           console.warn('⚠️ Cloudinary upload failed. Falling back to local storage:', error?.message);
@@ -82,9 +88,9 @@ export const uploadStreamToCloudinary = (buffer, folder = 'shiv-shakti-events', 
         resolve({
           url: result.secure_url,
           publicId: result.public_id,
-          width: result.width,
-          height: result.height,
-          format: result.format,
+          width: result.width || (isPdf ? 800 : null),
+          height: result.height || (isPdf ? 1100 : null),
+          format: result.format || (isPdf ? 'pdf' : 'jpg'),
           bytes: result.bytes,
         });
       }

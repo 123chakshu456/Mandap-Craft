@@ -8,6 +8,7 @@ import {
   Folder,
   Loader2,
   AlertCircle,
+  FileText,
 } from 'lucide-react';
 import { mediaApi } from '../../../features/media/services/mediaApi';
 import type { MediaAsset } from '../../types/models.types';
@@ -340,11 +341,14 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                   }}
                 >
                   <option value="all">All Folders</option>
-                  <option value="shiv-shakti-events">General</option>
+                  <option value="shiv-shakti-events/catalogues">Full Catalogues (PDFs)</option>
+                  <option value="shiv-shakti-events/ceilings">Grand Ceilings</option>
+                  <option value="shiv-shakti-events/table-covers">Wedding Table Covers</option>
                   <option value="shiv-shakti-events/products">Products</option>
                   <option value="shiv-shakti-events/library">Library</option>
                   <option value="shiv-shakti-events/banners">Banners</option>
                   <option value="shiv-shakti-events/cms">CMS Pages</option>
+                  <option value="shiv-shakti-events">General</option>
                 </select>
               </div>
             </div>
@@ -469,16 +473,36 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                             overflow: 'hidden',
                           }}
                         >
-                          <img
-                            src={asset.url}
-                            alt={asset.altText || asset.name}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                            loading="lazy"
-                          />
+                          {asset.format?.toLowerCase() === 'pdf' || asset.name.toLowerCase().endsWith('.pdf') ? (
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                background: 'linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #450a0a 100%)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#f87171',
+                              }}
+                            >
+                              <FileText size={26} />
+                              <span style={{ fontSize: '0.62rem', fontWeight: 700, marginTop: '4px', color: '#fecaca' }}>
+                                PDF Catalogue
+                              </span>
+                            </div>
+                          ) : (
+                            <img
+                              src={asset.url}
+                              alt={asset.altText || asset.name}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                              }}
+                              loading="lazy"
+                            />
+                          )}
                           {asset.format && (
                             <span
                               style={{
