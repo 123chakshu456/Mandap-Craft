@@ -52,18 +52,30 @@ export default function MainLayout() {
 
       // Update subcategories titles/names from live DB if present
       const updatedSubsections = staticCat.subsections.map((sub) => {
-        const liveSub = liveCat.children?.find((s) => s.id === sub.id || s.slug === sub.id);
+        const liveSub = liveCat.children?.find((s) => s.id === sub.id || s.slug === sub.id || s.slug === `${staticCat.id}-${sub.id}`);
         return {
           ...sub,
           title: liveSub?.name || sub.title,
+          image: liveSub?.image || sub.image,
         };
       });
+
+      // Append any live subcategories not present in static list
+      const extraSubsections = (liveCat.children || [])
+        .filter((s) => !staticCat.subsections.some((sub) => sub.id === s.id || sub.id === s.slug || `${staticCat.id}-${sub.id}` === s.slug))
+        .map((s) => ({
+          id: s.id,
+          title: s.name,
+          description: s.description || `${s.name} collection for events and celebrations`,
+          image: s.image || staticCat.subsections[0]?.image || '',
+          popularItems: (Array.isArray(s.popularItems) ? s.popularItems : []) as string[],
+        }));
 
       return {
         ...staticCat,
         title: (liveCat.shortTitle || liveCat.name || staticCat.title).toUpperCase(),
         shortTitle: liveCat.shortTitle || liveCat.name || staticCat.shortTitle,
-        subsections: updatedSubsections,
+        subsections: [...updatedSubsections, ...extraSubsections],
       };
     });
   }, [liveCategories]);
@@ -993,6 +1005,7 @@ export default function MainLayout() {
                 <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'mandaps')}>Mandaps</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'tents')}>Tents &amp; Shamianas</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'canopies')}>Canopies</button></li>
+                <li><button type="button" onClick={() => handleSubcategoryClick('wedding', 'table-covers')}>Table Covers</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'designer-chairs')}>Designer Chairs</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'plastic-chairs')}>Plastic Chairs</button></li>
                 <li><button type="button" onClick={() => handleSubcategoryClick('furniture', 'tables')}>Tables</button></li>

@@ -93,6 +93,14 @@ const CATEGORIES_DATA = [
         image: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=600&q=80',
         popularItems: ['Maharaja Twin Thrones', 'Carved Royal Risers', 'Grand Brass Urlis', 'Illuminated Acrylic Steps'],
       },
+      {
+        id: 'table-covers',
+        name: 'Wedding Table Covers',
+        slug: 'table-covers',
+        description: 'Luxury Round Banquet Table Covers, Velvet Overlays & Royal Wedding Table Linens',
+        image: 'https://res.cloudinary.com/owbjdijm/image/upload/v1791836830/shiv-shakti-categories/wedding_table_covers_banner.jpg',
+        popularItems: ['Yellow Top Round Table Cover', 'Green Velvet Overlay Table Cover', 'Round Table Cover Collection', 'Velvet Overlay Linen'],
+      },
     ],
   },
   {

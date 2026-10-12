@@ -14,6 +14,7 @@ const UNIFIED_CATEGORIES = [
       { id: 'backdrops', name: 'Backdrops', sortOrder: 5 },
       { id: 'jaimala', name: 'Jaimala', sortOrder: 6 },
       { id: 'stage-items', name: 'Stage Items', sortOrder: 7 },
+      { id: 'table-covers', name: 'Wedding Table Covers', sortOrder: 8 },
     ],
   },
   {
