@@ -18,7 +18,6 @@ import {
   ArrowUpDown,
   FileText,
   Hash,
-  Download,
 } from 'lucide-react';
 import { mediaApi } from '../../media/services/mediaApi';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog/ConfirmDialog';
