@@ -73,9 +73,16 @@ export function printQuotation(items: QuotationPrintItem[], totalPrice: number, 
             <p style="margin: 4px 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #b45309; letter-spacing: 1px;">
               Premier Wedding &amp; Event Infrastructure Manufacturer
             </p>
-            <p style="margin: 6px 0 0; font-size: 13px; color: #475569;">
-              Industrial Area, Ring Road, Jaipur, Rajasthan 302013<br />
-              📞 +91 98765 43210 &bull; ✉️ 123chakshu456@gmail.com
+            <p style="margin: 4px 0 0; font-size: 11px; font-weight: 700; color: #047857; text-transform: uppercase; letter-spacing: 0.5px;">
+              Fulfilled by: Shiv Shakti Dyeing and Tent Works (Authorized Indian Army Supplier)
+            </p>
+            <p style="margin: 4px 0 0; font-size: 12px; color: #1e293b; font-weight: 700;">
+              <strong>GSTIN:</strong> 03ACLPK6023A1Z9 &bull; <strong>Bank:</strong> Punjab National Bank (PNB)
+            </p>
+            <p style="margin: 6px 0 0; font-size: 13px; color: #475569; line-height: 1.5;">
+              📍 Bibi Wala Road, Near Durga Mandir, Bathinda, Punjab 151001<br />
+              📞 WhatsApp: +91 94174-17978 / 94631-04291 &bull; ☎️ Landline: 0164-2211543 &bull; Mob: 90565-17978<br />
+              🕒 Mon &ndash; Sat: 9:00 AM &ndash; 7:00 PM (IST) &bull; Sunday Closed &bull; 👤 Contact: Parveen
             </p>
           </div>
           <div style="text-align: right;">
@@ -124,7 +131,8 @@ export function printQuotation(items: QuotationPrintItem[], totalPrice: number, 
             <ul style="margin: 4px 0 0; padding-left: 18px;">
               <li>Prices are indicative factory rates; freight &amp; GST applicable as per delivery location.</li>
               <li>Custom orders and large mandap structures require 50% advance for dispatch confirmation.</li>
-              <li>For immediate logistics dispatch or bulk queries, contact Mr. Chakshu Goyal (+91 98765 43210).</li>
+              <li>For immediate logistics dispatch or bulk queries, contact Mr. Parveen (WhatsApp: +91 94174-17978 / 94631-04291 &bull; Tel: 0164-2211543 &bull; Mob: 90565-17978).</li>
+              <li>Workshop &amp; Store Timings: Mon – Sat 9:00 AM – 7:00 PM (IST). Sunday Closed.</li>
             </ul>
           </div>
           <div style="text-align: right; min-width: 240px;">
@@ -134,6 +142,28 @@ export function printQuotation(items: QuotationPrintItem[], totalPrice: number, 
                 ₹${totalPrice.toLocaleString('en-IN')}
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Official Bank Account & UPI Settlement Credentials -->
+        <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 12px; line-height: 1.6;">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">
+              🏦 Official Bank Transfer (NEFT / RTGS / IMPS)
+            </div>
+            <div><strong>Bank Name:</strong> Punjab National Bank (PNB)</div>
+            <div><strong>Account Number:</strong> <span style="font-family: monospace; font-size: 13.5px; font-weight: 800; color: #0f172a;">6183002100000867</span></div>
+            <div><strong>IFS Code:</strong> <span style="font-family: monospace; font-size: 13px; font-weight: 800; color: #047857;">PUNB0618300</span></div>
+            <div><strong>Beneficiary:</strong> Shiv Shakti Dyeing and Tent Works</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">
+              ⚡ Official GST &amp; UPI Settlement
+            </div>
+            <div><strong>GST Registration No:</strong> <span style="font-family: monospace; font-size: 13px; font-weight: 800; color: #0f172a;">03ACLPK6023A1Z9</span></div>
+            <div><strong>UPI Number:</strong> <span style="font-family: monospace; font-size: 13px; font-weight: 800; color: #047857;">9417417978</span></div>
+            <div><strong>UPI VPA ID:</strong> <span style="font-family: monospace; font-size: 12.5px; font-weight: 700;">9417417978@upi</span></div>
+            <div><strong>Registered Works:</strong> Bathinda, Punjab 151001</div>
           </div>
         </div>
 

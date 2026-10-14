@@ -104,7 +104,7 @@ export default function CheckoutPage() {
     try {
       const finalName = customerName || cardName || currentUser?.name || 'Valued Guest';
       const finalEmail = customerEmail || currentUser?.email || 'guest@shivshaktievents.com';
-      const finalPhone = customerPhone || '9876543210';
+      const finalPhone = customerPhone || '9417417978';
 
       const transactionRef = confirmedMethod === 'upi'
         ? (utrNumber ? `UTR-${utrNumber}` : `UPI-${tempOrderRef}`)
@@ -249,6 +249,14 @@ export default function CheckoutPage() {
             <div className="summary-row">
               <span className="label">Status</span>
               <span className="value status-badge">CONFIRMED &amp; SEALED</span>
+            </div>
+            <div className="summary-row">
+              <span className="label">Fulfillment &amp; Works</span>
+              <span className="value">{PAYMENT_CONFIG.fulfillmentEntity}</span>
+            </div>
+            <div className="summary-row">
+              <span className="label">GSTIN</span>
+              <span className="value font-mono">{PAYMENT_CONFIG.gstNumber}</span>
             </div>
             <div className="summary-row">
               <span className="label">Payment Method</span>
@@ -457,6 +465,28 @@ export default function CheckoutPage() {
                       ))}
                     </select>
                   </div>
+
+                  {/* DIRECT OFFICIAL BANK TRANSFER INSTRUCTIONS */}
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '12px 14px',
+                    background: '#f8fafc',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '10px',
+                    fontSize: '12.5px',
+                    color: '#1e293b',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#047857', fontWeight: 800, letterSpacing: '0.5px', marginBottom: '4px' }}>
+                      🏦 Official Direct Bank Transfer (NEFT / RTGS / IMPS)
+                    </div>
+                    <div><strong>Bank Name:</strong> {PAYMENT_CONFIG.bankName} (PNB)</div>
+                    <div><strong>Beneficiary:</strong> {PAYMENT_CONFIG.fulfillmentEntity}</div>
+                    <div><strong>Account Number:</strong> <span style={{ fontFamily: 'monospace', fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>{PAYMENT_CONFIG.accountNumber}</span></div>
+                    <div><strong>IFS Code:</strong> <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 800, color: '#047857' }}>{PAYMENT_CONFIG.ifscCode}</span></div>
+                    <div><strong>GSTIN:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 800 }}>{PAYMENT_CONFIG.gstNumber}</span></div>
+                    <div><strong>UPI Number:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#047857' }}>{PAYMENT_CONFIG.upiNumber}</span> ({PAYMENT_CONFIG.merchantUpiId})</div>
+                  </div>
                 </div>
               )}
 
@@ -556,6 +586,22 @@ export default function CheckoutPage() {
                 <span>Grand Total</span>
                 <span>₹{grandTotal.toLocaleString()}</span>
               </div>
+            </div>
+
+            {/* Official Credentials Trust Strip */}
+            <div style={{
+              marginTop: '14px',
+              padding: '10px 12px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              fontSize: '11px',
+              color: '#64748b',
+              lineHeight: '1.5',
+              textAlign: 'center'
+            }}>
+              <div><strong>GSTIN:</strong> {PAYMENT_CONFIG.gstNumber} &bull; <strong>PNB Certified</strong></div>
+              <div>Fulfilled by {PAYMENT_CONFIG.fulfillmentEntity}</div>
             </div>
 
           </div>

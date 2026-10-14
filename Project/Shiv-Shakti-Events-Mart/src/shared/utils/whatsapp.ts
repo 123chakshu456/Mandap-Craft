@@ -4,8 +4,8 @@
 
 export { ENABLE_WHATSAPP_CHAT } from '../../constants/featureFlags';
 
-export const WHATSAPP_PHONE = '919876543210';
-export const SALES_DIRECTOR_NAME = 'Mr. Chakshu Goyal';
+export const WHATSAPP_PHONE = '919417417978';
+export const SALES_DIRECTOR_NAME = 'Mr. Parveen';
 
 export interface WhatsAppProductInquiry {
   name: string;

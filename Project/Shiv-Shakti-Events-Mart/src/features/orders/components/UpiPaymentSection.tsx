@@ -125,6 +125,24 @@ export default function UpiPaymentSection({
             </button>
           </div>
 
+          {/* Official Bank Account & UPI Settlement Credentials */}
+          <div style={{
+            margin: '12px 0 6px',
+            padding: '10px 14px',
+            background: '#f8fafc',
+            border: '1px solid #cbd5e1',
+            borderRadius: '10px',
+            fontSize: '12px',
+            color: '#334155',
+            lineHeight: '1.6',
+            textAlign: 'left'
+          }}>
+            <div><strong>UPI Number:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#047857', fontSize: '13px' }}>{PAYMENT_CONFIG.upiNumber}</span></div>
+            <div><strong>Bank Name:</strong> {PAYMENT_CONFIG.bankName}</div>
+            <div><strong>A/C No:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0f172a' }}>{PAYMENT_CONFIG.accountNumber}</span> &bull; <strong>IFSC:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#047857' }}>{PAYMENT_CONFIG.ifscCode}</span></div>
+            <div><strong>GSTIN:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{PAYMENT_CONFIG.gstNumber}</span></div>
+          </div>
+
           {/* Quick UPI App links (helpful on mobile devices) */}
           <div className="upi-apps-row">
             <span className="apps-title">Tap to open in UPI App:</span>

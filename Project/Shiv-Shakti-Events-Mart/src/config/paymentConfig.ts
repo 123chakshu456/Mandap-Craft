@@ -10,18 +10,27 @@
  */
 
 export const PAYMENT_CONFIG = {
-  // ── Merchant Information (Update your phone number here at the end) ──
+  // ── Merchant Information ──
   merchantName: 'Shiv Shakti Events Mart',
-  merchantPhone: '9876543210', // <-- UPDATE YOUR PHONE NUMBER HERE
-  merchantUpiId: '9876543210@upi', // <-- UPDATE YOUR UPI ID HERE (e.g. 9876543210@paytm, 9876543210@ybl, 9876543210@okaxis)
+  fulfillmentEntity: 'Shiv Shakti Dyeing and Tent Works',
+  merchantPhone: '9417417978',
+  merchantUpiId: '9417417978@upi',
+  upiNumber: '9417417978',
+
+  // ── Official Banking & Tax Registration ──
+  bankName: 'Punjab National Bank',
+  accountNumber: '6183002100000867',
+  ifscCode: 'PUNB0618300',
+  accountHolder: 'Shiv Shakti Dyeing and Tent Works',
+  accountType: 'Current / Commercial',
+  gstNumber: '03ACLPK6023A1Z9',
+  address: 'Bibi Wala Road, Near Durga Mandir, Bathinda, Punjab 151001',
 
   // ── Currency & Display ──
   currency: 'INR',
   currencySymbol: '₹',
 
   // ── Optional Razorpay Gateway Integration ──
-  // If you ever want to activate the official Razorpay Checkout popup,
-  // simply set enableRazorpay: true and provide your Razorpay Key ID.
   enableRazorpay: false,
   razorpayKeyId: (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || '',
 

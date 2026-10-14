@@ -12,6 +12,11 @@ import {
   Menu,
   ArrowRight,
   ChevronDown,
+  Award,
+  Factory,
+  ShieldCheck,
+  MapPin,
+  Truck,
 } from 'lucide-react';
 
 import { CATEGORIES } from '../constants';
@@ -936,28 +941,178 @@ export default function MainLayout() {
       <footer className="footer">
         <div className="footer-container">
 
-          {/* Top Newsletter Grid */}
-          <div className="footer-newsletter">
-            <div className="newsletter-info">
-              <h3>Join Shiv Shakti Events Mart Privilege Club</h3>
-              <p>
-                Subscribe to receive invite-only alerts for designer collaborations, wedding stage trends, catering equipment auctions, and seasonal catalog launches.
+          {/* ==========================================
+              ABOUT SHIV SHAKTI & HERITAGE MODULE
+             ========================================== */}
+          <div className="footer-about-wrapper">
+            <div className="about-main-content">
+              <div className="about-badge-tag">
+                <Sparkles size={14} className="tag-icon" />
+                <span>DIRECT MANUFACTURER &bull; FULFILLED BY SHIV SHAKTI DYEING AND TENT WORKS</span>
+              </div>
+              <h3 className="about-heading">
+                About Shiv Shakti Events Mart
+              </h3>
+              <p className="about-description">
+                Shiv Shakti Events Mart (fulfilled by <strong>Shiv Shakti Dyeing and Tent Works</strong>) is Punjab&apos;s premier manufacturer, wholesale supplier, and event decorator based in Bathinda. With decades of trusted craftsmanship, we deliver turnkey infrastructure for <strong>royal weddings</strong>, sacred <strong>Gurudwara settings &amp; religious samagams</strong>, <strong>home marriage events</strong> (Haldi, Mehndi, Sangeet &amp; Jagran), and are an authorized <strong>supplier to the Indian Army</strong> and defense establishments. We supply premium Lycra cloth, custom curtains, non-woven fabrics, VIP carpets, turf mats, PVC sheets, banquet furniture, and fiber pots with direct factory reliability.
               </p>
+
+              <div className="about-highlights-grid">
+                <div className="highlight-card">
+                  <div className="highlight-icon">
+                    <Award size={18} />
+                  </div>
+                  <div className="highlight-text">
+                    <h4>Weddings &amp; Grand Receptions</h4>
+                    <p>Royal mandap staging, ceremonial stages, banquet furniture, entry walkways &amp; exquisite velvet drapery.</p>
+                  </div>
+                </div>
+
+                <div className="highlight-card">
+                  <div className="highlight-icon">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div className="highlight-text">
+                    <h4>Gurudwara Settings &amp; Religious Events</h4>
+                    <p>Sacred diwan setups, religious pandals, Palki Sahib backdrops, quiet &amp; jute mats, and weather-proof tents.</p>
+                  </div>
+                </div>
+
+                <div className="highlight-card">
+                  <div className="highlight-icon">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div className="highlight-text">
+                    <h4>Indian Army &amp; Defense Supplier</h4>
+                    <p>Trusted supplier of heavy-duty cantonment tents, durable tarpaulins, PVC sheets, floor mats &amp; defense infrastructure.</p>
+                  </div>
+                </div>
+
+                <div className="highlight-card">
+                  <div className="highlight-icon">
+                    <Factory size={18} />
+                  </div>
+                  <div className="highlight-text">
+                    <h4>Home Events for Marriages</h4>
+                    <p>Tailored home setups for Haldi, Mehndi, Sangeet, Jagran, Kirtan, and intimate family gatherings.</p>
+                  </div>
+                </div>
+
+                <div className="highlight-card">
+                  <div className="highlight-icon">
+                    <Truck size={18} />
+                  </div>
+                  <div className="highlight-text">
+                    <h4>New Tent House Items &amp; Supplies</h4>
+                    <p>Direct supply of Lycra cloth, non-woven, carpets, turf mats, PVC sheets, vertical blinds &amp; fiber pots.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="newsletter-form">
-              <form
-                onSubmit={(e) => { e.preventDefault(); showToast("Welcome to the Privilege Club! Check your inbox."); }}
-                style={{ display: 'flex', gap: '12px', width: '100%' }}
-              >
-                <input
-                  type="email"
-                  required
-                  placeholder="Enter your email address"
-                />
-                <button type="submit">
-                  Join Privilege
-                </button>
-              </form>
+
+            <div className="about-side-box">
+              <div className="workshop-card">
+                <div className="workshop-card-header">
+                  <MapPin size={18} className="pin-icon" />
+                  <h4>Central Works &amp; Store</h4>
+                </div>
+                
+                <div style={{
+                  display: 'inline-block',
+                  background: 'rgba(212, 175, 55, 0.15)',
+                  border: '1px solid rgba(212, 175, 55, 0.35)',
+                  color: '#d4af37',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  marginBottom: '10px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Fulfilled By: Shiv Shakti Dyeing and Tent Works
+                </div>
+
+                <p className="workshop-address">
+                  <strong>Location:</strong> Bibi Wala Road, Near Durga Mandir, Bathinda, Punjab 151001
+                </p>
+
+                <div className="workshop-timings" style={{ marginTop: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span className="timing-label">Store &amp; Workshop Hours</span>
+                    <span style={{
+                      background: '#ef4444',
+                      color: '#ffffff',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '1px 6px',
+                      borderRadius: '4px',
+                      letterSpacing: '0.4px'
+                    }}>
+                      SUNDAY CLOSED
+                    </span>
+                  </div>
+                  <span className="timing-val">Mon &ndash; Sat: 9:00 AM &ndash; 7:00 PM (IST)</span>
+                  <div style={{ marginTop: '6px', fontSize: '11px', color: '#cbd5e1' }}>
+                    <strong>Contact Person:</strong> Parveen
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>
+                    <strong>WhatsApp:</strong> 94174-17978 / 94631-04291
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>
+                    <strong>Phone / Landline:</strong> 0164-2211543 &bull; <strong>Mob:</strong> 90565-17978
+                  </div>
+
+                  <div style={{
+                    marginTop: '10px',
+                    padding: '10px 12px',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    color: '#cbd5e1',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{ fontWeight: 800, color: '#d4af37', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                      Official Banking &amp; GST Credentials
+                    </div>
+                    <div><strong>GSTIN:</strong> <span style={{ fontFamily: 'monospace', color: '#ffffff', fontWeight: 800 }}>03ACLPK6023A1Z9</span></div>
+                    <div><strong>Bank:</strong> Punjab National Bank (PNB)</div>
+                    <div><strong>Account No:</strong> <span style={{ fontFamily: 'monospace', color: '#ffffff', fontWeight: 800 }}>6183002100000867</span></div>
+                    <div><strong>IFSC Code:</strong> <span style={{ fontFamily: 'monospace', color: '#34d399', fontWeight: 800 }}>PUNB0618300</span></div>
+                    <div><strong>UPI Number:</strong> <span style={{ fontFamily: 'monospace', color: '#34d399', fontWeight: 800 }}>9417417978</span> (9417417978@upi)</div>
+                  </div>
+                </div>
+
+                <div className="workshop-actions">
+                  <a
+                    href="https://wa.me/919417417978?text=Hello%20Parveen%20ji%2C%20I%20am%20contacting%20you%20from%20Shiv%20Shakti%20Events%20Mart%20regarding%20tent%20and%20event%20infrastructure."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="factory-enquiry-btn"
+                  >
+                    <MessageSquare size={16} />
+                    <span>WhatsApp: 94174-17978</span>
+                  </a>
+                  <a
+                    href="https://wa.me/919463104291?text=Hello%20Parveen%20ji%2C%20I%20am%20contacting%20you%20from%20Shiv%20Shakti%20Events%20Mart%20regarding%20tent%20and%20event%20infrastructure."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="factory-enquiry-btn"
+                    style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}
+                  >
+                    <MessageSquare size={16} />
+                    <span>WhatsApp: 94631-04291</span>
+                  </a>
+                  <a
+                    href="tel:+919417417978"
+                    className="factory-call-btn"
+                  >
+                    <Phone size={15} />
+                    <span>Call: 94174-17978 / 90565-17978</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -980,13 +1135,13 @@ export default function MainLayout() {
                 <p className="logo-tagline">Bespoke Wedding &amp; Event Infrastructure</p>
               </Link>
               <p style={{ fontSize: '12px', color: '#b0b0b0', marginTop: '12px', lineHeight: '1.6' }}>
-                India's premier marketplace for royal wedding mandaps, banquet furniture, industrial catering equipment, decorative props, climate essentials, and turnkey manufacturing.
+                Manufacturer &amp; supplier for weddings, Gurudwara settings, Indian Army requirements, religious events, home marriage functions, and tent house materials. Fulfilled by Shiv Shakti Dyeing and Tent Works, Bibi Wala Road, Near Durga Mandir, Bathinda (Pb.) &bull; GSTIN: <strong>03ACLPK6023A1Z9</strong> &bull; Bank: <strong>PNB A/C 6183002100000867</strong> (IFSC: PUNB0618300) &bull; UPI: <strong>9417417978</strong>.
               </p>
               <div className="social-links">
-                <a href="#" aria-label="Phone consultation">
+                <a href="tel:+919417417978" aria-label="Phone consultation: 94174-17978">
                   <Phone className="icon" />
                 </a>
-                <a href="#" aria-label="Chat with stylist">
+                <a href="https://wa.me/919417417978" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
                   <MessageSquare className="icon" />
                 </a>
               </div>

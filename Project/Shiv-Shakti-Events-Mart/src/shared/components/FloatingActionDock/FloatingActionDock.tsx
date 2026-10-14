@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   User,
   Tag,
+  ShieldCheck,
 } from 'lucide-react';
 import { quoteApi } from '../../../features/quotes/services/quoteApi';
 import type { Product } from '../../../shared/types/models.types';
@@ -43,12 +44,12 @@ export default function FloatingActionDock({
   showToast,
   onNavigate,
   contactPerson = {
-    name: 'Mr. Chakshu Goyal',
-    designation: 'Founder & Chief Event Infrastructure Director',
-    phone: '+91 98765 43210',
-    whatsapp: '919876543210',
+    name: 'Mr. Parveen',
+    designation: 'Managing Director & Lead Fabricator',
+    phone: '+91 94174 17978',
+    whatsapp: '919417417978',
     email: '123chakshu456@gmail.com',
-    location: 'Shiv Shakti Events Mart, Industrial Area, Ring Road, Jaipur, Rajasthan 302013',
+    location: 'Bibi Wala Road, Near Durga Mandir, Bathinda, Punjab 151001',
   },
 }: FloatingActionDockProps) {
   // Modal visibility states
@@ -384,7 +385,7 @@ ${enquiryQuestion.trim() || 'Please share detailed quotation, availability, and 
                   <div className="tile-info">
                     <span className="tile-title">Call Person Directly</span>
                     <span className="tile-value">{contactPerson.phone}</span>
-                    <span className="tile-sub">Mon–Sun: 8:00 AM – 10:00 PM</span>
+                    <span className="tile-sub">Mon–Sat: 9:00 AM – 7:00 PM (Sun Closed)</span>
                   </div>
                 </a>
 
@@ -431,6 +432,20 @@ ${enquiryQuestion.trim() || 'Please share detailed quotation, availability, and 
                     <span className="tile-title">Staging Works &amp; Factory</span>
                     <span className="tile-value">{contactPerson.location}</span>
                     <span className="tile-sub">Direct factory visits welcome</span>
+                  </div>
+                </div>
+
+                {/* 5. Official Banking & GST Registration */}
+                <div className="person-action-tile banking-tile" style={{ background: '#f8fafc', borderColor: '#cbd5e1' }}>
+                  <div className="tile-icon" style={{ background: '#047857', color: '#ffffff' }}>
+                    <ShieldCheck className="icon" />
+                  </div>
+                  <div className="tile-info">
+                    <span className="tile-title">Official GST &amp; Bank Settlement</span>
+                    <span className="tile-value">GSTIN: 03ACLPK6023A1Z9</span>
+                    <span className="tile-sub">
+                      PNB A/C: <strong>6183002100000867</strong> (IFSC: <strong>PUNB0618300</strong>) &bull; UPI: <strong>9417417978</strong>
+                    </span>
                   </div>
                 </div>
               </div>

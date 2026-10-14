@@ -106,9 +106,9 @@ export default function CatalogueDownloadModal({
 📦 *Total Products:* ${categoryProducts.length} items
 🔗 *Catalogue Portal:* https://shivshaktieventsmart.vercel.app/#catalog
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-Hello Mr. Chakshu Goyal, I would like to request the official PDF catalogue and availability for the *${activeCategory.title}* collection.`;
+Hello Mr. Parveen, I would like to request the official PDF catalogue and availability for the *${activeCategory.title}* collection.`;
 
-    const url = `https://wa.me/919876543210?text=${encodeURIComponent(text)}`;
+    const url = `https://wa.me/919417417978?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
     showToast('📲 Opening WhatsApp with your catalogue request details...');
   };

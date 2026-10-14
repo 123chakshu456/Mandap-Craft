@@ -19,16 +19,26 @@ export interface GenerateCataloguePdfOptions {
     email: string;
     address: string;
     website: string;
+    gstNumber?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    bankName?: string;
+    upiNumber?: string;
   };
 }
 
 const DEFAULT_COMPANY_DETAILS = {
   name: 'SHIV SHAKTI EVENTS MART',
   tagline: 'Bespoke Wedding Infrastructure, Luxury Furnishings & Commercial Catering Machinery',
-  contactPerson: 'Mr. Chakshu Goyal (Founder & Chief Event Infrastructure Director)',
-  phone: '+91 98765 43210',
+  contactPerson: 'Mr. Parveen (Shiv Shakti Dyeing & Tent Works)',
+  phone: '+91 94174 17978 / 94631-04291 / 0164-2211543 / 90565-17978',
   email: '123chakshu456@gmail.com',
-  address: 'Shiv Shakti Events Mart Works, Industrial Area, Ring Road, Jaipur, Rajasthan 302013',
+  address: 'Bibi Wala Road, Near Durga Mandir, Bathinda, Punjab 151001',
+  gstNumber: '03ACLPK6023A1Z9',
+  bankName: 'Punjab National Bank (PNB)',
+  accountNumber: '6183002100000867',
+  ifscCode: 'PUNB0618300',
+  upiNumber: '9417417978',
   website: 'https://shivshaktieventsmart.vercel.app',
 };
 
@@ -489,6 +499,7 @@ export function buildCatalogueHtml(options: GenerateCataloguePdfOptions): string
 
       <div class="contact-strip">
         <div class="contact-item"><strong>Works &amp; Factory:</strong> ${escapeHtml(companyDetails.address)}</div>
+        <div class="contact-item"><strong>GSTIN:</strong> ${escapeHtml(companyDetails.gstNumber || '03ACLPK6023A1Z9')}</div>
         <div class="contact-item"><strong>Director:</strong> ${escapeHtml(companyDetails.contactPerson)}</div>
         <div class="contact-item"><strong>Date:</strong> ${escapeHtml(dateStr)}</div>
       </div>
@@ -516,6 +527,8 @@ export function buildCatalogueHtml(options: GenerateCataloguePdfOptions): string
       <div class="footer-booking-box">
         <strong>Direct Fabrication &amp; Staging Enquiries:</strong>
         To check availability, confirm event staging dates, or request custom modifications for any item in this catalogue, please quote the corresponding <strong>SKU code</strong> to <strong>${escapeHtml(companyDetails.contactPerson)}</strong> at <strong>${escapeHtml(companyDetails.phone)}</strong>.
+        <br><br>
+        <strong>Official Billing &amp; Settlement:</strong> GSTIN: <strong>${escapeHtml(companyDetails.gstNumber || '03ACLPK6023A1Z9')}</strong> &bull; Bank: <strong>Punjab National Bank</strong> (A/C: <strong>6183002100000867</strong> &bull; IFSC: <strong>PUNB0618300</strong>) &bull; UPI: <strong>9417417978</strong>
       </div>
       <p>
         © ${new Date().getFullYear()} ${escapeHtml(companyDetails.name)} Pvt Ltd. All specifications, dimensions &amp; architectural designs are proprietary.

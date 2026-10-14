@@ -40,34 +40,34 @@
     min-width: 0;
     .logo-text {
       @include heading-serif;
-      font-size: clamp(0.72rem, 3.2vw, 1.4rem);
+      font-size: clamp(0.85rem, 3.2vw, 1.45rem);
       white-space: nowrap;
       letter-spacing: 0.02em;
       font-weight: 900;
-      -webkit-text-stroke: 0.35px currentColor;
-      background: linear-gradient(90deg, #0f2f2f 0%, #164646 45%, #b3861b 72%, #d4af37 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: #0f2f2f;
-      filter: drop-shadow(0 1px 1px rgba(15, 47, 47, 0.12));
+      color: #000000 !important;
+      background: none !important;
+      -webkit-background-clip: initial !important;
+      -webkit-text-fill-color: #000000 !important;
+      -webkit-text-stroke: 0 !important;
+      filter: none !important;
 
       @media (max-width: 480px) {
-        font-size: 0.72rem;
+        font-size: 0.78rem;
         letter-spacing: 0.01em;
       }
 
       @media (max-width: 360px) {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
       }
     }
     .logo-subtext {
       display: block;
-      font-size: 8px;
+      font-size: 8.5px;
       letter-spacing: 0.08em;
-      color: $color-accent-base;
+      color: #262626;
       font-weight: $font-weight-bold;
       white-space: nowrap;
-      margin-top: 1px;
+      margin-top: 2px;
 
       @media (max-width: 480px) {
         font-size: 7.5px;
@@ -1143,7 +1143,7 @@
   max-width: 85vw;
   background: $color-white;
   box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
-  z-index: 60;
+  z-index: 1600;
   display: none;
   flex-direction: column;
   transform: translateX(-100%);
@@ -1169,17 +1169,18 @@
         @include heading-serif;
         font-size: $font-size-base;
         font-weight: 900;
-        -webkit-text-stroke: 0.3px currentColor;
-        letter-spacing: 0.1em;
-        background: linear-gradient(90deg, #0f2f2f 0%, #164646 45%, #b3861b 72%, #d4af37 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        color: #0f2f2f;
+        letter-spacing: 0.08em;
+        color: #000000 !important;
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        -webkit-text-fill-color: #000000 !important;
+        -webkit-text-stroke: 0 !important;
+        filter: none !important;
         display: block;
       }
       .drawer-subtitle {
         font-size: 11px;
-        color: $color-gray;
+        color: #4b5563;
       }
     }
 
@@ -1375,7 +1376,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
-  z-index: 55;
+  z-index: 1500;
 }
 
 
