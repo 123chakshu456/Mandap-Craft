@@ -4,7 +4,6 @@ import { useOutletContext } from 'react-router-dom';
 import {
   Sparkles,
   SlidersHorizontal,
-  ChevronDown,
   Truck,
   ShieldCheck,
   User,
@@ -107,9 +106,6 @@ export default function HomePage() {
     }, 280);
     return () => clearTimeout(timer);
   }, [selectedCategory, selectedSubcategory, selectedStyleFilter, searchQuery, sortBy]);
-
-  // FAQ State
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Batch rendering pagination state with automatic infinite scroll
   const [visibleCount, setVisibleCount] = useState<number>(24);
@@ -253,6 +249,10 @@ export default function HomePage() {
          ========================================== */}
       <HomeCarousel />
 
+      {/* ==========================================
+          RECENTLY VIEWED ITEMS STRIP (HISTORY)
+         ========================================== */}
+      <RecentlyViewedBar onSelectProduct={setSelectedProductDetail} />
 
       {/* ==========================================
           PLATFORM VALUE PROPS / TRUST BADGES
@@ -297,8 +297,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-
 
       {/* ==========================================
           PRODUCT CATALOG & FILTERING MODULE
@@ -594,66 +592,6 @@ export default function HomePage() {
                 </button>
               </div>
             )}
-          </div>
-
-        </div>
-      </section>
-
-      {/* ==========================================
-          RECENTLY VIEWED ITEMS STRIP
-         ========================================== */}
-      <RecentlyViewedBar onSelectProduct={setSelectedProductDetail} />
-
-
-
-
-
-      {/* ==========================================
-          FAQ ACCORDION MODULE
-         ========================================== */}
-      <section className="faq">
-        <div className="faq-container">
-          
-          <div className="section-header">
-            <span className="section-label">FAQ</span>
-            <h2>Frequently Answered Questions</h2>
-          </div>
-
-          <div className="faq-items">
-            {[
-              {
-                q: 'What categories of event infrastructure do you manufacture and supply?',
-                a: 'We provide end-to-end event infrastructure across 6 core verticals: Wedding Mandaps & Staging, Banquet Furniture & Seating, Commercial Catering Equipment & Gas Piping, Thematic Floral Decor & Lighting, Event Essentials (Industrial Coolers, Fans, VIP Carpets), and Turnkey In-House Custom Manufacturing.'
-              },
-              {
-                q: 'Can we rent or purchase custom sizes for German Hangar tents and aluminum structures?',
-                a: 'Yes! We manufacture custom-span aluminum tents from 30ft to 120ft widths with zero internal center poles. They are fire-retardant, all-weather proof, and available for both multi-day event rental and direct commercial purchase.'
-              },
-              {
-                q: 'Are the commercial gas pipes, bhattis, and catering equipment safety certified?',
-                a: 'All our industrial gas pipes are heavy-duty stainless steel braided and rated for 300+ PSI with certified quick-release regulators. Our bhattis and food warmers conform to strict commercial hospitality standards.'
-              },
-              {
-                q: 'How does on-site delivery, anchoring, and dismantling work for large weddings?',
-                a: 'Our logistics team delivers in dedicated cushioned transport vehicles. Master scaffolders, carpenters, and electrical technicians complete full on-site anchoring 12-24 hours prior to the event, with on-standby technicians available during the ceremony.'
-              }
-            ].map((faq, idx) => {
-              const isOpen = openFaq === idx;
-              return (
-                <div key={idx} className="faq-item">
-                  <div 
-                    onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className={`faq-question ${isOpen ? 'open' : ''}`}
-                  >
-                    <span className="question-text">{faq.q}</span>
-                    <ChevronDown className="toggle-icon" />
-                  </div>
-                  <div className={`faq-answer ${isOpen ? 'open' : ''}`}>
-                    <div className="answer-text">{faq.a}</div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
 
         </div>

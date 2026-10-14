@@ -21,7 +21,84 @@ export default function RecentlyViewedBar({ onSelectProduct }: RecentlyViewedBar
     return () => window.removeEventListener('recently_viewed_updated', handleUpdate);
   }, []);
 
-  if (recentItems.length === 0) return null;
+  if (recentItems.length === 0) {
+    return (
+      <section className="recently-viewed-section" style={{
+        maxWidth: '1360px',
+        margin: '22px auto',
+        padding: '0 20px',
+      }}>
+        <div style={{
+          background: '#ffffff',
+          border: '1px solid #ebd9b4',
+          borderRadius: '16px',
+          padding: '16px 22px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              background: '#fef3c7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#b45309',
+              flexShrink: 0,
+            }}>
+              <History size={16} />
+            </div>
+            <div>
+              <h3 style={{
+                margin: 0,
+                fontSize: '0.98rem',
+                fontWeight: 800,
+                color: '#1a4d4d',
+                fontFamily: 'Playfair Display, serif',
+                letterSpacing: '0.2px',
+              }}>
+                Recently Viewed Equipment
+              </h3>
+              <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                You haven't viewed any items yet. Click on any product in the catalog below to inspect details and track them here.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('catalog');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(135deg, #1a4d4d 0%, #0d2b2b 100%)',
+              color: '#d4af37',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '7px 14px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(26, 77, 77, 0.2)',
+            }}
+          >
+            <span>Explore Catalog</span>
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="recently-viewed-section" style={{

@@ -561,11 +561,6 @@ export default function MainLayout() {
         </div>
       )}
 
-      {/* TOP DECORATIVE PROMO BANNER */}
-      <div className="promo-banner">
-        <Sparkles className="banner-icon" />
-        <span className="banner-text">🎉 FESTIVE SEASON: COMPLIMENTARY DESIGN CONSULTATION &amp; UP TO 25% OFF WEDDINGS | CODE: ROYALMAJESTY</span>
-      </div>
 
       {/* PRIMARY HEADER */}
       <header className="header">
