@@ -72,6 +72,24 @@ async function extractAllCeilingItems() {
     { name: 'br', left: 785, top: 1130, width: 600, height: 630 },
   ];
 
+  // Section 1: Custom crop adjustments for items containing extraneous snippets/UI
+  const CUSTOM_CROPS = {
+    'SC-004': { left: 785, top: 1100, width: 600, height: 500 }, // Exclude corner presenter
+    'SC-010': { left: 785, top: 250, width: 600, height: 260 },  // Royal mandala ceiling only
+    'SC-079': { left: 105, top: 1100, width: 600, height: 610 }, // Exclude bottom text caption
+    'SC-080': { left: 785, top: 1280, width: 600, height: 470 }, // Exclude top phone UI icons
+    'SC-081': { left: 105, top: 360, width: 600, height: 540 },  // Exclude Exporters India header
+    'SC-082': { left: 785, top: 250, width: 600, height: 530 },  // Exclude bottom Alamy caption
+    'SC-085': { left: 105, top: 250, width: 600, height: 480 },  // Exclude bottom Justdial caption
+    'SC-087': { left: 785, top: 1100, width: 600, height: 530 }, // Exclude bottom text caption
+    'SC-096': { left: 785, top: 1100, width: 600, height: 510 }, // Exclude bottom image snippet
+    'SC-097': { left: 105, top: 250, width: 600, height: 525 },  // Exclude bottom Justdial text
+    'SC-098': { left: 785, top: 400, width: 600, height: 500 },  // Exclude top snippet & jhumar text
+    'SC-099': { left: 105, top: 1500, width: 600, height: 230 }, // Exclude top pink banquet snippet
+    'SC-102': { left: 785, top: 495, width: 600, height: 415 },  // Exclude top Tradeindia & tent snippet
+    'SC-106': { left: 785, top: 550, width: 600, height: 350 },  // Exclude top Flipkart & tent snippet
+  };
+
   let scIndex = 1;
   for (let pIdx = 1; pIdx <= 27; pIdx++) {
     const page = doc.getPage(pIdx);
@@ -90,7 +108,7 @@ async function extractAllCeilingItems() {
       const outFileName = `cat_ceil_sc${codeNum}.jpg`;
       const outFilePath = path.join(TEMP_IMG_DIR, outFileName);
 
-      const box = cropBoxes[cIdx];
+      const box = CUSTOM_CROPS[code] || cropBoxes[cIdx];
       await sharp(pageJpegBuffer)
         .extract(box)
         .jpeg({ quality: 90 })
@@ -172,6 +190,7 @@ async function uploadToCloudinary(item, retries = 3) {
         folder: 'shiv-shakti-ceilings',
         public_id: item.publicId,
         overwrite: true,
+        invalidate: true,
         resource_type: 'image',
       });
       return res;
