@@ -301,6 +301,10 @@
   color: $color-very-light;
   padding: $spacing-12 $spacing-4 $spacing-6;
 
+  @media (max-width: 768px) {
+    padding: $spacing-8 $spacing-4 calc(115px + env(safe-area-inset-bottom, 20px));
+  }
+
   .footer-container {
     @include container;
 

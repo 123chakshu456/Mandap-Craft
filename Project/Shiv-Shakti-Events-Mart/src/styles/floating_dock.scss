@@ -97,6 +97,15 @@
 
     .btn-label {
       line-height: 1;
+      display: inline-flex;
+      align-items: center;
+
+      .btn-label-short {
+        display: none;
+      }
+      .btn-label-full {
+        display: inline;
+      }
     }
 
     &:hover {
@@ -177,36 +186,58 @@
   // MOBILE ADAPTATION (< 640px)
   // ==========================================
   @media (max-width: 640px) {
+    bottom: 12px;
+    right: 8px;
+    left: auto;
+    max-width: calc(100vw - 16px);
+
     .dock-pill-container {
-      padding: 5px 6px;
+      padding: 4px 6px;
       gap: 2px;
+      max-width: 100%;
     }
 
     .dock-divider {
-      height: 16px;
+      height: 14px;
       margin: 0 1px;
     }
 
     .dock-action-btn {
-      padding: 7px 10px;
-      font-size: 11.5px;
-      gap: 5px;
+      padding: 6px 8px;
+      font-size: 11px;
+      gap: 4px;
+      white-space: nowrap;
 
       .dock-icon {
-        width: 14px;
-        height: 14px;
+        width: 13px;
+        height: 13px;
+      }
+
+      .btn-label {
+        .btn-label-full {
+          display: none !important;
+        }
+        .btn-label-short {
+          display: inline !important;
+        }
       }
 
       &.book-btn {
-        padding: 7px 12px;
+        padding: 6px 10px;
+        .dock-cart-badge {
+          font-size: 10px;
+          padding: 1px 4px;
+          margin-left: 2px;
+        }
       }
     }
   }
 
-  @media (max-width: 380px) {
+  @media (max-width: 360px) {
     .dock-action-btn {
-      padding: 6px 8px;
-      font-size: 11px;
+      padding: 5px 6px;
+      font-size: 10.5px;
+      gap: 3px;
     }
   }
 }

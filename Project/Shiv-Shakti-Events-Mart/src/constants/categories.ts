@@ -52,7 +52,7 @@ export const CATEGORIES: CategoryData[] = [
         id: 'ceilings',
         title: 'Ceilings & Cloth Canopies',
         description: 'Traditional Scalloped Velvet Ruffles, Concentric Silk Rings & Mandap Roof Ceiling Work',
-        image: '/ceilings/traditional_ceiling_decor.jpg',
+        image: 'https://res.cloudinary.com/owbjdijm/image/upload/v1790117235/shiv-shakti-categories/traditional_ceiling_decor_qemqjp.jpg',
         popularItems: ['Scalloped Velvet Ceiling Canopy', 'Triple-Layer Red & Yellow Ruffle', 'Concentric Silk Mandala Ceiling', 'Pleated Mandap Roof Decor'],
       },
       {

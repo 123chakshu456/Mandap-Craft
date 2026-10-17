@@ -90,6 +90,7 @@ export default function RecentlyViewedPill({ onSelectProduct }: RecentlyViewedPi
         }}
       >
         <div
+          className="history-icon-circle"
           style={{
             width: '26px',
             height: '26px',
@@ -106,6 +107,7 @@ export default function RecentlyViewedPill({ onSelectProduct }: RecentlyViewedPi
         </div>
 
         <span
+          className="history-pill-text"
           style={{
             fontSize: '0.82rem',
             fontWeight: 700,
@@ -117,6 +119,7 @@ export default function RecentlyViewedPill({ onSelectProduct }: RecentlyViewedPi
         </span>
 
         <span
+          className="history-pill-badge"
           style={{
             background: '#d4af37',
             color: '#1a4d4d',
@@ -455,9 +458,22 @@ export default function RecentlyViewedPill({ onSelectProduct }: RecentlyViewedPi
         }
         @media (max-width: 768px) {
           .floating-history-pill {
-            bottom: 84px !important;
-            left: 14px !important;
-            padding: 7px 12px 7px 8px !important;
+            bottom: 64px !important;
+            left: 10px !important;
+            padding: 5px 9px 5px 6px !important;
+            gap: 5px !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+          }
+          .floating-history-pill .history-icon-circle {
+            width: 22px !important;
+            height: 22px !important;
+          }
+          .floating-history-pill .history-pill-text {
+            font-size: 0.72rem !important;
+          }
+          .floating-history-pill .history-pill-badge {
+            font-size: 0.68rem !important;
+            padding: 1px 5px !important;
           }
           .history-popup-card {
             bottom: 0 !important;

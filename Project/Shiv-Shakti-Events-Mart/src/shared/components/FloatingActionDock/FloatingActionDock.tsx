@@ -279,7 +279,10 @@ ${enquiryQuestion.trim() || 'Please share detailed quotation, availability, and 
             <span className="btn-icon-wrapper">
               <PhoneCall className="dock-icon phone-pulse" />
             </span>
-            <span className="btn-label">Contact Us</span>
+            <span className="btn-label">
+              <span className="btn-label-full">Contact Us</span>
+              <span className="btn-label-short">Contact</span>
+            </span>
           </button>
 
           <span className="dock-divider" aria-hidden="true" />
@@ -295,7 +298,10 @@ ${enquiryQuestion.trim() || 'Please share detailed quotation, availability, and 
             <span className="btn-icon-wrapper">
               <Sparkles className="dock-icon gold-sparkle" />
             </span>
-            <span className="btn-label">Enquire At</span>
+            <span className="btn-label">
+              <span className="btn-label-full">Enquire At</span>
+              <span className="btn-label-short">Enquire</span>
+            </span>
           </button>
 
           <span className="dock-divider" aria-hidden="true" />
